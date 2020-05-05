@@ -56,9 +56,9 @@ It starts all over! The cycle never ends, and the conclusion is to remember that
 
 ## Survivor bias
 
-Do you remember when I said that you need to start applying as soon as possible? It's because I care for you and I want you to fail. Yup, you read it right - **FAIL**. Failure is unavoidable in the hiring process, and sooner you realize it, the better. Failure is also free, so fail fast, as they like to say. 
+Do you remember when I said that you need to start applying as soon as possible? It's because I care for you and I want you to fail. Yup, you read it right - **FAIL**. Failure is unavoidable in the hiring process, and sooner you realize it, the better. Failure is also free, so fail fast, as *they* like to say. 
 
-Who are they you may ask? They surely are not the people who author the success stories you've probably read over the internet. You know which ones I'm talking about. The ones about pivoting someone's life, taking up coding and landing a dev job in a couple of months without a CS degree. I read dozens of them, each one more impressive than the last. I'm not trying to mock anyone, and I don't have any reason not to believe them, but none of them was about someone failing and giving up.
+Who are *they* you may ask? *They* surely are not the people who author the success stories you've probably read over the internet. You know which ones I'm talking about. The ones about pivoting someone's life, taking up coding and landing a dev job in a couple of months without a CS degree. I read dozens of them, each one more impressive than the last. I'm not trying to mock anyone, and I don't have any reason not to believe them, but none of them was about someone failing and giving up.
 
 This phenomenon has a name - survivor bias. It means that only success stories get proper visibility, and you rarely hear about someone who failed (unless you count the bulk sellouts of programming books on facebook groups for beginners that is). So if you are looking for a real-life example of someone who has been in the same spot as you are right now, then you only see a bunch of successes. Don't you think it would fair if you could also read about people who didn't make it? I believe everyone can code, but not everyone is fit for the job. I know it sounds harsh, but I  wish that boot camps wouldn't forget to mention that in their ads.
 
