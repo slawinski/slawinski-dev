@@ -1,5 +1,6 @@
 ---
 title: An old man’s guide to rebranding
+description: Or how to fail at coding interviews and question your life choices
 draft: false
 date: 2020-05-05T19:00:49.056Z
 ---
