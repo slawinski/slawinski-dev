@@ -44,13 +44,13 @@ In the end, there are no magic beans, and you still will have to learn — a lot
 
 Ok, now that you’ve read most of the books and watched some of the tutorials you might think the time has come to take a look at the job market and start applying. And you're right, so do it. Did you do it? Ok, now take a look at the chart below.
 
-![](https://thepracticaldev.s3.amazonaws.com/i/f0x564ltwkqvoftwaign.png)
+![](../src/assets/f0x564ltwkqvoftwaign.png)
 
 The above chart was taken from [Why Learning to Code is So Damn Hard](https://www.thinkful.com/blog/why-learning-to-code-is-so-damn-hard/) and in my opinion, it's the best representation of the Dunning-Kruger effect. What is it? It's a psychological phenomenon when people mistakenly assess their abilities as greater than they actually are, which means that they cannot objectively evaluate their competence or incompetence.
 
 When I started to learn to code, it took me four weeks to get to the peak of the hand-holding honeymoon. I was convinced that the amount of HTML and CSS I learned was enough to land me a job. Right about then I applied for the first time. For me, it was a massive failure, and for that company, it was a complete waste of time. The downfall of confidence came shortly after. It was obvious that I couldn't assess my competences correctly. A little over a year has passed, and I can tell that I’m somewhere on the *upswing*. I eventually got hired, but the hard work is not over, in fact, the hard work has only begun. Let me present you another chart - the Dunning-Kruger-Slawinski effect which describes what happens when you finally find a job
 
-![](https://thepracticaldev.s3.amazonaws.com/i/c80oanee71u7p6qlzexy.png)
+![](../src/assets/c80oanee71u7p6qlzexy.png)
 
 It starts all over! The cycle never ends, and the conclusion is to remember that besides the inability to recognize one's lack of ability, humans also expect instant gratification but in real life, it’s more like small increments day by day. For now, it is easier to assume that *you know nothing* and that this cycle repeats itself each time your life reaches a particular milestone.
 
@@ -70,7 +70,7 @@ I can only imagine that for experienced candidates, it has to be even more infur
 
 But for someone with little to no experience, it does not make much of a difference - a failed interview is a failed interview. Anyway, in this crazy world, your chance to get a job grows with every application sent. Do you remember when I wrote in the beginning that luck is essential to become a dev? It took me seven months from sending out the first resume to finally accepting an offer for junior javascript developer. The whole thing is a matter of match and fit so keep on keeping on - you might get lucky next time. Below you will find the [flow diagram](http://sankeymatic.com/) of my job hunting efforts, and I recommend you to do one yourself. 
 
-![](https://thepracticaldev.s3.amazonaws.com/i/wlfi8otqnfxox2y495tx.png)
+![](../src/assets/wlfi8otqnfxox2y495tx.png)
 
 So eventually, if you'll try long enough, you will get an offer. But before you sign anything, think about what you're doing. The temptation after a long and weary job hunt might make you accept the first offer you get, but you can still end up with a dead-end job working for less than you deserve. I’m not saying *never accept the first offer*, I’m just saying *don’t let the initial success distort your perspective*. Assess the offer cold-heartedly. Is it what you’ve wanted? Can you squeeze more from it? In the end, the person who says *no* to things is the person who is in control of their stuff.
 
