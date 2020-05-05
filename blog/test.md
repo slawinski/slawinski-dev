@@ -11,3 +11,8 @@ date: 2020-01-01
 5. Create repo and push
 6. Go to netlify, create new, add form github, build command `gridsome build`, publish directory `dist`
 7. Create `config.yml` and `index.html` in `/static/admin`
+8. Commit and push
+9. On netlify indentity > enable identity > settings and usage > invite only 
+                                                               > enable git gateway
+                        > invite users
+10. Confirm email, set a password and go to `/admin` url
