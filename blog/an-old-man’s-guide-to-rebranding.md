@@ -3,10 +3,6 @@ title: An old man’s guide to rebranding
 draft: false
 date: 2020-05-05T19:00:49.056Z
 ---
-- - -
-description: Or how to fail at coding interviews and question your life choices
-- - -
-
 Originally posted on [dev.to](https://dev.to/slawinski/an-old-man-s-guide-to-rebranding-3d6l)
 
 You may think that in order to land a job in the dev world without previous experience, you need knowledge and skill. Well, not only that. You also need courage and luck. And boy it takes a lot of courage to pivot your career. Especially when you're in an age when you've probably already established one, and senior developers are by average five years younger than you. Allow me to show you that not all hope is lost and how to increase your chances of getting hired.
