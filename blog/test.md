@@ -1,7 +1,8 @@
 ---
 title: First post
 description: Lorem ipsum
-date: 2020-01-01
+draft: true
+date: 2020-01-01T00:00:00.000Z
 ---
 1. Install gridsome `npm install --global @gridsome/cli`
 2. Run `gridsome create xxx`
