@@ -14,7 +14,7 @@ Alright! Let's assume that you are confident that you want to learn to code with
 
 As always - the hardest part is to start. Fortunately, with the web technologies, you don’t even have to move from your couch. All that you could ever need lies at your fingertips - in the vast space called the internet. But the abundance of information is overwhelming. Tons of articles, hours of videos, and dozens of online courses should make the process easier, but frequently it’s the very opposite. Not to mention that the quality of the things you will find may and will vary. Should I take that insanely discounted course on Udemy? Should I learn from books? What about tutorials, podcasts, or boot camps? Does it contain good practices or only teach anti-patterns? Let’s get down into the nitty-gritty! (Oh, and don't make the mistake of trying to learn everything. Pick a language and stick to it!)
 
-## Online courses
+### Online courses
 
 A great choice if you don't know where to start, or you’re looking for a comprehensive curriculum from a particular field, or you enjoy being led by the hand. Usually inexpensive - you either pay per course or a monthly fee. Oh, and before paying full price on Udemy, remember that you can get up to a 90% discount now and then. As a disadvantage, you can consider that as a beginner, you might have problems with transitioning from a course to real life as described in [Moving Past Tutorials](https://dev.to/aspittel/moving-past-tutorials-a-course-on-problem-solving-for-programmers-3oa4).
 

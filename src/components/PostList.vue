@@ -1,9 +1,7 @@
 <template>
-  <div class="pb-10">
-    <h1 v-html="post.title" />
-    <h6 v-html="post.date"/>
-    <p v-html="post.description"/>
-    <g-link :to="post.path" >Read More...</g-link>
+  <div class="mb-32">
+    <g-link :to="post.path" ><h1 class="text-headline leading-none font-publicsans font-bold tracking-tight sm:text-7xl hover:text-gray-700 pb-8" v-html="post.title" /></g-link>
+    <p class="text-paragraph font-ptsans text-3xl" v-html="post.description"/>
   </div>
 </template>
 
