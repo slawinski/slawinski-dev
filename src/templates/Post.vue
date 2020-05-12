@@ -42,6 +42,10 @@ query Post ($path: String!) {
     @apply mt-6;
   }
 
+  .markdown p {
+    @apply font-ptsans text-2xl;
+  }
+
   .markdown strong {
     @apply font-semibold;
   }
@@ -82,10 +86,6 @@ query Post ($path: String!) {
     @apply leading-tight font-publicsans text-sm font-semibold text-gray-600 mb-4 mt-6;
   }
 
-  .markdown p {
-    @apply font-ptsans text-2xl
-  }
-
   .markdown blockquote {
     @apply text-base border-l-4 border-gray-300 pl-4 pr-4 text-gray-600;
   }
@@ -103,11 +103,11 @@ query Post ($path: String!) {
   }
 
   .markdown ul {
-    @apply text-base pl-8 list-disc;
+    @apply font-ptsans text-xl pl-8 list-disc;
   }
 
   .markdown ol {
-    @apply text-base pl-8 list-decimal;
+    @apply font-ptsans text-xl pl-8 list-decimal;
   }
 
   .markdown kbd {

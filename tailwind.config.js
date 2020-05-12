@@ -4,7 +4,7 @@ module.exports = {
     fontFamily: {
       'sans': ['-apple-system', 'BlinkMacSystemFont'], 
       'serif': ['Georgia', 'Cambria'], 
-      'mono': ['SFMono-Regular', 'Menlo'], 
+      'mono': ['SFMono-Regular', 'Menlo', 'monospace'],
       'display': ['Oswald'], 
       'body': ['Open Sans'],
       'sourcesans': ['"source sans pro"'],
