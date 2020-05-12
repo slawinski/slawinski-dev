@@ -27,7 +27,7 @@ query Post ($path: String!) {
   }
 
   .markdown {
-    @apply text-gray-900 leading-normal break-words;
+    @apply text-gray-900 leading-tight break-words;
   }
 
   .markdown > * + * {
