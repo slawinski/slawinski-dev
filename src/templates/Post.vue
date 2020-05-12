@@ -1,7 +1,7 @@
 <template>
   <Layout>
     <div>
-      <h1 v-html="$page.post.title" class="text-headline leading-none font-publicsans font-bold tracking-tight sm:text-7xl mb-8"/>
+      <h1 v-html="$page.post.title" class="text-headline leading-none font-publicsans font-bold tracking-tight text-4xl sm:text-7xl mb-8"/>
       <h6 class="mb-5 text-lg" v-html="$page.post.date"/>
       <div v-html="$page.post.content" class="markdown"/>
     </div>
