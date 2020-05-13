@@ -1,8 +1,8 @@
 <template>
   <Layout>
     <div>
-      <h1 v-html="$page.post.title" class="text-headline leading-none font-publicsans font-bold tracking-tight text-4xl sm:text-7xl mb-8"/>
-      <h6 class="mb-5 text-lg" v-html="$page.post.date"/>
+      <h1 v-html="$page.post.title" class="text-headline leading-none font-publicsans font-bold tracking-tight text-4xl sm:text-7xl mb-10"/>
+      <h6 class="mb-10 text-lg" v-html="$page.post.date"/>
       <div v-html="$page.post.content" class="markdown"/>
     </div>
   </Layout>
@@ -35,7 +35,7 @@ query Post ($path: String!) {
   }
 
   .markdown li + li {
-    @apply mt-1;
+    @apply mt-10;
   }
 
   .markdown li > p + p {
@@ -43,7 +43,7 @@ query Post ($path: String!) {
   }
 
   .markdown p {
-    @apply font-ptsans text-2xl;
+    @apply mb-10 font-ptsans text-2xl;
   }
 
   .markdown strong {
@@ -63,23 +63,23 @@ query Post ($path: String!) {
   }
 
   .markdown h1 {
-    @apply leading-tight font-publicsans text-4xl font-semibold mb-4 mt-6 pb-2;
+    @apply leading-tight font-publicsans text-4xl font-semibold mb-10 mt-6 pb-2;
   }
 
   .markdown h2 {
-    @apply leading-tight font-publicsans text-2xl font-semibold mb-4 mt-6 pb-2;
+    @apply leading-tight font-publicsans text-2xl font-semibold mb-10 mt-6 pb-2;
   }
 
   .markdown h3 {
-    @apply leading-snug font-publicsans text-lg font-semibold mb-4 mt-6;
+    @apply leading-snug font-publicsans text-lg font-semibold mb-10 mt-6;
   }
 
   .markdown h4 {
-    @apply leading-none font-publicsans text-base font-semibold mb-4 mt-6;
+    @apply leading-none font-publicsans text-base font-semibold mb-10 mt-6;
   }
 
   .markdown h5 {
-    @apply leading-tight font-publicsans text-sm font-semibold mb-4 mt-6;
+    @apply leading-tight font-publicsans text-sm font-semibold mb-10 mt-6;
   }
 
   .markdown h6 {
@@ -103,11 +103,11 @@ query Post ($path: String!) {
   }
 
   .markdown ul {
-    @apply font-ptsans text-xl pl-8 list-disc;
+    @apply font-ptsans text-2xl mb-10 pl-8 list-disc;
   }
 
   .markdown ol {
-    @apply font-ptsans text-xl pl-8 list-decimal;
+    @apply font-ptsans text-2xl mb-10 pl-8 list-decimal;
   }
 
   .markdown kbd {
@@ -124,6 +124,10 @@ query Post ($path: String!) {
 
   .markdown td {
     @apply border py-1 px-3;
+  }
+
+  .markdown div {
+    @apply mb-10
   }
 
   /* Override pygments style background color. */
