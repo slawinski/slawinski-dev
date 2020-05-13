@@ -13,11 +13,11 @@
         </div>
       </div>
       <nav :class="isOpen ? 'block' : 'hidden'" class="mt-4 py-3 px-5 pb-4 flex flex-col items-center sm:flex sm:flex-row sm:p-0 sm:m-0">
-        <form>
+        <form class="flex flex-col items-center sm:flex sm:flex-row">
           <input type="email" v-model="email" class="py-1 px-3 shadow appearance-none border rounded text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="email" required>
-          <button @click.prevent="submit" class="ml-4 py-1 px-1 bg-transparent hover:bg-button text-button font-semibold hover:text-white border border-button hover:border-transparent rounded" >Subscribe</button>
+          <button @click.prevent="submit" class="mt-6 sm:mt-0 ml-4 py-1 px-1 bg-transparent hover:bg-button text-button text-2xl sm:text-base font-publicsans font-bold hover:text-white border border-button hover:border-transparent rounded" >Subscribe</button>
         </form>
-        <g-link class="sm:ml-4 block font-publicsans font-bold text-2xl sm:text-base text-headline hover:underline hover:text-gray-700" to="/">Blog</g-link>
+        <g-link class="mt-6 sm:mt-0 sm:ml-4 block font-publicsans font-bold text-2xl sm:text-base text-headline hover:underline hover:text-gray-700" to="/">Blog</g-link>
         <g-link class="mt-6 sm:mt-0 sm:ml-4 block font-publicsans font-bold text-2xl sm:text-base text-headline hover:underline  hover:text-gray-700" to="/projects/">Projects</g-link>
         <div class="flex justify-between items-center">
           <g-link to="https://twitter.com/piotr_slawinski">
