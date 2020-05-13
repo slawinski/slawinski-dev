@@ -4,12 +4,15 @@
   "scripts": {
     "build": "gridsome build",
     "develop": "gridsome develop",
-    "explore": "gridsome explore"
+    "explore": "gridsome explore",
+    "postinstall": "netlify-lambda install"
   },
   "dependencies": {
     "@gridsome/source-filesystem": "^0.6.2",
     "@gridsome/transformer-remark": "^0.5.0",
+    "axios": "^0.19.2",
     "gridsome": "^0.7.0",
+    "netlify-lambda": "^1.6.3",
     "typeface-aileron": "0.0.66",
     "typeface-chivo": "0.0.72",
     "typeface-darker-grotesque": "0.0.76",
