@@ -7,15 +7,8 @@ module.exports = {
       'mono': ['SFMono-Regular', 'Menlo', 'monospace'],
       'display': ['Oswald'], 
       'body': ['Open Sans'],
-      'sourcesans': ['"source sans pro"'],
-      'sourceserif': ['"source serif pro"'],
-      'aileron': ['aileron'],
-      'darkergrotesque': ['"darker grotesque"'],
-      'chivo': ['chivo'],
       'publicsans': ['"public sans"'],
       'ptsans': ['"pt sans"'],
-      'heuristica': ['heuristica'],
-      'merriwather': ['merriweather'],
     },
     extend: {
       colors: {
@@ -23,7 +16,6 @@ module.exports = {
         headline: '#0d0d0d',
         paragraph: '#2a2a2a',
         button: '#ff8e3c',
-        'button-text': '#0d0d0d'
       },
       fontSize: {
         '7xl': '5rem',

@@ -13,12 +13,9 @@
         </div>
       </div>
       <nav :class="isOpen ? 'block' : 'hidden'" class="mt-4 py-3 px-5 pb-4 flex flex-col items-center sm:flex sm:flex-row sm:p-0 sm:m-0">
-        <form class="flex flex-col items-center sm:flex sm:flex-row">
-          <input type="email" v-model="email" class="py-1 px-3 shadow appearance-none border rounded text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Your email adress" required>
-          <button @click.prevent="submit" class="mt-6 sm:mt-0 ml-4 py-1 px-1 bg-transparent hover:bg-button text-button text-2xl sm:text-base font-publicsans font-bold hover:text-white border border-button hover:border-transparent rounded" >Subscribe</button>
-        </form>
         <g-link class="mt-6 sm:mt-0 sm:ml-4 block font-publicsans font-bold text-2xl sm:text-base text-headline hover:underline hover:text-gray-700" to="/">Blog</g-link>
         <g-link class="mt-6 sm:mt-0 sm:ml-4 block font-publicsans font-bold text-2xl sm:text-base text-headline hover:underline  hover:text-gray-700" to="/projects/">Projects</g-link>
+        <g-link class="mt-6 sm:mt-0 sm:ml-4 block font-publicsans font-bold text-2xl sm:text-base text-headline hover:underline  hover:text-gray-700" to="/newsletter/">Newsletter</g-link>
         <div class="flex justify-between items-center">
           <g-link to="https://twitter.com/piotr_slawinski">
             <svg class="h-8 sm:h-5 w-8 sm:w-5 mt-6 sm:mt-0 mx-2 sm:ml-4 fill-current text-headline hover:text-gray-700" viewBox="328 355 335 276" xmlns="http://www.w3.org/2000/svg">
