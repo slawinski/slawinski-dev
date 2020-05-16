@@ -16,6 +16,7 @@
         <g-link class="mt-6 sm:mt-0 sm:ml-4 block font-publicsans font-bold text-2xl sm:text-base text-headline hover:underline hover:text-gray-700" to="/">Blog</g-link>
         <g-link class="mt-6 sm:mt-0 sm:ml-4 block font-publicsans font-bold text-2xl sm:text-base text-headline hover:underline  hover:text-gray-700" to="/projects/">Projects</g-link>
         <g-link class="mt-6 sm:mt-0 sm:ml-4 block font-publicsans font-bold text-2xl sm:text-base text-headline hover:underline  hover:text-gray-700" to="/newsletter/">Newsletter</g-link>
+        <g-link class="mt-6 sm:mt-0 sm:ml-4 block font-publicsans font-bold text-2xl sm:text-base text-headline hover:underline  hover:text-gray-700" to="/contact/">Contact</g-link>
         <div class="flex justify-between items-center">
           <g-link to="https://twitter.com/piotr_slawinski">
             <svg class="h-8 sm:h-5 w-8 sm:w-5 mt-6 sm:mt-0 mx-2 sm:ml-4 fill-current text-headline hover:text-gray-700" viewBox="328 355 335 276" xmlns="http://www.w3.org/2000/svg">
@@ -45,32 +46,11 @@ query {
 </static-query>
 
 <script>
-  import axios from 'axios'
   export default {
     data() {
       return {
         isOpen: false,
-        email: '',
       }
-    },
-    methods: {
-     async submit() {
-       try {
-         await axios.post('/api/subscribe', {
-           email: this.email
-         },
-         {
-           headers: {
-             'Content-Type': 'application/json'
-           }
-         },
-       )
-       } catch(err) {
-         console.error(err)
-       } finally {
-         this.email = ''
-       }
-     },
     }
   }
 </script>

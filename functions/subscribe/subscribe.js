@@ -1,5 +1,6 @@
 const fetch = require('node-fetch');
 const base64 = require('base-64');
+
 exports.handler = async (event, context) => {
   // Only allow POST
   if (event.httpMethod !== 'POST') {
@@ -18,6 +19,7 @@ exports.handler = async (event, context) => {
       status: 'subscribed',
     };
     const creds = `any:${process.env.MAILCHIMP_KEY}`;
+
     const response = await fetch(
       'https://us18.api.mailchimp.com/3.0/lists/41f22f2825/members/',
       {
