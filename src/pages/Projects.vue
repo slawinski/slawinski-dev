@@ -1,8 +1,8 @@
 <template>
   <Layout>
     <h1 class="text-headline leading-none font-publicsans font-bold tracking-tight text-4xl sm:text-7xl mb-10">Check out what I've been up to lately</h1>
-    <div class="flex justify-around">
-    <div class="max-w-sm rounded overflow-hidden shadow-lg">
+    <div class="block sm:flex sm:justify-around">
+    <div class="mb-8 sm:mb-0 max-w-sm rounded overflow-hidden shadow-lg">
       <g-link to="https://slawinski.github.io/chemtrails-guru/">
         <img class="transition duration-500 ease-in-out transform hover:scale-105 h-64 w-full object-cover" src="../assets/chemtrails-guru.png" alt="Map with plane markers">
       </g-link>
@@ -20,7 +20,7 @@
       </div>
     </div>
 
-    <div class="max-w-sm rounded overflow-hidden shadow-lg">
+    <div class="mb-b sm:mb-0 max-w-sm rounded overflow-hidden shadow-lg">
       <g-link to="https://slawinski.dev/">
         <img class="transition duration-500 ease-in-out transform hover:scale-105 h-64 w-full object-cover" src="../assets/slawinski-dev.png" alt="it's this website">
       </g-link>
