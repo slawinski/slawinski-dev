@@ -33,10 +33,8 @@ export default {
             message: this.message,
           }
         )
-        alert('Thank you, your message was sent successfully!')
       } catch (err) {
         console.error(err)
-        alert('Error:  Your message could not be sent')
       } finally {
         this.senderName = '';
         this.senderEmail = '';
