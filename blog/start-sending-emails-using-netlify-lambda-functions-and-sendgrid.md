@@ -6,3 +6,7 @@ draft: true
 date: 2020-05-16T08:58:54.532Z
 ---
 One suggestion though. Personally I had troubles configuring the Sendgrid as a first time user. Could you put more emphasis on the fact that besides API key a user also has to do "Sender Authentication" and if she/he chooses "Single Sender Verification" then the `from` and `to` emails from your snippet have to be the same.
+
+https://sendgrid.com/docs/ui/account-and-settings/how-to-set-up-domain-authentication/
+
+https://sendgrid.com/docs/for-developers/sending-email/sender-identity/
