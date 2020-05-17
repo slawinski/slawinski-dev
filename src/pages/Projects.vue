@@ -4,7 +4,7 @@
     <div class="block sm:flex sm:justify-around">
     <div class="mb-8 sm:mb-0 max-w-sm rounded overflow-hidden shadow-lg">
       <g-link to="https://slawinski.github.io/chemtrails-guru/">
-        <img class="transition duration-500 ease-in-out transform hover:scale-105 h-64 w-full object-cover" src="../assets/chemtrails-guru.png" alt="Map with plane markers">
+        <img class="h-64 w-full object-cover" src="../assets/chemtrails-guru.png" alt="Map with plane markers">
       </g-link>
       <div class="px-6 py-4 flex justify-between items-baseline">
         <div class="text-paragraph font-publicsans font-bold leading-tight text-2xl mb-2">Chemtrails Guru</div>
@@ -15,14 +15,15 @@
         </g-link>
       </div>
       <div class="px-6 py-4">
-        <span class="inline-block bg-gray-200 rounded-full px-3 py-1 text-paragraph font-ptsans leading-tight text-xl mr-2">#Vue 3.0</span>
+        <span class="inline-block bg-gray-200 rounded-full px-3 py-1 text-paragraph font-ptsans leading-tight text-xl mr-2">#Vue</span>
         <span class="inline-block bg-gray-200 rounded-full px-3 py-1 text-paragraph font-ptsans leading-tight text-xl mr-2">#Leaflet</span>
+        <span class="inline-block bg-gray-200 rounded-full px-3 py-1 text-paragraph font-ptsans leading-tight text-xl mr-2">#OpenStreetMap</span>
       </div>
     </div>
 
     <div class="mb-b sm:mb-0 max-w-sm rounded overflow-hidden shadow-lg">
       <g-link to="https://slawinski.dev/">
-        <img class="transition duration-500 ease-in-out transform hover:scale-105 h-64 w-full object-cover" src="../assets/slawinski-dev.png" alt="it's this website">
+        <img class="h-64 w-full object-cover" src="../assets/slawinski-dev.png" alt="it's this website">
       </g-link>
       <div class="px-6 py-4 flex justify-between items-baseline">
         <div class="text-paragraph font-publicsans font-bold leading-tight text-2xl mb-2">This website</div>
