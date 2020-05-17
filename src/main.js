@@ -14,5 +14,5 @@ export default function (Vue, { router, head, isClient }) {
   head.htmlAttrs = { lang: 'en' }
 
   // Add attributes to BODY tag
-  head.bodyAttrs = { class: 'bg-background leading-normal max-w-4xl mx-auto px-5' }
+  head.bodyAttrs = { class: 'bg-background leading-normal' }
 }
