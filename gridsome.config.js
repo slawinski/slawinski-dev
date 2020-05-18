@@ -14,6 +14,11 @@ module.exports = {
         typeName: 'Post',
         remark: {
           // remark options
+          plugins: [
+            [ '@noxify/gridsome-plugin-remark-embed', {
+              'enabledProviders' : ['Youtube', 'Twitter', 'Gist'],
+            }]
+          ]
         }
       }
     },
