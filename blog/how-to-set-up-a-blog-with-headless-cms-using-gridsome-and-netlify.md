@@ -1,5 +1,5 @@
 ---
-title: Setting up a blog with headless CMS using Gridsome and Netlify CMS
+title: Setting up a blog with using Gridsome and Netlify CMS
 description: A step-by-step guide to create your own blogging platform from scratch.
 draft: true
 date: 2020-05-14T10:22:03.035Z
