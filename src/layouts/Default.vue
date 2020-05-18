@@ -38,7 +38,7 @@
       <slot v-if="!isOpen"/>
     </main>
 
-    <footer v-if="!isOpen" class="px-4 sm:px-20 h-48 bg-headline text-secondary flex flex-col justify-around sm:flex sm:flex-row sm:justify-between sm:items-center">
+    <footer v-if="!isOpen" class="p-4 sm:px-20 h-48 bg-headline text-secondary flex flex-col justify-around sm:flex sm:flex-row sm:justify-between sm:items-center">
       <g-link to="/">
         <div class="text-secondary font-sans font-extrabold tracking-tight text-xl sm:text-2xl">slawinski.dev</div>
       </g-link>

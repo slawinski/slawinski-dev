@@ -37,6 +37,7 @@
         <span class="inline-block bg-gray-200 rounded-full px-3 py-1 text-paragraph font-body leading-tight text-xl mr-2">#Gridsome</span>
         <span class="inline-block bg-gray-200 rounded-full px-3 py-1 text-paragraph font-body leading-tight text-xl mr-2">#NetlifyCMS</span>
         <span class="inline-block bg-gray-200 rounded-full px-3 py-1 text-paragraph font-body leading-tight text-xl mr-2">#Serverless</span>
+        <span class="inline-block bg-gray-200 rounded-full px-3 py-1 text-paragraph font-body leading-tight text-xl mr-2">#TailwindCSS</span>
       </div>
     </div>
     </div>
