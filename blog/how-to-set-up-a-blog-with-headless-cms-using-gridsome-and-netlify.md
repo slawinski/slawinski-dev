@@ -62,7 +62,12 @@ module.exports = {
   }
 }
 ```
-4. Create `Post.vue` in `src/templates` and `PostList.vue` in `src/components` and `test.md` in `/blog`
+Notice the `path` property? It's the directory where we will put our markdown.
+
+Now we have to create few files. In `src/templates` directory create `Post.vue`, in `src/components` create `PostList.vue` and in `/blog` create `firstPost.md`.
+
+
+
 5. Create repo and push
 6. Go to netlify, create new, add form github, build command `gridsome build`, publish directory `dist`
 7. Create `config.yml` and `index.html` in `/static/admin` and `index.html` in `/src`
