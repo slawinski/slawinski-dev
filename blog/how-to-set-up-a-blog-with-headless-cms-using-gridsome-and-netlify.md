@@ -40,8 +40,28 @@ npm install @gridsome/source-filesystem @gridsome/transformer-remark
 
 After successful installation we have to edit `gridsome.config.js`. It has to look like this:
 
-https://gist.github.com/slawinski/f73d038bd44c9e9794dafa41de6ae313#file1.js
-
+```
+module.exports = {
+  siteName: 'my-blog',
+  plugins: [
+    {
+      use: '@gridsome/source-filesystem',
+      options: {
+        path: 'blog/**/*.md',
+        typeName: 'Post',
+        remark: {
+          // remark options
+        }
+      }
+    }
+  ],
+  transformers: {
+    remark: {
+      // global remark options
+    }
+  }
+}
+```
 Notice the `path` property? It's the directory where we will put our markdown.
 
 Now we have to create few files. In `src/templates` directory create `Post.vue`, in `src/components` create `PostList.vue` and in `/blog` create `firstPost.md`.
