@@ -91,7 +91,7 @@ query Post ($path: String!) {
   }
 
   .markdown code {
-    @apply font-mono text-sm inline bg-gray-200 rounded px-1 py-05;
+    @apply font-mono text-base inline bg-gray-200 rounded px-1 py-05;
   }
 
   .markdown pre {

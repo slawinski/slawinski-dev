@@ -13,6 +13,7 @@ enim; utque. Ipsa tua capillos tendunt quoque nostra. Terga hunc feror mansit,
 arma navita audisse Stygiae indueret undae **iuvenci et**. Auro quoque prior
 fati vocem. **Tactuque plaga**, deam vos sub obitumque nomina fere vultu.
 
+```javascript
     if (blogGuiScript(pathOsCron * aluUsername, analyst, 67)) {
         pc(phreaking, spooling);
     }
@@ -45,6 +46,7 @@ fati vocem. **Tactuque plaga**, deam vos sub obitumque nomina fere vultu.
     } else {
         matrix_impression.sliHashtag(2, apiData, diskDmaTerminal + 98);
     }
+```
 
 ## Et radice vocando pectore
 
@@ -67,6 +69,7 @@ honori altoque qua. Cui nefas Eurytus dolor. Aut sese nostri. Sunt et **herbis
 audiat**, voce Dicta: ille qua equos haec flammae foedat lymphata
 [eversae](http://quem.com/dedit), in!
 
+```javascript
     if (smbMbpsMultitasking) {
         default -= directxFlopsIsdn.impactXpDos(windows_adsl_horse);
         thyristor_rw(-3, expression(3));
@@ -78,6 +81,7 @@ audiat**, voce Dicta: ille qua equos haec flammae foedat lymphata
     var bookmarkCommandBoot = ddr.spam(myspace(digital_scan, 3,
             partition_operating_bitmap), 5) * 1;
     proxy += drivePetabyteEngine - wi_hyper - balancing;
+```
 
 ## Alis requiescit umbras eburnas
 
