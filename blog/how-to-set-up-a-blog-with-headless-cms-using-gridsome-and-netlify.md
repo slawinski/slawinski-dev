@@ -1,5 +1,5 @@
 ---
-title: Setting up a blog with using Gridsome and Netlify CMS
+title: Setting up a blog with Gridsome and Netlify CMS
 description: A step-by-step guide to create your own blogging platform from scratch.
 draft: true
 date: 2020-05-14T10:22:03.035Z
@@ -40,7 +40,7 @@ npm install @gridsome/source-filesystem @gridsome/transformer-remark
 
 After successful installation we have to edit `gridsome.config.js`. It has to look like this:
 
-<script src="https://gist.github.com/slawinski/f73d038bd44c9e9794dafa41de6ae313.js"></script>
+https://gist.github.com/slawinski/f73d038bd44c9e9794dafa41de6ae313.js
 
 Notice the `path` property? It's the directory where we will put our markdown.
 
