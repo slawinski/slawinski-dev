@@ -34,7 +34,7 @@
       </nav>
     </header>
 
-    <main class="flex-grow max-w-4xl mx-auto mb-32 px-4">
+    <main class="flex-grow max-w-full sm:max-w-4xl mx-auto mb-32 px-5">
       <slot v-if="!isOpen"/>
     </main>
 
