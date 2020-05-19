@@ -20,6 +20,11 @@ query Post ($path: String!) {
 </page-query>
 
 <style>
+  @import 'https://github.githubassets.com/assets/gist-embed-d89dc96f3ab6372bb73ee45cafdd0711.css';
+
+  .gist .blob-code-inner {
+    font-size: 1rem;
+  }
   /* Additional vertical padding used by kbd tag. */
   .py-05 {
     padding-top: 0.125rem;
@@ -43,7 +48,7 @@ query Post ($path: String!) {
   }
 
   .markdown p {
-    @apply mb-10 font-body text-2xl;
+    @apply mb-4 font-body text-2xl;
   }
 
   .markdown strong {
@@ -91,7 +96,7 @@ query Post ($path: String!) {
   }
 
   .markdown code {
-    @apply font-mono text-base inline bg-gray-200 rounded px-1 py-05;
+    @apply font-mono text-base inline bg-gray-100 rounded px-1 py-05;
   }
 
   .markdown pre {
@@ -122,13 +127,13 @@ query Post ($path: String!) {
     @apply border py-1 px-3;
   }
 
-  .markdown td {
-    @apply border py-1 px-3;
-  }
+  /*.markdown td {*/
+  /*  @apply border py-1 px-3;*/
+  /*}*/
 
-  .markdown div {
-    @apply mb-10
-  }
+  /*.markdown div {*/
+  /*  @apply mb-10*/
+  /*}*/
 
   /* Override pygments style background color. */
   .markdown .highlight pre {

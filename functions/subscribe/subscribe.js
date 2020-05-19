@@ -7,7 +7,7 @@ exports.handler = async (event, context) => {
 
   const subscriber = {
     email_address : email,
-    status : 'subscribed',
+    status : 'pending',
   }
 
   try {
