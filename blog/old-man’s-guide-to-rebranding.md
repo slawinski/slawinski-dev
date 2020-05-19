@@ -70,9 +70,7 @@ You might want to fight the impostor syndrome with acting that you know your stu
 
 I get through the impostor syndrome by making a list of my coding achievements and looking at it whenever I'm questioning my skills again. They can be even the smallest of things like *I solved a merging conflict by myself* or *I made an alias for a very long command line*. It helps a ton when I start to experience the symptoms of imposter syndrome yet again. Also the bunny from the tweet below has a spot on advice for you.
 
-<div class="center">
-<blockquote class="twitter-tweet"><p lang="en" dir="ltr">|￣￣￣￣￣￣￣￣￣￣￣|<br>| YOUR IMPOSTER&#39;S |<br>| SYNDROME IS LYING |<br>| TO YOU |<br>| ＿＿＿＿＿＿＿＿＿＿＿| <br> (\_❀) ||<br> (•ㅅ•) ||<br> / 　 づ</p>&mdash; Ali Spittel 💁 (@ASpittel) <a href="https://twitter.com/ASpittel/status/1115593200184377346?ref_src=twsrc%5Etfw">April 9, 2019</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-</div>
+https://twitter.com/ASpittel/status/1115593200184377346
 
 ## My way
 

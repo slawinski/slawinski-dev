@@ -100,7 +100,7 @@ query Post ($path: String!) {
   }
 
   .markdown pre {
-    @apply bg-gray-100 rounded p-4;
+    @apply bg-gray-100 overflow-auto rounded p-4;
   }
 
   .markdown pre code {
