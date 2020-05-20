@@ -1,10 +1,11 @@
+/*@import 'https://github.githubassets.com/assets/gist-embed-d89dc96f3ab6372bb73ee45cafdd0711.css';*/
 
 /*@import "tailwindcss/base";*/
 /*@import "tailwindcss/components";*/
 /*@import "tailwindcss/utilities";*/
 
+@import 'https://github.githubassets.com/assets/gist-embed-d89dc96f3ab6372bb73ee45cafdd0711.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@import 'https://github.githubassets.com/assets/gist-embed-d89dc96f3ab6372bb73ee45cafdd0711.css';
