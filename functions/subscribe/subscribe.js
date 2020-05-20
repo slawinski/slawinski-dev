@@ -1,3 +1,5 @@
+const axios = require('axios')
+
 const { CONVERTKIT_API_KEY } = process.env
 
 exports.handler = async (event, context) => {
