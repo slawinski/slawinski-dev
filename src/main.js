@@ -2,6 +2,7 @@
 // The Client API can be used here. Learn more: gridsome.org/docs/client-api
 
 import DefaultLayout from '~/layouts/Default.vue'
+import '@/assets/tailwind.css'
 
 require('typeface-public-sans')
 require('typeface-pt-sans')

@@ -20,7 +20,7 @@ query Post ($path: String!) {
 </page-query>
 
 <style>
-  @import 'https://github.githubassets.com/assets/gist-embed-d89dc96f3ab6372bb73ee45cafdd0711.css';
+  /*@import 'https://github.githubassets.com/assets/gist-embed-d89dc96f3ab6372bb73ee45cafdd0711.css';*/
 
   .gist .blob-code-inner {
     font-size: 1rem;
