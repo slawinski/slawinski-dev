@@ -5,7 +5,7 @@ draft: true
 date: 2020-05-14T10:22:03.035Z
 ---
 
-Every developer has a moment when he or she decides to start blogging. Usually they make their first steps on a platform like dev.to or medium.com but sometimes the ready-made solution just doesn't cut it or they wan't to grow their personal brand with a tailored website of their own. If you're motivated by any of those reasons then you're in the right place. Let's create a blog!
+Every developer has a moment when he or she decides to start blogging. Usually they make their first steps on a platform like [dev.to](https://dev.to/) or [medium.com](https://medium.com/) but sometimes the ready-made solution just doesn't cut it or they wan't to grow their personal brand with a tailored website of their own. If you're motivated by any of those reasons then you're in the right place. Let's create a blog!
 
 First we need to install Gridsome CLI tool:
 
