@@ -82,3 +82,7 @@ query {
     }
   }
 </script>
+
+<style>
+  @import '../main.css';
+</style>
