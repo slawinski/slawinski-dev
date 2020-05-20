@@ -1,17 +1,15 @@
-const Mailchimp = require('mailchimp-api-v3')
-const { MAILCHIMP_KEY } = process.env
+const { CONVERTKIT_API_KEY } = process.env
 
 exports.handler = async (event, context) => {
-  const mailchimp = new Mailchimp(MAILCHIMP_KEY);
   const { email } = JSON.parse(event.body)
 
   const subscriber = {
-    email_address : email,
-    status : 'pending',
+    api_key: CONVERTKIT_API_KEY,
+    email : email,
   }
 
   try {
-    await mailchimp.post('/lists/41f22f2825/members/', subscriber)
+    await axios.post('https://api.convertkit.com/v3/forms/1405772/subscribe', subscriber)
     return {
       statusCode: 200,
       body: "Email subscribed"
