@@ -4,7 +4,7 @@
     <div>
       <form class="flex justify-center items-center">
         <input type="email" v-model="email" class="py-1 px-3 w-full shadow appearance-none border rounded font-body text-xl sm:text-2xl text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Your email adress" required>
-        <button @click.prevent="submit" class="sm:mt-0 ml-4 py-1 px-2 bg-transparent hover:bg-button text-button text-xl sm:text-2xl font-sans font-bold hover:text-white border border-button hover:border-transparent rounded" >Subscribe</button>
+        <button @click.prevent="preSubmit" type="submit" class="sm:mt-0 ml-4 py-1 px-2 bg-transparent hover:bg-button text-button text-xl sm:text-2xl font-sans font-bold hover:text-white border border-button hover:border-transparent rounded" >{{ subscribeMessage }}</button>
       </form>
     </div>
   </Layout>
@@ -20,22 +20,51 @@
   data() {
     return {
       email: '',
+      state: null
+    }
+  },
+  computed: {
+    subscribeMessage() {
+      if (this.state === null) {
+        return 'Subscribe'
+      }
+      if (this.state === 'subscribing') {
+        return 'Subscribing...'
+      }
+      if (this.state === 'error') {
+        return 'Error'
+      }
+      if (this.state === 'subscribed') {
+        return 'Done'
+      }
     }
   },
   methods: {
-    async submit() {
-      try {
-        await axios.post('/api/subscribe',
-          {
-            email: this.email
-          }
-        )
-      } catch(err) {
-        console.error(err)
-      } finally {
-        this.email = ''
-      }
+    preSubmit() {
+      this.state = 'subscribing';
+      this.submit();
     },
+    submit() {
+      setTimeout(async () => {
+        try {
+          await axios.post('/api/subscribe',
+            {
+              email: this.email
+            }
+          )
+        } catch(err) {
+          console.error(err)
+          return this.state = 'error';
+        } finally {
+          if (this.state === 'subscribing') {
+            this.state = 'subscribed';
+          } else {
+            this.state = 'error'
+          }
+          this.email = '';
+        }
+      }, 1000)
+    }
   }
 }
 </script>
