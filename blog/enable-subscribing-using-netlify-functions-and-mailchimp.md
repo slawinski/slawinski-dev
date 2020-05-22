@@ -1,5 +1,5 @@
 ---
-title: Enable subscribing using Netlify functions and Mailchimp
+title: Enable subscribing using Netlify functions and ConvertKit
 description: Allow users to subscribe to your blog. Make a collection of your
   users emails. Make a subscribe form
 draft: true
