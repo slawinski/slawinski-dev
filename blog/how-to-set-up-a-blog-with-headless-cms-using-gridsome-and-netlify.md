@@ -25,7 +25,7 @@ where "my-blog" is the name of our project. Now change directory to `my-blog` an
 gridsome develop
 ```
 
-this will spin up our project and open a port on localhost where we will be able to check it out.
+It will spin up our project and open a port on localhost where we will be able to check it out.
 
 Ok, now we need some plugins. Thankfully Gridsome community provided us with a lot of very useful plugins. We need `@gridsome/source-filesystem` to access file system on our machine and `@gridsome/transformer-remark` to interpret that markdown we are gonna write our posts with.
 
@@ -35,7 +35,7 @@ npm install @gridsome/source-filesystem @gridsome/transformer-remark
 
 After successful installation we have to edit `gridsome.config.js`. It has to look like this:
 
-https://gist.github.com/slawinski/f73d038bd44c9e9794dafa41de6ae313#gridsome.config.js
+https://gist.github.com/slawinski/f73d038bd44c9e9794dafa41de6ae313#gridsome.config.js&highlights=7
 
 Noticed the `path` property? It's the directory where we will put our markdown. Oh, and let's not forget to run `gridsome develop` yet again since we've edited both `package.json` and `gridsome.config.js`
 
@@ -43,17 +43,19 @@ Now we have to create few files. In `src/templates` directory create `Post.vue` 
 
 https://gist.github.com/slawinski/f73d038bd44c9e9794dafa41de6ae313#Post.vue
 
-It will become the scaffolding after which each of our posts will be built around.
+It will become the scaffolding on which each of our posts will be built around.
 
 In `/blog` let's create `firstPost.md`.
 
 https://gist.github.com/slawinski/f73d038bd44c9e9794dafa41de6ae313#firstPost
 
+Out posts will be written in markdown and each one has to be in the `/blog` directory.
+
 In `src/components` create `PostList.vue` 
 
 https://gist.github.com/slawinski/f73d038bd44c9e9794dafa41de6ae313#PostList.vue
 
-That component will render a list of all posts available from the `/blog` folder. 
+That component will render a list of all posts available from the `/blog` folder. We can put it anywhere but let's put it in `Index.vue`. 
 
 Good job, we got ourselves a blog! Check your localhost to see the results. 
 
