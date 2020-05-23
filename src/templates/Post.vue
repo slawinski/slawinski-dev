@@ -19,6 +19,30 @@ query Post ($path: String!) {
 }
 </page-query>
 
+<script>
+export default {
+    metaInfo() {
+    return {
+      title: this.$page.post.title,
+      meta: [
+        {
+          key: 'og:description',
+          name: 'og:description',
+          content: this.$page.post.description,
+        },
+
+        {
+          key: 'twitter:description',
+          name: 'twitter:description',
+          content: this.$page.post.description,
+        },
+      ],
+    }
+  },
+}
+}
+</script>
+
 <style>
   /*@import 'https://github.githubassets.com/assets/gist-embed-d89dc96f3ab6372bb73ee45cafdd0711.css';*/
 

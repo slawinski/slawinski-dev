@@ -31,7 +31,7 @@ query {
     },
 
     metaInfo: {
-      title: 'Blog'
+      title: 'Home'
     }
   }
 </script>

@@ -14,7 +14,7 @@ import axios from 'axios'
 
 export default {
   metaInfo: {
-    title: 'Projects'
+    title: 'Contact'
   },
   data() {
     return {
