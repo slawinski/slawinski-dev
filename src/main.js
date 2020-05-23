@@ -25,7 +25,7 @@ export default function (Vue, { router, head, isClient }) {
   head.meta.push({
     key: "og:image",
     name: "og:image",
-    content: "src/assets/slawinski-dev.png" || "",
+    content: "./assets/slawinski-dev.png" || "",
   });
 
   head.meta.push({
@@ -35,9 +35,9 @@ export default function (Vue, { router, head, isClient }) {
   });
 
   head.meta.push({
-    key: "twitter:card",
-    name: "twitter:card",
-    content: "src/assets/slawinski-dev.png" || "",
+    key: "twitter:image",
+    name: "twitter:image",
+    content: "./assets/slawinski-dev.png" || "",
   });
 
   router.beforeEach((to, _from, next) => {
