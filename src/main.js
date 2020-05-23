@@ -15,4 +15,25 @@ export default function (Vue, { router, head, isClient }) {
 
   // Add attributes to BODY tag
   head.bodyAttrs = { class: 'bg-background leading-normal' }
+
+  head.meta.push({
+    key: "og:description",
+    name: "og:description",
+    content: `Piotr Slawinski thinks you might like it`,
+  });
+
+  head.meta.push({
+    key: "twitter:description",
+    name: "twitter:description",
+    content: `Piotr Slawinski thinks you might like it`,
+  });
+
+  router.beforeEach((to, _from, next) => {
+    head.meta.push({
+      key: "og:url",
+      name: "og:url",
+      content: process.env.GRIDSOME_BASE_PATH + to.path,
+    });
+    next();
+  });
 }
