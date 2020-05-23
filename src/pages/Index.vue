@@ -32,6 +32,11 @@ query {
 
     metaInfo: {
       title: 'Home'
-    }
+    },
+
+    meta: [
+      { property: "og:description", content: $static.metadata.siteDescription },
+      { property: "og:image", content: '../assets/slawinski-dev.png' },
+    ],
   }
 </script>
