@@ -35,7 +35,7 @@ query {
     },
 
     meta: [
-      { property: "og:description", content: Piotr Slawinski thinks you might like it },
+      { property: "og:description", content: 'Piotr Slawinski thinks you might like it' },
       { property: "og:image", content: '../assets/slawinski-dev.png' },
     ],
   }
