@@ -24,7 +24,7 @@ export default function (Vue, { router, head, isClient }) {
 
   head.meta.push({
     key: "og:image",
-    name: "og:image",
+    property: "og:image",
     content: "./assets/slawinski-dev.png" || "",
   });
 
