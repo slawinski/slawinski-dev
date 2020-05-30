@@ -1,43 +1,59 @@
 <template>
   <Layout>
-    <h1 class="text-headline leading-none font-sans font-bold tracking-tight text-4xl sm:text-7xl mb-10">Sign up and I'll email you whenever anything interesting comes up.</h1>
+    <h1
+      class="text-headline leading-none font-sans font-bold tracking-tight text-4xl sm:text-7xl mb-10"
+    >
+      Sign up and I'll email you whenever anything interesting comes up.
+    </h1>
     <div>
       <form class="flex justify-center items-center">
-        <input type="email" v-model="email" class="py-1 px-3 w-full shadow appearance-none border rounded font-body text-xl sm:text-2xl text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Your email adress" required>
-        <button @click.prevent="preSubmit" type="submit" class="sm:mt-0 ml-4 py-1 px-2 bg-transparent hover:bg-button text-button text-xl sm:text-2xl font-sans font-bold hover:text-white border border-button hover:border-transparent rounded" >{{ subscribeMessage }}</button>
+        <input
+          v-model="email"
+          type="email"
+          class="py-1 px-3 w-full shadow appearance-none border rounded font-body text-xl sm:text-2xl text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          placeholder="Your email adress"
+          aria-label="Email"
+          required
+        />
+        <button
+          type="submit"
+          class="sm:mt-0 ml-4 py-1 px-2 bg-transparent hover:bg-button text-button text-xl sm:text-2xl font-sans font-bold hover:text-white border border-button hover:border-transparent rounded"
+          @click.prevent="preSubmit"
+          @keydown="preSubmit"
+        >
+          {{ subscribeMessage }}
+        </button>
       </form>
     </div>
   </Layout>
 </template>
 
 <script>
-  import axios from 'axios'
+import axios from 'axios';
 
-  export default {
+export default {
   metaInfo: {
-    title: 'Newsletter'
+    title: 'Newsletter',
   },
   data() {
     return {
       email: '',
-      state: null
-    }
+      state: null,
+    };
   },
   computed: {
     subscribeMessage() {
-      if (this.state === null) {
-        return 'Subscribe'
-      }
       if (this.state === 'subscribing') {
-        return 'Subscribing...'
+        return 'Subscribing...';
       }
       if (this.state === 'error') {
-        return 'Error'
+        return 'Error';
       }
       if (this.state === 'subscribed') {
-        return 'Done'
+        return 'Done';
       }
-    }
+      return 'Subscribe';
+    },
   },
   methods: {
     preSubmit() {
@@ -47,24 +63,22 @@
     submit() {
       setTimeout(async () => {
         try {
-          await axios.post('/api/subscribe',
-            {
-              email: this.email
-            }
-          )
-        } catch(err) {
-          console.error(err)
-          return this.state = 'error';
+          await axios.post('/api/subscribe', {
+            email: this.email,
+          });
+        } catch (err) {
+          console.error(err);
+          return (this.state = 'error');
         } finally {
           if (this.state === 'subscribing') {
             this.state = 'subscribed';
           } else {
-            this.state = 'error'
+            this.state = 'error';
           }
           this.email = '';
         }
-      }, 1000)
-    }
-  }
-}
+      }, 1000);
+    },
+  },
+};
 </script>

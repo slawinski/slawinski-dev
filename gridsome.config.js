@@ -15,20 +15,23 @@ module.exports = {
         remark: {
           // remark options
           plugins: [
-            [ '@noxify/gridsome-plugin-remark-embed', {
-              'enabledProviders' : ['Youtube', 'Twitter', 'Gist'],
-            }]
-          ]
-        }
-      }
+            [
+              '@noxify/gridsome-plugin-remark-embed',
+              {
+                enabledProviders: ['Youtube', 'Twitter', 'Gist'],
+              },
+            ],
+          ],
+        },
+      },
     },
     {
       use: 'gridsome-plugin-tailwindcss',
-    }
+    },
   ],
   transformers: {
     remark: {
       // global remark options
-    }
-  }
-}
+    },
+  },
+};

@@ -2,11 +2,11 @@ module.exports = {
   purge: [],
   theme: {
     fontFamily: {
-      'sans': ['"public sans"', '-apple-system', 'BlinkMacSystemFont'],
-      'serif': ['Georgia', 'Cambria'], 
-      'mono': ['SFMono-Regular', 'Menlo', 'monospace'],
-      'display': ['Oswald'], 
-      'body': ['"pt sans"', 'Open Sans'],
+      sans: ['"public sans"', '-apple-system', 'BlinkMacSystemFont'],
+      serif: ['Georgia', 'Cambria'],
+      mono: ['SFMono-Regular', 'Menlo', 'monospace'],
+      display: ['Oswald'],
+      body: ['"pt sans"', 'Open Sans'],
     },
     extend: {
       colors: {
@@ -18,9 +18,9 @@ module.exports = {
       },
       fontSize: {
         '7xl': '5rem',
-      }
+      },
     },
   },
   variants: {},
   plugins: [],
-}
+};

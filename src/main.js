@@ -1,37 +1,37 @@
 // This is the main.js file. Import global CSS and scripts here.
 // The Client API can be used here. Learn more: gridsome.org/docs/client-api
 
-require('typeface-public-sans')
-require('typeface-pt-sans')
+import DefaultLayout from '~/layouts/Default.vue';
 
-import DefaultLayout from '~/layouts/Default.vue'
+require('typeface-public-sans');
+require('typeface-pt-sans');
 
 export default function (Vue, { router, head, isClient }) {
   // Set default layout as a global component
-  Vue.component('Layout', DefaultLayout)
+  Vue.component('Layout', DefaultLayout);
 
   // Add attributes to HTML tag
-  head.htmlAttrs = { lang: 'en' }
+  head.htmlAttrs = { lang: 'en' };
 
   // Add attributes to BODY tag
-  head.bodyAttrs = { class: 'bg-background leading-normal' }
+  head.bodyAttrs = { class: 'bg-background leading-normal' };
 
   head.meta.push({
-    key: "og:description",
-    name: "og:description",
+    key: 'og:description',
+    name: 'og:description',
     content: `Piotr Slawinski thinks you might like it`,
   });
 
   head.meta.push({
-    key: "twitter:description",
-    name: "twitter:description",
+    key: 'twitter:description',
+    name: 'twitter:description',
     content: `Piotr Slawinski thinks you might like it`,
   });
 
   router.beforeEach((to, _from, next) => {
     head.meta.push({
-      key: "og:url",
-      name: "og:url",
+      key: 'og:url',
+      name: 'og:url',
       content: process.env.GRIDSOME_BASE_PATH + to.path,
     });
     next();

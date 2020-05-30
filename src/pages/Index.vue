@@ -1,7 +1,11 @@
 <template>
   <Layout>
     <section>
-      <PostList v-for="edge in $page.allPost.edges" :key="edge.node.id" :post="edge.node" />
+      <PostList
+        v-for="edge in $page.allPost.edges"
+        :key="edge.node.id"
+        :post="edge.node"
+      />
     </section>
   </Layout>
 </template>
@@ -23,15 +27,15 @@ query {
 </page-query>
 
 <script>
-  import PostList from "~/components/PostList";
+import PostList from '~/components/PostList';
 
-  export default {
-    components: {
-      PostList
-    },
+export default {
+  components: {
+    PostList,
+  },
 
-    metaInfo: {
-      title: 'Home'
-    }
-  }
+  metaInfo: {
+    title: 'Home',
+  },
+};
 </script>
