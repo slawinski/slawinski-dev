@@ -1,13 +1,11 @@
 ---
-title: Email subscribing using Netlify Functions and ConvertKit
-description: Allow users to subscribe to your blog. Make a collection of your
-  users emails. Make a subscribe form
+title: Email subscription using Netlify Functions and ConvertKit
+description: Users handover their email addresses through a form and serverless
+  functions feeds that email to an email marketing tool API.
 draft: true
 date: 2020-05-16T09:01:58.082Z
 ---
-https://codegregg.com/blog/netlifyMailchimpFunction/
-
-Mail chimp will require your address from you. Have in mind that some of the double opt-in message templates have a field containing that address so if you enable double-opt in you might inadvertenlny send your address to your audience.
+This tutorial is strongly inspired by the people behind https://codegregg.com/blog/netlifyMailchimpFunction/. They deserve all the credit.
 
 Instal Netlify CLI
 
@@ -36,6 +34,43 @@ npm i axios
 
 Because we'll be using it in out function, which is following:
 https://gist.github.com/slawinski/88c5d8a3df4f4d37634f3e73c45ec368#subscribe.js
+
+Next in project root run:
+
+```
+netlify init
+```
+
+In project root create `netflify.toml`:
+
+https://gist.github.com/slawinski/88c5d8a3df4f4d37634f3e73c45ec368#netlify.toml
+
+Then, again i project root install:
+
+```
+npm i netlify-lambda
+```
+
+And add postinstall script in you root `package.json`
+
+https://gist.github.com/slawinski/88c5d8a3df4f4d37634f3e73c45ec368#package.json
+
+Lastly run:
+
+```
+npm i
+```
+
+And you're all set to collect emails from visitors kind enought to provide it to you!
+
+P.S. To locally test that function run:
+
+```
+netlify dev
+```
+
+This will spin up the project connected with netlify including your functions and API keys.
+
 
 
 
