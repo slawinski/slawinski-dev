@@ -5,7 +5,7 @@ description: Users handover their email addresses through a form and serverless
 draft: true
 date: 2020-05-16T09:01:58.082Z
 ---
-This tutorial is strongly inspired by the people behind https://codegregg.com/blog/netlifyMailchimpFunction/. They deserve all the credit.
+This tutorial is strongly inspired by the work of people behind https://codegregg.com/blog/netlifyMailchimpFunction/. They deserve all the credit.
 
 Instal Netlify CLI
 
