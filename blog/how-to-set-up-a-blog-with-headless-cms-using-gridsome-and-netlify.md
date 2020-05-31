@@ -7,6 +7,8 @@ date: 2020-05-14T10:22:03.035Z
 
 Every developer has a moment when he or she decides to start blogging. Usually they make their first steps on a platform like [dev.to](https://dev.to/) or [medium.com](https://medium.com/) but sometimes the ready-made solutions just don't cut it or they wan't to grow their personal brand with a tailored website of their own. If you're motivated by any of those reasons then you're in the right place. Let's create ourselves a blog!
 
+## Create the blog
+
 First we need to install Gridsome CLI tool:
 
 ```
@@ -57,13 +59,19 @@ https://gist.github.com/slawinski/f73d038bd44c9e9794dafa41de6ae313#PostList.vue
 
 That component will render a list of all posts available from the `/blog` folder. We can put it anywhere but let's put it in `Index.vue`. 
 
-Good job, we got ourselves a blog! Check your localhost to see the results. 
+Good job, we got ourselves a blog! Check your localhost to see the results.
+
+## Deploying on Netlify 
 
 Now let's host it so it is accessible to everybody in the whole world. For that let's use Netlify.
 
 Go to netlify.com, log in, create new, add form github, build command `gridsome build`, publish directory `dist`
 
-Great. Adding new posts now looks like this: we need to write a post in markdown, put it in the /blog directory, commit and push changes. Seems like a lot of fuss for such a simple task. Let's add a headless CMS to our blog to make it easier. The following steps will enable Netlify CMS in our blog but there's plenty of other CMS providers.
+Great. Adding new posts now looks like this: we need to write a post in markdown, put it in the /blog directory, commit and push changes. Seems like a lot of fuss for such a simple task. Let's add a headless CMS to our blog to make it easier. 
+
+## Adding Netlify CMS
+
+The following steps will enable Netlify CMS in our blog but there's plenty of other CMS providers.
 
 Create `config.yml` and `index.html` in `/static/admin` 
 
