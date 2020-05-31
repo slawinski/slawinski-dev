@@ -6,6 +6,7 @@ draft: true
 date: 2020-05-31T19:15:45.030Z
 ---
 This tutorial is strongly inspired by the work of people behind https://codegregg.com/blog/netlifyMailchimpFunction/. They deserve all the credit.
+If you want to learn more about serverless functions provided by NEtlify I recommend this blog post https://flaviocopes.com/netlify-functions/.
 
 Instal Netlify CLI
 
@@ -33,6 +34,7 @@ npm i axios
 ```
 
 Because we'll be using it in out function, which is following:
+
 https://gist.github.com/slawinski/88c5d8a3df4f4d37634f3e73c45ec368#subscribe.js
 
 Next in project root run:
