@@ -18,17 +18,23 @@ npm i -g netlify-cli
 Create folder for functions in your root directory and put a .js file inside
 
 ```
-~/functions/subscribe.js
+touch /functions/subscribe/subscribe.js
 ```
 
-You might want to include subfolders if using more than one serverless functions.
+Let's include subfolders in case later we'll be using more than one serverless function.
 
-Let's use the fact that Netlify can install packages during its build process (otherwise we would have to commit node_modules if the functions utilizes any npm packages) and run:
+Let's also use the fact that Netlify can install packages during its build process and in the `subscribe` folder run:
 
 ```
 npm init -y
 ```
 
-In the function folder.
-axios from root node_modules? check if node-fetch better
+This will setup package.json just for the subscribe.js and will enable us to now run:
+```
+npm i axios
+```
+
+Because we'll be using it in out function, which is following:
+https://gist.github.com/slawinski/88c5d8a3df4f4d37634f3e73c45ec368#subscribe.js
+
 
