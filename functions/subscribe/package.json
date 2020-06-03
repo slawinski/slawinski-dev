@@ -9,8 +9,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "base-64": "^0.1.0",
-    "mailchimp-api-v3": "^1.13.1",
-    "node-fetch": "^2.6.0"
+    "axios": "^0.19.2"
   }
 }
