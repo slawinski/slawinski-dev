@@ -11,4 +11,6 @@ Install @nuxt/apollo
 
 Add basic config
 
+Write graphql queries
+
 
