@@ -12,6 +12,6 @@ Install @nuxt/apollo and graphql-tag
 
 Add basic config
 
-Write graphql queries
+Write graphql queries (query, mutation, subscription)
 
 
