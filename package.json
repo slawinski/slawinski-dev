@@ -15,6 +15,7 @@
     "@noxify/gridsome-plugin-remark-embed": "^1.2.0",
     "axios": "^0.19.2",
     "gridsome": "^0.7.0",
+    "gridsome-plugin-remark-shiki": "^0.3.1",
     "netlify-lambda": "^1.6.3",
     "postcss-import": "^12.0.1",
     "typeface-aileron": "0.0.66",

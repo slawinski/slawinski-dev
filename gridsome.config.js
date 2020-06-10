@@ -21,6 +21,10 @@ module.exports = {
                 enabledProviders: ['Youtube', 'Twitter', 'Gist'],
               },
             ],
+            [
+              'gridsome-plugin-remark-shiki',
+              { theme: 'light_plus', skipInline: true },
+            ],
           ],
         },
       },

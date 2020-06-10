@@ -124,11 +124,11 @@ export default {
 }
 
 .markdown code {
-  @apply font-mono text-lg inline bg-gray-100 rounded px-1 py-05;
+  @apply font-mono text-lg inline bg-white rounded px-1 py-05;
 }
 
 .markdown pre {
-  @apply bg-gray-100 overflow-auto rounded p-4;
+  @apply bg-white overflow-auto rounded p-4;
 }
 
 .markdown pre code {
@@ -165,6 +165,6 @@ export default {
 
 /* Override pygments style background color. */
 .markdown .highlight pre {
-  @apply bg-gray-100 !important;
+  @apply bg-white !important;
 }
 </style>
