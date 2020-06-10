@@ -33,4 +33,32 @@ apollo: {
 
 Write graphql queries (query, mutation, subscription)
 
+```vue
+<script>
+import axios from 'axios';
+import gql from 'graphql-tag';
+
+export default {
+  apollo: {
+    movies: {
+      query: gql`
+        query getMovies {
+          movies {
+            id
+            title
+            year
+            poster
+            plot
+          }
+        }
+      `,
+      update(data) {
+        return data.movies;
+      },
+    },
+  },
+};
+</script>
+```
+
 
