@@ -21,14 +21,49 @@ npm install @nuxt/apollo graphql-tag --save
 Add basic config in `nuxt.config.js`:
 
 ```javascript
-apollo: {
-    clientConfigs: {
-      default: {
-        httpEndpoint: 'https://{your-awesome-app}.herokuapp.com/v1/graphql',
-        wsEndpoint: 'wss://{your-awesome-app}.herokuapp.com/v1/graphql',
-      },
-    },
-  },
+ apollo: {
+   clientConfigs: {
+     default: {
+       httpEndpoint: 'https://hasura-movie-database.herokuapp.com/v1/graphql',
+       wsEndpoint: 'wss://hasura-movie-database.herokuapp.com/v1/graphql',
+     },
+   },
+ },
+```
+
+Let's prepare a template in `/pages/index.vue`:
+
+```vue
+<template>
+  <div>
+    <div>
+      <h1>
+        a basic movie database part deux
+      </h1>
+      <form>
+        <input
+          v-model="lookupMovie"
+          type="text"
+          placeholder="Enter movie title"
+          required
+        />
+        <button
+          type="submit"
+          @click.prevent="submit"
+        >
+          Submit
+        </button>
+      </form>
+      <div>
+        <div v-for="movie in movies" :key="movie.id">
+          <div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
 ```
 
 Write graphql queries (query, mutation, subscription)
