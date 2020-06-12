@@ -1,7 +1,7 @@
 ---
 title: Nuxt.js app with PostgreSQL databse and Hasura GraphQL Engine
 description: Here you will find how to connect PostgreSQL database to a basic
-  Nuxt.js app using GraphQL engine from Hasura and enable basic CRUD operations.
+  Nuxt.js app using GraphQL server from Hasura and enable basic CRUD operations.
 date: 2020-06-08T05:58:02.397Z
 ---
 Go to hasura and spin up a heroku app with postgres database. It's all explained in Hasura docs: [Quickstart with Heroku](https://hasura.io/docs/1.0/graphql/manual/getting-started/heroku-simple.html)
@@ -57,7 +57,7 @@ Let's prepare a template in `/pages/index.vue`:
       <div>
         <div v-for="movie in movies" :key="movie.id">
           <div>
-
+          {{ movie.title }} ({{ movie.year }})
           </div>
         </div>
       </div>
