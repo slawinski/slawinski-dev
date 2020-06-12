@@ -1,5 +1,5 @@
 ---
-title: Sending emails using Netlify lambda functions and Sendgrid
+title: Sending emails using Netlify Functions and Sendgrid
 description: Start sending email form your website using Netlify Functions and Sendgrid
 draft: true
 date: 2020-06-12T09:47:49.449Z
