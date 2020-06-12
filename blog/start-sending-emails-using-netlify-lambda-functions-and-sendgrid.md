@@ -12,6 +12,16 @@ Remember that besides API key a user also has to do "Sender Authentication" and 
 
 ## Write Netlify function
 
+Create directory `/functions/sendmail/
+
+In the new directory initiate package.json and install Sendgrid.
+
+```bash
+npm i -y && npm install --save @sendgrid/mail
+```
+
+In the same directory create `sendmail.js`
+
 ```javascript
 const client = require('@sendgrid/mail');
 const {
@@ -44,5 +54,6 @@ exports.handler = async function (event, context, callback) {
     };
   }
 };
-
 ```
+
+In your project's panel on Netlify, in Settings section fill in you environmental variables.
