@@ -5,8 +5,8 @@ description: Users handover their email addresses through a form and serverless
 draft: true
 date: 2020-05-31T19:15:45.030Z
 ---
-This tutorial is strongly inspired by the work of people behind https://codegregg.com/blog/netlifyMailchimpFunction/. They deserve all the credit.
-If you want to learn more about serverless functions provided by Netlify I recommend this blog post https://flaviocopes.com/netlify-functions/.
+This tutorial is strongly inspired by the work of people behind [https://codegregg.com/](https://codegregg.com/blog/netlifyMailchimpFunction/). They deserve all the credit.
+If you want to learn more about serverless functions provided by Netlify I recommend [Netlify Lambda Functions Tutorial](https://flaviocopes.com/netlify-functions/) and [AWS (?) made simple: What is a Netlify function?](https://tlakomy.com/create-a-netlify-function-from-scratch) blog post .
 
 Instal Netlify CLI
 
@@ -33,7 +33,7 @@ This will setup package.json just for the subscribe.js and will enable us to now
 npm i axios
 ```
 
-Because we'll be using it in out function, which is following:
+Because we'll be using it in our `subscribe.js` function, which is following:
 
 ```javascript
 const axios = require('axios');
@@ -80,7 +80,7 @@ In project root create `netflify.toml`:
   functions = './functions/'
 ```
 
-Then, again i project root install:
+Then, again in project root install:
 
 ```bash
 npm i netlify-lambda

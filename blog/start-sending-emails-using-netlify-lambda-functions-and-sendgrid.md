@@ -8,16 +8,16 @@ The below guide was heavily inspired by the team behind [https://rosso.codes](ht
 
 ## Create Sendgrid account
 
-Remember that besides API key a user also has to do "Sender Authentication" and if she/he chooses "Single Sender Verification" then the `from` and `to` emails from your snippet have to be the same [reference 1](https://sendgrid.com/docs/ui/account-and-settings/how-to-set-up-domain-authentication/), [reference 2](https://sendgrid.com/docs/for-developers/sending-email/sender-identity/).
+Remember that besides API key a user also has to do "Sender Authentication" and if she/he chooses "Single Sender Verification" then the `from` and `to` emails from your snippet have to be the same. For more information please refer to: [How to set up domain authentication](https://sendgrid.com/docs/ui/account-and-settings/how-to-set-up-domain-authentication/) and [Sender Identity](https://sendgrid.com/docs/for-developers/sending-email/sender-identity/).
 
 ## Write Netlify function
 
-Create directory `/functions/sendmail/
+Create directory `/functions/sendmail/`
 
 In the new directory initiate package.json and install Sendgrid.
 
 ```bash
-npm i -y && npm install --save @sendgrid/mail
+npm init -y && npm install --save @sendgrid/mail
 ```
 
 In the same directory create `sendmail.js`
