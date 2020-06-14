@@ -7,13 +7,13 @@ date: 2020-05-31T19:15:45.030Z
 ---
 This tutorial is strongly inspired by the work of people behind [https://codegregg.com/](https://codegregg.com/blog/netlifyMailchimpFunction/). They deserve all the credit.
 
-If you want to learn more about serverless functions provided by Netlify I recommend [Netlify Lambda Functions Tutorial](https://flaviocopes.com/netlify-functions/) and [AWS (?) made simple: What is a Netlify function?](https://tlakomy.com/create-a-netlify-function-from-scratch) blog post .
+If you want to learn more about serverless functions provided by Netlify I recommend [Netlify Lambda Functions Tutorial](https://flaviocopes.com/netlify-functions/) and [AWS (?) made simple: What is a Netlify function?](https://tlakomy.com/create-a-netlify-function-from-scratch) blog post.
 
-Install Netlify CLI
+## Create ConvertKit account and get the API key
 
-```bash
-npm i -g netlify-cli
-```
+I find ConvertKit the most developer-friendly transactional email service since they allow you to put their physical address in your messages (CAN-SPAM requirement to have a physical address in every email you send). For details please refer to (Alternatives for your physical address)[https://help.convertkit.com/en/articles/2502494-alternatives-for-your-physical-address]
+
+## Create serverless function
 
 Create folder for functions in your root directory and put a .js file inside
 
@@ -23,7 +23,7 @@ touch /functions/subscribe/subscribe.js
 
 Let's include subfolders in case later we'll be using more than one serverless function.
 
-Let's also use the fact that Netlify can install packages during its build process and in the `subscribe` folder run:
+Let's also use the fact that Netlify can install packages during its build process and in the `subscribe` folder initiate package.json:
 
 ```bash
 npm init -y
@@ -68,6 +68,14 @@ exports.handler = async (event, context) => {
 };
 ```
 
+## Configure Netlify boilerplate
+
+Install Netlify CLI
+
+```bash
+npm i -g netlify-cli
+```
+
 Next in project root run:
 
 ```bash
@@ -103,6 +111,10 @@ Lastly run:
 ```bash
 npm i
 ```
+
+## Set up environmental variables in Netlify
+
+In your project's panel on Netlify, in Settings section fill in you environmental variables.
 
 And you're all set to collect emails from visitors kind enough to provide it to you!
 
