@@ -1,7 +1,7 @@
 ---
 title: Netlify Functions with npm packages
 description: How to write serverless functions with npm packages without
-  committing `node_modules`
+  committing /node_modules
 date: 2020-06-14T13:06:30.174Z
 ---
 Instal Netlify CLI
