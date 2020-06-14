@@ -6,9 +6,10 @@ draft: true
 date: 2020-05-31T19:15:45.030Z
 ---
 This tutorial is strongly inspired by the work of people behind [https://codegregg.com/](https://codegregg.com/blog/netlifyMailchimpFunction/). They deserve all the credit.
+
 If you want to learn more about serverless functions provided by Netlify I recommend [Netlify Lambda Functions Tutorial](https://flaviocopes.com/netlify-functions/) and [AWS (?) made simple: What is a Netlify function?](https://tlakomy.com/create-a-netlify-function-from-scratch) blog post .
 
-Instal Netlify CLI
+Install Netlify CLI
 
 ```bash
 npm i -g netlify-cli
@@ -28,12 +29,13 @@ Let's also use the fact that Netlify can install packages during its build proce
 npm init -y
 ```
 
-This will setup package.json just for the subscribe.js and will enable us to now run:
+This will setup package.json just for the `/subscribe` and will enable us to install packages in subfolder:
+
 ```bash
 npm i axios
 ```
 
-Because we'll be using it in our `subscribe.js` function, which is following:
+We'll be using this package in our `subscribe.js` function, which is following:
 
 ```javascript
 const axios = require('axios');
@@ -102,7 +104,7 @@ Lastly run:
 npm i
 ```
 
-And you're all set to collect emails from visitors kind enought to provide it to you!
+And you're all set to collect emails from visitors kind enough to provide it to you!
 
 P.S. To locally test that function run:
 
@@ -110,4 +112,4 @@ P.S. To locally test that function run:
 netlify dev
 ```
 
-This will spin up the project connected with netlify including your functions and API keys.
+This will spin up the project connected with Netlify including your functions and API keys.
