@@ -27,16 +27,19 @@ query Post ($path: String!) {
 <script>
 import getShareImage from '@jlengstorf/get-share-image';
 
-const socialImage = getShareImage({
-  title: this.$page.post.title,
-  tagline: this.$page.post.description,
-  cloudName: 'slawinski-dev',
-  imagePublicID: 'slawinski-dev_xkb8wv',
-  font: 'futura',
-  textColor: '232129',
-});
-
 export default {
+  computed: {
+    socialImage() {
+      return getShareImage({
+        title: this.$page.post.title,
+        tagline: this.$page.post.description,
+        cloudName: 'slawinski-dev',
+        imagePublicID: 'slawinski-dev_xkb8wv',
+        font: 'futura',
+        textColor: '232129',
+      });
+    }
+  },
   metaInfo() {
     return {
       title: this.$page.post.title,
@@ -49,7 +52,7 @@ export default {
         {
           key: 'og:image',
           name: 'og:image',
-          content: socialImage,
+          content: this.socialImage,
         },
         {
           key: 'twitter:description',

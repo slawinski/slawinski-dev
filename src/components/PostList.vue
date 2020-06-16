@@ -17,8 +17,8 @@
 export default {
   props: {
     post: {
-      type: String,
-      default: '',
+      type: Object,
+      default: () => {},
     },
   },
 };
