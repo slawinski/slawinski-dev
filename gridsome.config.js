@@ -32,6 +32,14 @@ module.exports = {
     {
       use: 'gridsome-plugin-tailwindcss',
     },
+    {
+      use: 'gridsome-source-graphql',
+      options: {
+        url: 'https://slawinski-dev-projects.herokuapp.com/v1/graphql',
+        fieldName: 'projects',
+        typeName: 'projectTypes',
+      },
+    },
   ],
   transformers: {
     remark: {
