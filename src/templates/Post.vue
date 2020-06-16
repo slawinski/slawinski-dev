@@ -25,6 +25,17 @@ query Post ($path: String!) {
 </page-query>
 
 <script>
+import getShareImage from '@jlengstorf/get-share-image';
+
+const socialImage = getShareImage({
+  title: this.$page.post.title,
+  tagline: this.$page.post.description,
+  cloudName: 'slawinski-dev',
+  imagePublicID: 'slawinski-dev_xkb8wv',
+  font: 'futura',
+  textColor: '232129',
+});
+
 export default {
   metaInfo() {
     return {
@@ -35,7 +46,11 @@ export default {
           name: 'og:description',
           content: this.$page.post.description,
         },
-
+        {
+          key: 'og:image',
+          name: 'og:image',
+          content: socialImage,
+        },
         {
           key: 'twitter:description',
           name: 'twitter:description',

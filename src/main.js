@@ -2,19 +2,9 @@
 // The Client API can be used here. Learn more: gridsome.org/docs/client-api
 
 import DefaultLayout from '~/layouts/Default.vue';
-import getShareImage from '@jlengstorf/get-share-image';
 
 require('typeface-public-sans');
 require('typeface-pt-sans');
-
-const socialImage = getShareImage({
-  title: 'test title for a blog post image',
-  tagline: '#devops #nodejs #ssl',
-  cloudName: 'slawinski-dev',
-  imagePublicID: 'slawinski-dev_ec8rv5',
-  font: 'futura',
-  textColor: '232129',
-});
 
 export default function (Vue, { router, head, isClient }) {
   // Set default layout as a global component
@@ -30,12 +20,6 @@ export default function (Vue, { router, head, isClient }) {
     key: 'og:description',
     name: 'og:description',
     content: `Piotr Slawinski thinks you might like it`,
-  });
-
-  head.meta.push({
-    key: 'og:image',
-    name: 'og:image',
-    content: socialImage,
   });
 
   head.meta.push({
