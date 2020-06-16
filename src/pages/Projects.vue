@@ -5,7 +5,7 @@
     >
       Check out what I've been up to lately
     </h1>
-    <div class="block sm:flex sm:flex-wrap">
+    <div class="flex flex-wrap justify-center">
       <div
         v-for="project in $page.projects"
         :key="project.id"
@@ -15,7 +15,7 @@
           class="max-w-sm h-full flex flex-col justify-between rounded overflow-hidden shadow-lg"
         >
           <g-link :to="project.website_link">
-            <img
+            <g-image
               class="mb-4 h-64 w-full object-cover"
               :src="project.thumbnail"
               alt="Project thumbnail"
