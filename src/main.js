@@ -32,7 +32,7 @@ export default function (Vue, { router, head, isClient }) {
     key: 'og:image',
     name: 'og:image',
     content:
-      'https://res.cloudinary.com/slawinski-dev/image/upload/w_1280,h_669,c_fill,q_auto,f_auto/w_760,c_fit,co_rgb:000000,g_south_west,x_50,y_300,l_text:arial_64_bold:Setting%20up%20a%20blog%20with%20Gridsome%20and%20Netlify%20CMS/w_760,c_fit,co_rgb:000000,g_north_west,x_50,y_400,l_text:arial_48:A%20step-by-step%20guide%20to%20create%20your%20own%20blogging%20platform%20from%20scratch/social-image_ptyaka',
+      'https://res.cloudinary.com/slawinski-dev/image/upload/w_1280,h_669,c_fill,q_auto,f_auto/w_760,c_fit,co_rgb:000000,g_south_west,x_50,y_300,l_text:arial_64_bold:slawinski.dev/w_760,c_fit,co_rgb:000000,g_north_west,x_50,y_400,l_text:arial_48:Tekst%20dolny/social-image_ptyaka',
   });
 
   head.meta.push({
