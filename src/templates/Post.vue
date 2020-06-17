@@ -37,9 +37,7 @@ export default {
         imagePublicID: 'social-image_dju5tn',
         font: 'helvetica',
         titleExtraConfig: '_bold',
-        titleGravity: 'west',
-        taglineGravity: 'south-west',
-        textColor: '0d0d0d',
+        textColor: '232129',
       });
     }
   },
