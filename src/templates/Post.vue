@@ -37,6 +37,7 @@ export default {
         imagePublicID: 'social-image_dju5tn',
         font: 'helvetica',
         textLeftOffset: '0',
+        titleLeftOffset: '10',
       });
     }
   },
