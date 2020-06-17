@@ -37,7 +37,10 @@ export default {
         imagePublicID: 'social-image_dju5tn',
         font: 'helvetica',
         textLeftOffset: '0',
-        titleLeftOffset: '10',
+        titleLeftOffset: '50',
+        titleBottomOffset: '300',
+        taglineTopOffset: '400',
+        taglineLeftOffset: '50',
       });
     }
   },
