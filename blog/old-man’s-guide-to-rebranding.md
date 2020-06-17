@@ -1,7 +1,6 @@
 ---
 title: Old man’s guide to rebranding
 description: Or how to fail at coding interviews and question your life choices
-draft: false
 date: 2020-05-05T19:00:49.056Z
 ---
 Originally posted on [dev.to](https://dev.to/slawinski/an-old-man-s-guide-to-rebranding-3d6l)
@@ -20,9 +19,9 @@ As always - the hardest part is to start. Fortunately, with the web technologies
 
 * **How-tos.** The Internet is full of them, which means you need to know what to look for. Videos, articles, blog posts - you name it! It seems every subject with every possible configuration of tools was already covered by someone and posted online. It's useful if you know what you want to create, but you got stuck. You might dig through tons of them until you find the right one though. And even then there’s no guarantee that the code we shamelessly copied to our project will work. Let’s be honest. We’ve all been there at some point - 50% of the code from StackOverflow and 50% from other peoples projects.
 
-* **Podcasts.** Amazing if you’re doing mundane stuff for a couple of hours a day every day. Like daily chores or commuting to your 9-to-5. Put those headphones on and immerse. It's not easy to recite whole blocks of code, so Podcasts mostly focus on news, tooling, personal experience, etc. 
+* **Podcasts.** Amazing if you’re doing mundane stuff for a couple of hours a day every day. Like daily chores or commuting to your 9-to-5. Put those headphones on and immerse. It's not easy to recite whole blocks of code, so Podcasts mostly focus on news, tooling, personal experience, etc.
 
-* **Boot camps**. I don't know much about them, but from what I read, there are good ones, and there are bad ones. They cost a ton of money, so be careful if you considering this path. As with almost everything, the best approach is to reach people who attended boot camps and ask for their recommendations. Going on a boot camp is not essential, but certainly, a good one will boost your efforts to become a programmer. 
+* **Boot camps**. I don't know much about them, but from what I read, there are good ones, and there are bad ones. They cost a ton of money, so be careful if you considering this path. As with almost everything, the best approach is to reach people who attended boot camps and ask for their recommendations. Going on a boot camp is not essential, but certainly, a good one will boost your efforts to become a programmer.
 
 * **Live coders.** I was surprised when I learned that there are a lot of people on Twitch who stream their work. Why should anyone care? Well actually watching someone code can teach you stuff which a refined tutorial can't - the given coder's approach to problem-solving. In a scripted tutorial or a course everything, even the bugs have to be implemented deliberately. It's great that the trainer wants to show us how to troubleshoot an error, but it's often acted-out (poorly) as if it was a surprise and we cannot be sure that they covered all the errors. But when there's an error in a live-stream, trust me, the struggle is real.
 
@@ -44,7 +43,7 @@ It starts all over! The cycle never ends, and the conclusion is to remember that
 
 ## Survivor bias
 
-Do you remember when I said that you need to start applying as soon as possible? It's because I care for you and I want you to fail. Yup, you read it right - **FAIL**. Failure is unavoidable in the hiring process, and sooner you realize it, the better. Failure is also free, so fail fast, as *they* like to say. 
+Do you remember when I said that you need to start applying as soon as possible? It's because I care for you and I want you to fail. Yup, you read it right - **FAIL**. Failure is unavoidable in the hiring process, and sooner you realize it, the better. Failure is also free, so fail fast, as *they* like to say.
 
 Who are *they* you may ask? *They* surely are not the people who author the success stories you've probably read over the internet. You know which ones I'm talking about. The ones about pivoting someone's life, taking up coding and landing a dev job in a couple of months without a CS degree. I read dozens of them, each one more impressive than the last. I'm not trying to mock anyone, and I don't have any reason not to believe them, but none of them was about someone failing and giving up.
 
@@ -54,9 +53,9 @@ This phenomenon has a name - survivor bias. It means that only success stories g
 
 According to [Technical Interviewing is Broken, But We Can Fix It](https://dev.to/ambroselittle/technical-interviewing-is-broken-but-we-can-fix-it-4964) and [F\*\** You, I Quit — Hiring Is Broken](https://medium.com/@evnowandforever/f-you-i-quit-hiring-is-broken-bb8f3a48d324), the whole thing is flawed in general. I wouldn’t know - I just started. But while I read those articles, I kept nodding my head at every point the authors have made. From my own experience after many failed interviews, I was left with a feeling of not being fairly assessed as a candidate.
 
-I can only imagine that for experienced candidates, it has to be even more infuriating. It should be expected that they were already vetted while applying for previous jobs and probably already have created a successful code. But nooo… It needs to be checked yet again if you know textbooks by heart and can solve irrelevant algorithms on a whiteboard. What about other skills a successful candidate has to have like fitting in the team, identifying with the company values or delivering results on time? 
+I can only imagine that for experienced candidates, it has to be even more infuriating. It should be expected that they were already vetted while applying for previous jobs and probably already have created a successful code. But nooo… It needs to be checked yet again if you know textbooks by heart and can solve irrelevant algorithms on a whiteboard. What about other skills a successful candidate has to have like fitting in the team, identifying with the company values or delivering results on time?
 
-But for someone with little to no experience, it does not make much of a difference - a failed interview is a failed interview. Anyway, in this crazy world, your chance to get a job grows with every application sent. Do you remember when I wrote in the beginning that luck is essential to become a dev? It took me seven months from sending out the first resume to finally accepting an offer for junior javascript developer. The whole thing is a matter of match and fit so keep on keeping on - you might get lucky next time. Below you will find the [flow diagram](http://sankeymatic.com/) of my job hunting efforts, and I recommend you to do one yourself. 
+But for someone with little to no experience, it does not make much of a difference - a failed interview is a failed interview. Anyway, in this crazy world, your chance to get a job grows with every application sent. Do you remember when I wrote in the beginning that luck is essential to become a dev? It took me seven months from sending out the first resume to finally accepting an offer for junior javascript developer. The whole thing is a matter of match and fit so keep on keeping on - you might get lucky next time. Below you will find the [flow diagram](http://sankeymatic.com/) of my job hunting efforts, and I recommend you to do one yourself.
 
 ![](../src/assets/wlfi8otqnfxox2y495tx.png)
 
@@ -64,9 +63,9 @@ So eventually, if you'll try long enough, you will get an offer. But before you 
 
 ## Imposter syndrome
 
-But you got the job! Congratulations! It’s only sweet, sweet work from now on. Do you feel comfortable? Not really? More of a never-ending fear of embarrassing yourself in front of your coworkers? Well, you might have the imposter syndrome. It’s that feeling when everyone seems smarter than you, and in your opinion, you faked your way here, and you're about to get exposed as a phony. The feeling is not so uncommon - I get it almost every day. 
+But you got the job! Congratulations! It’s only sweet, sweet work from now on. Do you feel comfortable? Not really? More of a never-ending fear of embarrassing yourself in front of your coworkers? Well, you might have the imposter syndrome. It’s that feeling when everyone seems smarter than you, and in your opinion, you faked your way here, and you're about to get exposed as a phony. The feeling is not so uncommon - I get it almost every day.
 
-You might want to fight the impostor syndrome with acting that you know your stuff. Fake it till you make it, riiiight? I’m sorry. People in the company will see through you in a matter of days. Be honest. Don't be afraid to say *I don't know*. No one will fire you right away after you admit that you don’t know something. Hardly any new employee brings revenue in the first couple of months, even in a senior position. 
+You might want to fight the impostor syndrome with acting that you know your stuff. Fake it till you make it, riiiight? I’m sorry. People in the company will see through you in a matter of days. Be honest. Don't be afraid to say *I don't know*. No one will fire you right away after you admit that you don’t know something. Hardly any new employee brings revenue in the first couple of months, even in a senior position.
 
 I get through the impostor syndrome by making a list of my coding achievements and looking at it whenever I'm questioning my skills again. They can be even the smallest of things like *I solved a merging conflict by myself* or *I made an alias for a very long command line*. It helps a ton when I start to experience the symptoms of imposter syndrome yet again. Also the bunny from the tweet below has a spot on advice for you.
 
@@ -74,7 +73,7 @@ https://twitter.com/ASpittel/status/1115593200184377346
 
 ## My way
 
-Four words: Read, Solve, Network, Create. I got where I am because I did just that - I completely immersed in programming and did nothing more for little over a year. I'm talking of course about my free time because I still had to go to work! 
+Four words: Read, Solve, Network, Create. I got where I am because I did just that - I completely immersed in programming and did nothing more for little over a year. I'm talking of course about my free time because I still had to go to work!
 
 **Read**: Read all you can as much as you can. Read at home, read on a bus, read in a line in a grocery store. It works as long as you’re reading about programming. You don't like reading? Watch a video then but remember to make it relevant and watch stuff about programming.
 

@@ -1,7 +1,6 @@
 ---
-title: Nuxt.js app with Postgres databse and Hasura GraphQL Engine
-description: Here you will find how to connect Postgres database with a basic
-  Nuxt.js app using GraphQL server from Hasura to enable basic CRUD operations.
+title: Nuxt.js app with Hasura GraphQL Engine
+description: Connect Postgres database with a Nuxt.js app using GraphQL server from Hasura
 date: 2020-06-12T10:59:32.126Z
 ---
 ## Create a Postgres database on Heroku

@@ -1,7 +1,6 @@
 ---
 title: Setting up a blog with Gridsome and Netlify CMS
-description: A step-by-step guide to create your own blogging platform from scratch.
-draft: true
+description: A step-by-step guide to create your own blogging platform from scratch
 date: 2020-05-14T10:22:03.035Z
 ---
 
