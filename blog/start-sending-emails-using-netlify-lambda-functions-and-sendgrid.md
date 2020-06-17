@@ -1,6 +1,6 @@
 ---
 title: Sending emails using Netlify Functions and Sendgrid
-description: Start sending email form your website using Netlify Functions and Sendgrid
+description: Start sending email form your website using serverless functions and Sendgrid
 date: 2020-06-12T09:47:49.449Z
 ---
 The below guide was heavily inspired by the team behind [https://rosso.codes](https://rosso.codes/blog/send-email-using-netlify-functions-and-sendgrid-api/). They deserve all the credit.

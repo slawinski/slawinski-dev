@@ -1,6 +1,6 @@
 ---
 title: Email subscription using Netlify Functions and ConvertKit
-description: Collect email addresses by using serverless functions
+description: Collect email addresses using serverless functions and ConvertKit
 date: 2020-05-31T19:15:45.030Z
 ---
 This tutorial is strongly inspired by the work of people behind [https://codegregg.com/](https://codegregg.com/blog/netlifyMailchimpFunction/). They deserve all the credit.

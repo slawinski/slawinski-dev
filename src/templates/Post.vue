@@ -47,8 +47,12 @@ export default {
   },
   metaInfo() {
     return {
-      title: this.$page.post.title,
       meta: [
+        {
+          key: 'og:title',
+          name: 'og:title',
+          content: this.$page.post.title,
+        },
         {
           key: 'og:description',
           name: 'og:description',
@@ -58,6 +62,11 @@ export default {
           key: 'og:image',
           name: 'og:image',
           content: this.socialImage,
+        },
+        {
+          key: 'twitter:title',
+          name: 'twitter:title',
+          content: this.$page.post.title,
         },
         {
           key: 'twitter:description',
