@@ -39,6 +39,7 @@ export default {
         textLeftOffset: '0',
         titleLeftOffset: '50',
         titleBottomOffset: '300',
+        titleExtraConfig: '_bold',
         taglineTopOffset: '400',
         taglineLeftOffset: '50',
       });
@@ -62,6 +63,11 @@ export default {
           key: 'twitter:description',
           name: 'twitter:description',
           content: this.$page.post.description,
+        },
+        {
+          key: 'twitter:image',
+          name: 'twitter:image',
+          content: this.socialImage,
         },
       ],
     };
