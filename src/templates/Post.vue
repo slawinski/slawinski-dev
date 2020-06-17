@@ -38,7 +38,7 @@ export default {
         titleFont: 'helvetica',
         titleGravity: 'west',
         titleExtraConfig: '_bold',
-        taglineFont: 'pt sans',
+        taglineFont: 'helvetica',
         taglineGravity: 'south-west',
         textColor: '0d0d0d',
       });
