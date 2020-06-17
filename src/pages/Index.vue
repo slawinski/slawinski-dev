@@ -36,6 +36,18 @@ export default {
 
   metaInfo: {
     title: 'Home',
+    meta: [
+      {
+        key: 'og:title',
+        name: 'og:title',
+        content: 'slawinski.dev',
+      },
+      {
+        key: 'twitter:title',
+        name: 'twitter:title',
+        content: 'slawinski.dev',
+      },
+    ],
   },
 };
 </script>

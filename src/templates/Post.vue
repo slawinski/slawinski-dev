@@ -34,7 +34,7 @@ export default {
         title: this.$page.post.title,
         tagline: this.$page.post.description,
         cloudName: 'slawinski-dev',
-        imagePublicID: 'social-image_ptyaka',
+        imagePublicID: 'social-image_dju5tn',
         font: 'helvetica',
         textLeftOffset: '0',
         titleLeftOffset: '50',
@@ -47,6 +47,7 @@ export default {
   },
   metaInfo() {
     return {
+      title: this.$page.post.title,
       meta: [
         {
           key: 'og:title',
