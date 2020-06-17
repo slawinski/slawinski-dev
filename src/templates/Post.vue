@@ -34,9 +34,13 @@ export default {
         title: this.$page.post.title,
         tagline: this.$page.post.description,
         cloudName: 'slawinski-dev',
-        imagePublicID: 'slawinski-dev_xkb8wv',
-        font: 'futura',
-        textColor: '232129',
+        imagePublicID: 'social-image_i4kw6r',
+        titleFont: 'helvetica',
+        titleGravity: 'west',
+        titleExtraConfig: '_bold',
+        taglineFont: 'pt sans',
+        taglineGravity: 'south-west',
+        textColor: '0d0d0d',
       });
     }
   },
