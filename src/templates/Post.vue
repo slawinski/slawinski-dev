@@ -35,7 +35,7 @@ export default {
         tagline: this.$page.post.description,
         cloudName: 'slawinski-dev',
         imagePublicID: 'social-image_dju5tn',
-        font: 'futura',
+        font: 'helvetica',
         textColor: '232129',
       });
     }
