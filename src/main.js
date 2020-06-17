@@ -31,7 +31,7 @@ export default function (Vue, { router, head, isClient }) {
   head.meta.push({
     key: 'twitter:card',
     name: 'twitter:card',
-    content: `summary`,
+    content: `summary_large_image`,
   });
 
   router.beforeEach((to, _from, next) => {

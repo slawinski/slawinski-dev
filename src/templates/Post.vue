@@ -34,7 +34,7 @@ export default {
         title: this.$page.post.title,
         tagline: this.$page.post.description,
         cloudName: 'slawinski-dev',
-        imagePublicID: 'social-image_dju5tn',
+        imagePublicID: 'social-image_ptyaka',
         font: 'helvetica',
         textLeftOffset: '0',
         titleLeftOffset: '50',
@@ -43,7 +43,7 @@ export default {
         taglineTopOffset: '400',
         taglineLeftOffset: '50',
       });
-    }
+    },
   },
   metaInfo() {
     return {
