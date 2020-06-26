@@ -1,12 +1,12 @@
 ---
-title: Resources for beginner web developers
-description: The ultimate (and strongly opinionated) list of FREE resources a
-  beginner developer could ever need.
+title: Resources for beginner developers
+description: Strongly opinionated list of FREE resources a beginner web
+  developer could ever need.
 date: 2020-06-26T20:20:18.997Z
 ---
-The list is not definitive and will change.
-
-*Important disclaimer:* If you don't know anything about programming then the chapter *Getting down to business* will hook you up! Enjoy!
+*Important disclaimer:* 
+- If you don't know anything about programming then the chapter *Getting down to business* will hook you up! Enjoy!
+- The list is not definitive and will change.
 
 
 ## Getting down to business
