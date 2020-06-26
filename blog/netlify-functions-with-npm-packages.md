@@ -53,7 +53,7 @@ Next add postinstall script in you root's `package.json`
   },
 }
 ```
-`netlify-lambda install` is a utility function for isntalling dependencies either locally or during build process.
+`netlify-lambda install` is a utility function for installing dependencies either locally or during build process.
 
 Lastly run:
 
