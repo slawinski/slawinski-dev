@@ -9,7 +9,7 @@ Go to hasura and spin up a heroku app with postgres database. It's all explained
 
 Using the GUI create a table `movies` and add following fields to it:
 
-```text
+```bash
 title - text
 id - uuid, primary key, unique, default: gen_random_uuid()
 year - text, nullable
