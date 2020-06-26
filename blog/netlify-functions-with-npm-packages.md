@@ -41,7 +41,7 @@ Then, again in project root install:
 npm i netlify-lambda
 ```
 
-(netlify-lambda)[https://github.com/netlify/netlify-lambda] is, as per documentation:
+[netlify-lambda](https://github.com/netlify/netlify-lambda) is, as per documentation:
 >an optional tool that helps with building or locally developing Netlify Functions with a simple webpack/babel build step. For function folders, there is also a small utility to install function folder dependencies.
 
 Next add postinstall script in you root's `package.json`
