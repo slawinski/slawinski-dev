@@ -1,9 +1,9 @@
 ---
 title: Netlify Functions with npm packages
-description: How to write serverless functions with npm packages without committing /node_modules
+description: How to write serverless functions with npm packages without committing node_modules
 date: 2020-06-14T13:06:30.174Z
 ---
-Instal Netlify CLI
+Let's assume that you already have an app deployed to Netlify. Now, install Netlify CLI
 
 ```bash
 npm i -g netlify-cli
@@ -23,10 +23,10 @@ Let's also use the fact that Netlify can install packages during its build proce
 npm init -y
 ```
 
-This will setup package.json just for the myFunction.js and will enable us to install packages
+This will setup package.json just for the myFunction directory and will enable us to install packages
 
 ```bash
-npm i [package_name]
+npm i <package_name>
 ```
 
 Because we'll be using it in our `myFunction.js`, which may look like this:
@@ -41,7 +41,10 @@ Then, again in project root install:
 npm i netlify-lambda
 ```
 
-And add postinstall script in you root's `package.json`
+(netlify-lambda)[https://github.com/netlify/netlify-lambda] is, as per documentation:
+>an optional tool that helps with building or locally developing Netlify Functions with a simple webpack/babel build step. For function folders, there is also a small utility to install function folder dependencies.
+
+Next add postinstall script in you root's `package.json`
 
 ```json
 {
@@ -50,6 +53,7 @@ And add postinstall script in you root's `package.json`
   },
 }
 ```
+`netlify-lambda install` is a utility function for isntalling dependencies either locally or during build process.
 
 Lastly run:
 
@@ -57,7 +61,7 @@ Lastly run:
 npm i
 ```
 
-And you're all set to hit your endpoint either in browser or in Postman.
+And you're all set to use your Netlify Function!
 
 P.S. To locally test that function run:
 
@@ -65,4 +69,4 @@ P.S. To locally test that function run:
 netlify dev
 ```
 
-This will spin up the project connected with Netlify including your functions and API keys.
+This will spin up the project connected with Netlify including your functions and API keys (if you have any).
