@@ -9,7 +9,7 @@ Go to hasura and spin up a heroku app with postgres database. It's all explained
 
 Using the GUI create a table `movies` and add following fields to it:
 
-```
+```text
 title - text
 id - uuid, primary key, unique, default: gen_random_uuid()
 year - text, nullable
@@ -159,3 +159,5 @@ export default {
 </script>
 ```
 TADAA! If we didn't mess up our app then you should see your sample movies listed in your browser.
+
+Wait, there's more! If you add or edit records in your database through hasura app you will instantly see the results in the nuxt app because it's subscribed.
