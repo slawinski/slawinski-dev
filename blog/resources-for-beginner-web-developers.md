@@ -43,6 +43,8 @@ The problem with books is while they get written, edited, printed, and optionall
 |[The Ultimate Guide To Getting Started As A Software Engineer](https://randallkanna.com/wp-content/uploads/2020/02/The-Ultimate-Guide-To-Getting-Started-As-A-Software-Engineer.pdf)|"This guide will help you get started coding with low risk to your financial future and time."|
 
 ## Online courses
+I like to have a plan of what should I learn. A step-by-step guide. Someone who will say "Welcome back!" when I log in. Online courses have it all (the 'welcome back' part depends on the good will of the presenter though).
+
 |link|description|
 |---|---|
 |[Harvard CS50](https://online-learning.harvard.edu/course/cs50-introduction-computer-science)|"An introduction to the intellectual enterprises of computer science and the art of programming."|
@@ -52,25 +54,28 @@ The problem with books is while they get written, edited, printed, and optionall
 
 ## Gamification
 Some aspects of programming can be taught by games which makes learning fun and, hopefuly, quicker.
+
 |link|description|
 |---|---|
 |[Flexbox Froggy](https://flexboxfroggy.com/)|"A game where you help Froggy and friends by writing CSS code"|
 |[CSS Grid Garden](http://cssgridgarden.com/)|"Write CSS code to grow your carrot garden"|
-|[Code Combat](https://codecombat.com/play/dungeon)|Students master core coding concepts such as while/for loops, functions, and algorithms all while playing a game. Unfortunately only part of it is free|
 |[CSS Diner](https://flukeout.github.io/)|"It's a fun game to learn and practice CSS selectors."|
 |[Learn Git Branching](https://learngitbranching.js.org/)|"The most visual and interactive way to learn Git on the web"|
+|[Code Combat](https://codecombat.com/play/dungeon)|Students master core coding concepts such as while/for loops, functions, and algorithms all while playing a game. Unfortunately only part of it is free|
 |[Warrior.js](https://warriorjs.com/)|"Code your way through dungeons, prove your skills, and get hired."|
 |[Mastery games](https://mastery.games/)|"Mastery through Deliberate Practice. Escape from tutorial hell"|
 |[Typing Club](https://www.typingclub.com/)|The most effective way to learn how to type. Oh, you already know how to type? But do you use all 10 fingers while you type? That's what I thought!|
 
 ## Git
+You will need git. Probably sooner than later so it's a good idea to grasp the basics.
+
 |link|description|
 |---|---|
-|[Understanding the GitHub flow](https://guides.github.com/introduction/flow/)||
-|[Git and Github in Plain English](https://blog.red-badger.com/2016/11/29/gitgithub-in-plain-english)||
-|[Globalna konfiguracja Gita](https://piecioshka.pl/blog/2017/02/06/globalna-konfiguracja-gita.html)||
-|[How to not f- up your local files with Git](https://medium.com/@francesco.agnoletto/how-to-not-f-up-your-local-files-with-git-part-1-e0756c88fd3c)||
-|[Git Command Explorer](https://gitexplorer.com/)||
+|[Understanding the GitHub flow](https://guides.github.com/introduction/flow/)|"GitHub flow is a lightweight, branch-based workflow that supports teams and projects where deployments are made regularly. This guide explains how and why GitHub flow works."|
+|[Git and Github in Plain English](https://blog.red-badger.com/2016/11/29/gitgithub-in-plain-english)|"This blog post aims to explain the “theory” behind version control (Git and Github) in plain English (...) No code. Nothing to download. No muss. No fuss."|
+|[Globalna konfiguracja Gita](https://piecioshka.pl/blog/2017/02/06/globalna-konfiguracja-gita.html)|How to make global .gitignore (it's in polish)|
+|[How to not f- up your local files with Git](https://medium.com/@francesco.agnoletto/how-to-not-f-up-your-local-files-with-git-part-1-e0756c88fd3c)|Some good tips on how to use git with a team and not fudge up your files|
+|[Git Command Explorer](https://gitexplorer.com/)|"Find the right commands you need without digging through the web."|
 |[Oh Shit, Git!?!](https://ohshitgit.com/)|"Git is hard: screwing up is easy, and figuring out how to fix your mistakes is fucking impossible (...) So here are some bad situations I've gotten myself into, and how I eventually got myself out of them in plain english."|
 
 ## Career
