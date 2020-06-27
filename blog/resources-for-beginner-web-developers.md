@@ -16,7 +16,8 @@ If you don't know anything about programming and/or web development I recommend 
 🔥 [Javascript30](https://javascript30.com/) 🔥
 
 ## Blogs
-| link|description|
+There are a lot of creators out there and some of them particularily focus on beginners. I regret this list is so short but you can help by expanding it!
+|link|description|
 |---|---|
 |[BaseCS](https://medium.com/basecs)|"Exploring the basics of computer science, every Monday, for a year."|
 |[We learn code](https://welearncode.com/) |"Ali’s friendly guides to your biggest coding questions."|
@@ -24,6 +25,7 @@ If you don't know anything about programming and/or web development I recommend 
 |[https://dev.to/top/infinity](https://dev.to/top/infinity)|Just read some of the most popular blog posts listed here and you're golden|
 
 ## Blogposts
+Every now and then I stumble upon a post which resonates with my inner programmer. I hope you also will find them interesting.
 |link|description|
 |---|---|
 |[Why learning code is so damn hard](https://www.thinkful.com/blog/why-learning-to-code-is-so-damn-hard/)|"What every beginner absolutely needs to know about the journey ahead"|
@@ -33,6 +35,7 @@ If you don't know anything about programming and/or web development I recommend 
 
 ## Books
 The problem with books is while they get written, edited, printed, and optionally translated, the javascript world moves forward and they quickly stop being relevant. But if books work for you and you enjoy smelling that freshly downloaded pdf then here's a short list of books you might find useful.
+
 |link|description|
 |---|---|
 |[Eloquent Javascript](http://eloquentjavascript.net/)|Probably the first book a beginner should read|
@@ -44,21 +47,21 @@ The problem with books is while they get written, edited, printed, and optionall
 |---|---|
 |[Harvard CS50](https://online-learning.harvard.edu/course/cs50-introduction-computer-science)|"An introduction to the intellectual enterprises of computer science and the art of programming."|
 |[Javascript30](https://javascript30.com/)|"Build 30 things in 30 days with 30 tutorials. No Frameworks. No Compilers. No Libraries. No Boilerplate"|
-|[Getting Started with JavaScript](https://frontendmasters.com/courses/getting-started-javascript-v2/)|"
-Want to learn to code using JavaScript? This is a great place to start!" from the one and only Kyle Simpson|
+|[Getting Started with JavaScript](https://frontendmasters.com/courses/getting-started-javascript-v2/)|"Want to learn to code using JavaScript? This is a great place to start!" from the one and only Kyle Simpson|
 |[Data Structures and Algorithms in JavaScript](https://egghead.io/courses/data-structures-and-algorithms-in-javascript)|"This course teaches you how to implement your first data structures and algorithms."|
 
 ## Gamification
+Some aspects of programming can be taught by games which makes learning fun and, hopefuly, quicker.
 |link|description|
 |---|---|
-|[Mastery games](https://mastery.games/)||
-|[Flexbox Froggy](https://flexboxfroggy.com/)||
-|[CSS Grid Garden](http://cssgridgarden.com/)||
-|[Learn Git Branching](https://learngitbranching.js.org/)||
-|[CSS Diner](https://flukeout.github.io/)||
-|[Warrior.js](https://warriorjs.com/)||
-|[Code Combat](https://codecombat.com/play/dungeon)||
-|[Typing Club](https://www.typingclub.com/)|
+|[Flexbox Froggy](https://flexboxfroggy.com/)|"A game where you help Froggy and friends by writing CSS code"|
+|[CSS Grid Garden](http://cssgridgarden.com/)|"Write CSS code to grow your carrot garden"|
+|[Code Combat](https://codecombat.com/play/dungeon)|Students master core coding concepts such as while/for loops, functions, and algorithms all while playing a game. Unfortunately only part of it is free|
+|[CSS Diner](https://flukeout.github.io/)|"It's a fun game to learn and practice CSS selectors."|
+|[Learn Git Branching](https://learngitbranching.js.org/)|"The most visual and interactive way to learn Git on the web"|
+|[Warrior.js](https://warriorjs.com/)|"Code your way through dungeons, prove your skills, and get hired."|
+|[Mastery games](https://mastery.games/)|"Mastery through Deliberate Practice. Escape from tutorial hell"|
+|[Typing Club](https://www.typingclub.com/)|The most effective way to learn how to type. Oh, you already know how to type? But do you use all 10 fingers while you type? That's what I thought!|
 
 ## Git
 |link|description|
