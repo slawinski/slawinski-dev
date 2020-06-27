@@ -17,6 +17,7 @@ If you don't know anything about programming and/or web development I recommend 
 
 ## Blogs
 There are a lot of creators out there and some of them particularily focus on beginners. I regret this list is so short but you can help by expanding it!
+
 |link|description|
 |---|---|
 |[BaseCS](https://medium.com/basecs)|"Exploring the basics of computer science, every Monday, for a year."|
@@ -26,6 +27,7 @@ There are a lot of creators out there and some of them particularily focus on be
 
 ## Blogposts
 Every now and then I stumble upon a post which resonates with my inner programmer. I hope you also will find them interesting.
+
 |link|description|
 |---|---|
 |[Why learning code is so damn hard](https://www.thinkful.com/blog/why-learning-to-code-is-so-damn-hard/)|"What every beginner absolutely needs to know about the journey ahead"|
@@ -79,6 +81,8 @@ You will need git. Probably sooner than later so it's a good idea to grasp the b
 |[Oh Shit, Git!?!](https://ohshitgit.com/)|"Git is hard: screwing up is easy, and figuring out how to fix your mistakes is fucking impossible (...) So here are some bad situations I've gotten myself into, and how I eventually got myself out of them in plain english."|
 
 ## Career
+Interviewing is hard. Passing an interview is even harder. Increase your chances of landing a dream job by consuming the below material.
+
 |link|description|
 |---|---|
 |[Career tips](https://github.com/ElaMoscicka/Career-tips)|Career tips for Software Engineers and Recruiters|
@@ -92,6 +96,8 @@ You will need git. Probably sooner than later so it's a good idea to grasp the b
 |[The Guerrilla Guide to Interviewing](https://www.joelonsoftware.com/2006/10/25/the-guerrilla-guide-to-interviewing-version-30/)|
 
 ## Knowledge base (or brain dump)
+Sometimes I need a solid source of knowledge. Reliable, up-to-date and easy to understand. So far I found these to be of that kind.
+
 |link|description|
 |---|---|
 |[30 seconds of interviews](https://30secondsofinterviews.org/)||
@@ -109,6 +115,8 @@ You will need git. Probably sooner than later so it's a good idea to grasp the b
 |[Front End Interview Handbook](https://github.com/yangshun/front-end-interview-handbook)|"Almost complete answers to "Front-end Job Interview Questions" which you can use to interview potential candidates, test yourself or completely ignore"|
 
 ## Javascript
+This is reduntant. Need to shuffle those linka bit.
+
 |link|description|
 |---|---|
 |[JavaScript The Right Way](http://jstherightway.org/)||
@@ -119,17 +127,21 @@ You will need git. Probably sooner than later so it's a good idea to grasp the b
 |[JavaScript Algorithms and Data Structures](https://github.com/trekhleb/javascript-algorithms/)||
 
 ## Online editors of things
+Need to quickly put together some code? Not enough time to set up your favourite environment? The below websites come to resque!
+
 |link|description|
 |---|---|
-|[Code Sandbox](https://codesandbox.io/)||
-|[regex101](https://regex101.com/)||
-|[Carbon](https://carbon.now.sh/)|
+|[Code Sandbox](https://codesandbox.io/)|"An instant IDE and prototyping tool for rapid web development"|
+|[regex101](https://regex101.com/)|"Free PCRE-based regular expression debugger with real time explanation, error detection and highlighting"|
+|[Carbon](https://carbon.now.sh/)|"Create and share beautiful images of your source code."|
 
 ## Learing platforms
+It's all there.
+
 |link|description|
 |---|---|
-|[Free Code Camp](https://www.freecodecamp.org/learn)||
-|[The Odin Project](https://www.theodinproject.com/)|
+|[Free Code Camp](https://www.freecodecamp.org/learn)|"You'll learn to code by completing coding challenges and building projects. You'll also earn verified certifications along the way."|
+|[The Odin Project](https://www.theodinproject.com/)|"Provides a free open source coding curriculum that can be taken entirely online."|
 
 ## Podcasts
 |link|description|
