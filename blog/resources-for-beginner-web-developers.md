@@ -4,25 +4,23 @@ description: Strongly opinionated list of FREE resources a beginner web
   developer could ever need.
 date: 2020-06-26T20:20:18.997Z
 ---
-*Important disclaimer:* 
-- If you don't know anything about programming then the chapter *Getting down to business* will hook you up! Enjoy!
+*Important disclaimer:*
 - The list is not definitive and will change.
 
 
 ## Getting down to business
-If you don't know anything about programming and/or web developemnt I recommend you to take a look at any of the three resources listed below. They we're designed with beginners in mind and will set you up for the upcoming journey of becoming a developer. I really recommend to check out the rest of this list too - it's full of great stuff!
+If you don't know anything about programming and/or web development I recommend you to take a look at any of the three resources listed below. They we're designed with beginners in mind and will set you up for the upcoming journey of becoming a developer. I really recommend to check out the rest of this list too - it's full of great stuff!
 
-🔥[Javascript30](https://javascript30.com/)
-🔥[Free Code Camp](https://www.freecodecamp.org/learn)
-🔥[Colt's Code Camp](https://www.youtube.com/playlist?list=PLblA84xge2_xNtaFnZhefjFbnDrpySKD3)🔥
+🔥 [Free Code Camp](https://www.freecodecamp.org/learn)
+🔥 [Colt's Code Camp](https://www.youtube.com/playlist?list=PLblA84xge2_xNtaFnZhefjFbnDrpySKD3)
+🔥 [Javascript30](https://javascript30.com/) 🔥
 
 ## Blogs
 | link|description|
 |---|---|
 |[BaseCS](https://medium.com/basecs)|"Exploring the basics of computer science, every Monday, for a year."|
-|[Compiled](https://compiled.blog/blog)||
 |[We learn code](https://welearncode.com/) |"Ali’s friendly guides to your biggest coding questions."|
-|[https://randallkanna.com/blog/](https://randallkanna.com/blog/)|   |
+|[https://randallkanna.com/blog/](https://randallkanna.com/blog/)|A bunch of posts from the author of "The Ultimate Guide To Getting Started As A Software Engineer"|
 |[https://dev.to/top/infinity](https://dev.to/top/infinity)|Just read some of the most popular blog posts listed here and you're golden|
 
 ## Blogposts
@@ -30,23 +28,25 @@ If you don't know anything about programming and/or web developemnt I recommend 
 |---|---|
 |[Why learning code is so damn hard](https://www.thinkful.com/blog/why-learning-to-code-is-so-damn-hard/)|"What every beginner absolutely needs to know about the journey ahead"|
 |[Deep work](https://doist.com/blog/deep-work/)|"How to master the #1 job skill that will never be obsolete"|
-|[Am I a real software engineer yet](https://www.freecodecamp.org/news/am-i-a-real-software-engineer-yet-a0f38a2248c0/)||
-|[Yes, You Should Learn Vanilla JavaScript Before Fancy JS Frameworks](https://snipcart.com/blog/learn-vanilla-javascript-before-using-js-frameworks)||
+|[Am I a real software engineer yet](https://www.freecodecamp.org/news/am-i-a-real-software-engineer-yet-a0f38a2248c0/)|Interesting take on what poeple think about web developers and why should you care|
+|[Yes, You Should Learn Vanilla JavaScript Before Fancy JS Frameworks](https://snipcart.com/blog/learn-vanilla-javascript-before-using-js-frameworks)|There's no argument it that. Read it to learn why|
 
 ## Books
+The problem with books is while they get written, edited, printed, and optionally translated, the javascript world moves forward and they quickly stop being relevant. But if books work for you and you enjoy smelling that freshly downloaded pdf then here's a short list of books you might find useful.
 |link|description|
 |---|---|
-|[Eloquent Javascript](http://eloquentjavascript.net/)|Porbably the first book a beginner should read|
-|[You Don't Know JS Yet](https://github.com/getify/You-Dont-Know-JS/tree/2nd-ed)|Definetely the second book a beginner should read because it gets technical very quickly|
+|[Eloquent Javascript](http://eloquentjavascript.net/)|Probably the first book a beginner should read|
+|[You Don't Know JS Yet](https://github.com/getify/You-Dont-Know-JS/tree/2nd-ed)|Definetely the second book (series) a beginner should read because it gets very technical very quickly|
 |[The Ultimate Guide To Getting Started As A Software Engineer](https://randallkanna.com/wp-content/uploads/2020/02/The-Ultimate-Guide-To-Getting-Started-As-A-Software-Engineer.pdf)|"This guide will help you get started coding with low risk to your financial future and time."|
 
 ## Online courses
 |link|description|
 |---|---|
-|[Harvard CS50](https://courses.edx.org/courses/course-v1:HarvardX+CS50+X/course/)||
-|[Javascript30](https://javascript30.com/)||
-|[Getting Started with JavaScript](https://frontendmasters.com/courses/getting-started-javascript-v2/)||
-|[Data Structures and Algorithms in JavaScript](https://egghead.io/courses/data-structures-and-algorithms-in-javascript)||
+|[Harvard CS50](https://online-learning.harvard.edu/course/cs50-introduction-computer-science)|"An introduction to the intellectual enterprises of computer science and the art of programming."|
+|[Javascript30](https://javascript30.com/)|"Build 30 things in 30 days with 30 tutorials. No Frameworks. No Compilers. No Libraries. No Boilerplate"|
+|[Getting Started with JavaScript](https://frontendmasters.com/courses/getting-started-javascript-v2/)|"
+Want to learn to code using JavaScript? This is a great place to start!" from the one and only Kyle Simpson|
+|[Data Structures and Algorithms in JavaScript](https://egghead.io/courses/data-structures-and-algorithms-in-javascript)|"This course teaches you how to implement your first data structures and algorithms."|
 
 ## Gamification
 |link|description|
@@ -58,7 +58,7 @@ If you don't know anything about programming and/or web developemnt I recommend 
 |[CSS Diner](https://flukeout.github.io/)||
 |[Warrior.js](https://warriorjs.com/)||
 |[Code Combat](https://codecombat.com/play/dungeon)||
-|[Typing Club](https://www.typingclub.com/)
+|[Typing Club](https://www.typingclub.com/)|
 
 ## Git
 |link|description|
@@ -81,7 +81,7 @@ If you don't know anything about programming and/or web developemnt I recommend 
 |[How to write a killer Software Engineering résumé](https://www.freecodecamp.org/news/writing-a-killer-software-engineering-resume-b11c91ef699d/)||
 |[Ace the coding interview, every time](https://medium.com/@nick.ciubotariu/ace-the-coding-interview-every-time-d169ce1fd3fc)||
 |[Decoding the Front-end Interview Process](https://codeburst.io/de-coding-the-front-end-development-interview-process-9601bc4c71e5)||
-|[The Guerrilla Guide to Interviewing](https://www.joelonsoftware.com/2006/10/25/the-guerrilla-guide-to-interviewing-version-30/)
+|[The Guerrilla Guide to Interviewing](https://www.joelonsoftware.com/2006/10/25/the-guerrilla-guide-to-interviewing-version-30/)|
 
 ## Knowledge base (or brain dump)
 |link|description|
@@ -115,13 +115,13 @@ If you don't know anything about programming and/or web developemnt I recommend 
 |---|---|
 |[Code Sandbox](https://codesandbox.io/)||
 |[regex101](https://regex101.com/)||
-|[Carbon](https://carbon.now.sh/)
+|[Carbon](https://carbon.now.sh/)|
 
 ## Learing platforms
 |link|description|
 |---|---|
 |[Free Code Camp](https://www.freecodecamp.org/learn)||
-|[The Odin Project](https://www.theodinproject.com/)
+|[The Odin Project](https://www.theodinproject.com/)|
 
 ## Podcasts
 |link|description|
@@ -132,7 +132,7 @@ If you don't know anything about programming and/or web developemnt I recommend 
 |link|description|
 |---|---|
 |[Leet Code](https://leetcode.com/)||
-|[Code Wars](https://www.codewars.com/dashboard)
+|[Code Wars](https://www.codewars.com/dashboard)|
 
 ## Other aggregators of tasty links
 |link|description|
@@ -151,7 +151,7 @@ If you don't know anything about programming and/or web developemnt I recommend 
 |[Level Up Tuts](https://www.youtube.com/channel/UCyU5wkjgQYGRB0hIHMwm2Sg)||
 |[Wes Bos](https://www.youtube.com/channel/UCoebwHSTvwalADTJhps0emA)||
 |[Colt Steele](https://www.youtube.com/channel/UCrqAGUPPMOdo0jfQ6grikZw)||
-|[The Net Ninja](https://www.youtube.com/channel/UCW5YeuERMmlnqo4oq8vwUpg)
+|[The Net Ninja](https://www.youtube.com/channel/UCW5YeuERMmlnqo4oq8vwUpg)|
 
 ## Twitter people to follow
 
