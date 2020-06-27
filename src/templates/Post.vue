@@ -193,13 +193,13 @@ export default {
   @apply border py-1 px-3;
 }
 
-/*.markdown td {*/
-/*  @apply border py-1 px-3;*/
-/*}*/
+.markdown td {
+  @apply border py-1 px-3;
+}
 
-/*.markdown div {*/
-/*  @apply mb-10*/
-/*}*/
+/* .markdown div {
+  @apply mb-10;
+} */
 
 /* Override pygments style background color. */
 .markdown .highlight pre {
