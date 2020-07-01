@@ -5,25 +5,26 @@ description: Strongly opinionated list of FREE resources a beginner web
 date: 2020-06-26T20:20:18.997Z
 ---
 *Important disclaimer:*
-- The list is not definitive and will change.
+- The list is not definitive. You can help by expanding it!
 
 
 ## Getting down to business
-If you don't know anything about programming and/or web development I recommend you to take a look at any of the three resources listed below. They we're designed with beginners in mind and will set you up for the upcoming journey of becoming a developer. I really recommend to check out the rest of this list too - it's full of great stuff!
+If you don't know anything about programming and/or web development I recommend you to take a look at any of the three resources listed below. They were created with beginners in mind and will set you up for the upcoming journey of becoming a developer. I really recommend to check out the rest of this list too - it's full of great stuff!
 
 🔥 [Free Code Camp](https://www.freecodecamp.org/learn)
 🔥 [Colt's Code Camp](https://www.youtube.com/playlist?list=PLblA84xge2_xNtaFnZhefjFbnDrpySKD3)
 🔥 [Javascript30](https://javascript30.com/) 🔥
 
 ## Blogs
-There are a lot of creators out there and some of them particularily focus on beginners. I regret this list is so short but you can help by expanding it!
+There are a lot of creators out there and some of them particularily focus on beginners. I regret this list is so short!
 
 |link|description|
 |---|---|
 |[BaseCS](https://medium.com/basecs)|"Exploring the basics of computer science, every Monday, for a year."|
 |[We learn code](https://welearncode.com/) |"Ali’s friendly guides to your biggest coding questions."|
+|[https://www.giftegwuenu.com/](https://www.giftegwuenu.com/)|Great articles and a lot of videos on many aspects of programming|
 |[https://randallkanna.com/blog/](https://randallkanna.com/blog/)|A bunch of posts from the author of "The Ultimate Guide To Getting Started As A Software Engineer"|
-|[https://dev.to/top/infinity](https://dev.to/top/infinity)|Just read some of the most popular blog posts listed here and you're golden|
+|[https://dev.to/top/infinity](https://dev.to/top/infinity)|Just read some of the most popular blog posts listed here and you're golden!|
 
 ## Blogposts
 Every now and then I stumble upon a post which resonates with my inner programmer. I hope you also will find them interesting.
@@ -36,7 +37,7 @@ Every now and then I stumble upon a post which resonates with my inner programme
 |[Yes, You Should Learn Vanilla JavaScript Before Fancy JS Frameworks](https://snipcart.com/blog/learn-vanilla-javascript-before-using-js-frameworks)|There's no argument it that. Read it to learn why|
 
 ## Books
-The problem with books is while they get written, edited, printed, and optionally translated, the javascript world moves forward and they quickly stop being relevant. But if books work for you and you enjoy smelling that freshly downloaded pdf then here's a short list of books you might find useful.
+The problem with books is while they get written, edited, printed, and optionally translated, the javascript world moves forward and they quickly stop being relevant. But if books work for you and you enjoy the smell of that freshly downloaded pdf then here's a short list of books you might find useful.
 
 |link|description|
 |---|---|
@@ -79,6 +80,7 @@ You will need git. Probably sooner than later so it's a good idea to grasp the b
 |[How to not f- up your local files with Git](https://medium.com/@francesco.agnoletto/how-to-not-f-up-your-local-files-with-git-part-1-e0756c88fd3c)|Some good tips on how to use git with a team and not fudge up your files|
 |[Git Command Explorer](https://gitexplorer.com/)|"Find the right commands you need without digging through the web."|
 |[Oh Shit, Git!?!](https://ohshitgit.com/)|"Git is hard: screwing up is easy, and figuring out how to fix your mistakes is fucking impossible (...) So here are some bad situations I've gotten myself into, and how I eventually got myself out of them in plain english."|
+|[Git Immersion](https://gitimmersion.com/index.html)|"A guided tour that walks through the fundamentals of Git, inspired by the premise that to know a thing is to do it."|
 
 ## Career
 Interviewing is hard. Passing an interview is even harder. Increase your chances of landing a dream job by consuming the below material.
@@ -86,11 +88,11 @@ Interviewing is hard. Passing an interview is even harder. Increase your chances
 |link|description|
 |---|---|
 |[Career tips](https://github.com/ElaMoscicka/Career-tips)|Career tips for Software Engineers and Recruiters|
-|[How to fail a programming interview](https://dev.to/mortoray/how-to-fail-a-programming-interview-b5i)||
-|[The 30 Most Important Interview Questions to Ask This Summer](https://www.glassdoor.com/blog/the-30-most-important-interview-questions-to-ask-this-summer/)||
-|[Get that job at Facebook](https://www.facebook.com/notes/facebook-engineering/get-that-job-at-facebook/10150964382448920)||
-|[Get that job at Google](https://steve-yegge.blogspot.com/2008/03/get-that-job-at-google.html)||
-|[How to write a killer Software Engineering résumé](https://www.freecodecamp.org/news/writing-a-killer-software-engineering-resume-b11c91ef699d/)||
+|[How to fail a programming interview](https://dev.to/mortoray/how-to-fail-a-programming-interview-b5i)|A list of most common mistakes a candidate can make|
+|[The 30 Most Important Interview Questions to Ask This Summer](https://www.glassdoor.com/blog/the-30-most-important-interview-questions-to-ask-this-summer/)|A candidate can also ask questions!|
+|[Get that job at Facebook](https://www.facebook.com/notes/facebook-engineering/get-that-job-at-facebook/10150964382448920)|Pretty old post from a facebook engineer and interviewer|
+|[Get that job at Google](https://steve-yegge.blogspot.com/2008/03/get-that-job-at-google.html)|Even older post about interviewing for Google|
+|[How to write a killer Software Engineering résumé](https://www.freecodecamp.org/news/writing-a-killer-software-engineering-resume-b11c91ef699d/)|"An in-depth analysis of the résumé that got me interviews at Google, Facebook, Amazon, Microsoft, Apple, and more."|
 |[Ace the coding interview, every time](https://medium.com/@nick.ciubotariu/ace-the-coding-interview-every-time-d169ce1fd3fc)||
 |[Decoding the Front-end Interview Process](https://codeburst.io/de-coding-the-front-end-development-interview-process-9601bc4c71e5)||
 |[The Guerrilla Guide to Interviewing](https://www.joelonsoftware.com/2006/10/25/the-guerrilla-guide-to-interviewing-version-30/)|
@@ -115,7 +117,7 @@ Sometimes I need a solid source of knowledge. Reliable, up-to-date and easy to u
 |[Front End Interview Handbook](https://github.com/yangshun/front-end-interview-handbook)|"Almost complete answers to "Front-end Job Interview Questions" which you can use to interview potential candidates, test yourself or completely ignore"|
 
 ## Javascript
-This is reduntant. Need to shuffle those linka bit.
+This is reduntant. Need to shuffle those links bit.
 
 |link|description|
 |---|---|
@@ -144,32 +146,43 @@ It's all there.
 |[The Odin Project](https://www.theodinproject.com/)|"Provides a free open source coding curriculum that can be taken entirely online."|
 
 ## Podcasts
+There are plenty of podcasts. I'm subscribed to, like, thirty but I regurarily listen to one or two. Here's the ones which might be of use for the beginner developers.
+
 |link|description|
 |---|---|
-|[Syntax](https://syntax.fm/)|A Tasty Treats Podcast for Web Developers.|
+|[CodeNewbie](https://www.codenewbie.org/podcast)|"The most supportive community of programmers
+and people learning to code|
+|[Ladybug Podcast](https://www.ladybug.dev/)|"We’re debugging the tech industry."|
+|[Syntax](https://syntax.fm/)|"A Tasty Treats Podcast for Web Developers."|
 
 ## Whiteboard challenges
+If you're thinking of becoming a professional developer then sooner or later you're going to encounter coding challenge during an interview. Why not prepare for that in advance?
+
 |link|description|
 |---|---|
-|[Leet Code](https://leetcode.com/)||
-|[Code Wars](https://www.codewars.com/dashboard)|
+|[Leet Code](https://leetcode.com/)|"LeetCode is the best platform to help you enhance your skills, expand your knowledge and prepare for technical interviews."|
+|[Code Wars](https://www.codewars.com/dashboard)|"Achieve code mastery through challenge"|
 
 ## Other aggregators of tasty links
+This is not the only list. In fact there's plenty of them. Below you will find the most useful ones. At least in my opinion.
+
 |link|description|
 |---|---|
 |[Learn Vanilla JavaScript](https://github.com/snipcart/learn-vanilla-js)|Open source list of paid & free resources to learn vanilla JavaScript|
 |[Design Resources For Developers](https://github.com/bradtraversy/design-resources-for-developers)|Curated list of design and UI resources from stock photos, web templates, CSS frameworks, UI libraries, tools and much more|
 |[Here are 450 Ivy League courses you can take online right now for free](https://www.freecodecamp.org/news/ivy-league-free-online-courses-a0d7ae675869/)|"Here are 450 Ivy League courses you can take online right now for free"|
+|[How to Hack Together Your Own CS Degree Online for Free](https://www.freecodecamp.org/news/how-to-hack-your-own-cs-degree-for-free/)|A list of resources related to computer science like algorithms, operating systems, maths etc.|
 
 ## Youtube channels
+I wish I had the time to watch all of the videos my subscription feed is throwing at me.
+
 |link|description|
 |---|---|
 |[Fireship](https://www.youtube.com/channel/UCsBjURrPoezykLs9EqgamOA)||
+|[mayuko](https://www.youtube.com/user/hellomayuko)||
 |[Traversy Media](https://www.youtube.com/channel/UC29ju8bIPH5as8OGnQzwJyA)||
 |[Academind](https://www.youtube.com/channel/UCSJbGtTlrDami-tDGPUV9-w)||
-|[Hello Roman](https://www.youtube.com/channel/UCq8XmOMtrUCb8FcFHQEd8_g)||
-|[Level Up Tuts](https://www.youtube.com/channel/UCyU5wkjgQYGRB0hIHMwm2Sg)||
-|[Wes Bos](https://www.youtube.com/channel/UCoebwHSTvwalADTJhps0emA)||
+|[Coding Blonde](https://www.youtube.com/channel/UCjdRbKZ494DfZ4zeX19rICw)||
 |[Colt Steele](https://www.youtube.com/channel/UCrqAGUPPMOdo0jfQ6grikZw)||
 |[The Net Ninja](https://www.youtube.com/channel/UCW5YeuERMmlnqo4oq8vwUpg)|
 
