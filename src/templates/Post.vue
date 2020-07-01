@@ -86,8 +86,6 @@ export default {
 </script>
 
 <style>
-/*@import 'https://github.githubassets.com/assets/gist-embed-d89dc96f3ab6372bb73ee45cafdd0711.css';*/
-
 .gist .blob-code-inner {
   font-size: 1rem;
 }
@@ -114,7 +112,7 @@ export default {
 }
 
 .markdown p {
-  @apply mb-4 font-body text-2xl;
+  @apply mb-6 font-body text-2xl;
 }
 
 .markdown strong {
@@ -134,27 +132,27 @@ export default {
 }
 
 .markdown h1 {
-  @apply leading-tight font-sans text-4xl font-semibold mb-10 mt-6 pb-2;
+  @apply leading-tight font-sans text-7xl font-semibold mb-8 mt-16;
 }
 
 .markdown h2 {
-  @apply leading-tight font-sans text-2xl font-semibold mb-10 mt-6 pb-2;
+  @apply leading-tight font-sans text-4xl font-semibold mb-8 mt-16;
 }
 
 .markdown h3 {
-  @apply leading-snug font-sans text-lg font-semibold mb-10 mt-6;
+  @apply leading-snug font-sans text-xl font-semibold mb-8 mt-16;
 }
 
 .markdown h4 {
-  @apply leading-none font-sans text-base font-semibold mb-10 mt-6;
+  @apply leading-none font-sans text-base font-semibold mb-8 mt-16;
 }
 
 .markdown h5 {
-  @apply leading-tight font-sans text-sm font-semibold mb-10 mt-6;
+  @apply leading-tight font-sans text-sm font-semibold mb-8 mt-16;
 }
 
 .markdown h6 {
-  @apply leading-tight font-sans text-sm font-semibold text-gray-600 mb-4 mt-6;
+  @apply leading-tight font-sans text-sm font-semibold text-gray-600 mb-8 mt-6;
 }
 
 .markdown blockquote {
@@ -186,7 +184,7 @@ export default {
 }
 
 .markdown table {
-  @apply text-base border-gray-600;
+  @apply text-xl border-gray-600;
 }
 
 .markdown th {
@@ -197,9 +195,9 @@ export default {
   @apply border py-1 px-3;
 }
 
-/* .markdown div {
+.markdown div {
   @apply mb-10;
-} */
+}
 
 /* Override pygments style background color. */
 .markdown .highlight pre {
