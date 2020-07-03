@@ -42,8 +42,8 @@ The problem with books is while they get written, edited, printed, and optionall
 |link|description|
 |---|---|
 |[Eloquent Javascript](http://eloquentjavascript.net/)|Probably the first book a beginner should read|
-|[The Ultimate Guide To Getting Started As A Software Engineer](https://randallkanna.com/wp-content/uploads/2020/02/The-Ultimate-Guide-To-Getting-Started-As-A-Software-Engineer.pdf)|"This guide will help you get started coding with low risk to your financial future and time."|
 |[You Don't Know JS Yet](https://github.com/getify/You-Dont-Know-JS/tree/2nd-ed)|Definetely the second book (series) a beginner should read because it gets very technical very quickly|
+|[The Ultimate Guide To Getting Started As A Software Engineer](https://randallkanna.com/wp-content/uploads/2020/02/The-Ultimate-Guide-To-Getting-Started-As-A-Software-Engineer.pdf)|"This guide will help you get started coding with low risk to your financial future and time."|
 
 ## Online courses
 I like to have a plan of what should I learn. A step-by-step guide. Someone who will say "Welcome back!" when I log in. Online courses have it all (the 'welcome back' part depends on the good will of the presenter though).
@@ -87,54 +87,54 @@ Interviewing is hard. Passing an interview is even harder. Increase your chances
 
 |link|description|
 |---|---|
-|[Ace the coding interview, every time](https://medium.com/@nick.ciubotariu/ace-the-coding-interview-every-time-d169ce1fd3fc)||
+|[Ace the coding interview, every time](https://medium.com/@nick.ciubotariu/ace-the-coding-interview-every-time-d169ce1fd3fc)|"A practical blueprint, refined with the help of experienced Engineers, that will help you succeed in a code-intensive technical interview"|
 |[Career tips](https://github.com/ElaMoscicka/Career-tips)|Career tips for Software Engineers and Recruiters|
-|[Decoding the Front-end Interview Process](https://codeburst.io/de-coding-the-front-end-development-interview-process-9601bc4c71e5)||
+|[Decoding the Front-end Interview Process](https://codeburst.io/de-coding-the-front-end-development-interview-process-9601bc4c71e5)|"Let’s take a look at the front-end development interview process and learn some tips to have successful interviews."|
 |[Get that job at Facebook](https://www.facebook.com/notes/facebook-engineering/get-that-job-at-facebook/10150964382448920)|Pretty old post from a facebook engineer and interviewer|
 |[Get that job at Google](https://steve-yegge.blogspot.com/2008/03/get-that-job-at-google.html)|Even older post about interviewing for Google|
 |[How to fail a programming interview](https://dev.to/mortoray/how-to-fail-a-programming-interview-b5i)|A list of most common mistakes a candidate can make|
 |[How to write a killer Software Engineering résumé](https://www.freecodecamp.org/news/writing-a-killer-software-engineering-resume-b11c91ef699d/)|"An in-depth analysis of the résumé that got me interviews at Google, Facebook, Amazon, Microsoft, Apple, and more."|
 |[The 30 Most Important Interview Questions to Ask This Summer](https://www.glassdoor.com/blog/the-30-most-important-interview-questions-to-ask-this-summer/)|A candidate can also ask questions!|
-|[The Guerrilla Guide to Interviewing](https://www.joelonsoftware.com/2006/10/25/the-guerrilla-guide-to-interviewing-version-30/)|
+|[The Guerrilla Guide to Interviewing](https://www.joelonsoftware.com/2006/10/25/the-guerrilla-guide-to-interviewing-version-30/)|Interesting take on interviewing from the interviewer point of view|
+|[Watch technical mock interviews](https://interviewing.io/recordings/)|"Watch technical mock interviews with engineers from Google, Amazon, and more"|
 
 ## Knowledge base (or brain dump)
 Sometimes I need a solid source of knowledge. Reliable, up-to-date and easy to understand. So far I found these to be of that kind.
 
 |link|description|
 |---|---|
-|[30 seconds of code](https://www.30secondsofcode.org/)||
-|[30 seconds of interviews](https://30secondsofinterviews.org/)||
-|[33 Concepts Every JavaScript Developer Should Know](https://github.com/leonardomso/33-js-concepts#readme/)||
-|[50+ Data Structure and Algorithms Interview Questions for Programmers](https://hackernoon.com/50-data-structure-and-algorithms-interview-questions-for-programmers-b4b1ac61f5b0/)||
-|[BlockScoped - Random coding questions by topic and difficulty](https://blockscoped.com/javascript/)||
-|[Developer Roadmaps](https://roadmap.sh/)||
+|[30 seconds of code](https://www.30secondsofcode.org/)|"Browse 898 short code snippets for all your development needs on 30 seconds of code."|
+|[30 seconds of interviews](https://30secondsofinterviews.org/)|"A curated collection of common web development interview questions to help you prepare for your next interview."|
+|[33 Concepts Every JavaScript Developer Should Know](https://github.com/leonardomso/33-js-concepts#readme/)|"This repository was created with the intention of helping developers master their concepts in JavaScript. It is not a requirement, but a guide for future studies. "|
+|[50+ Data Structure and Algorithms Interview Questions for Programmers](https://hackernoon.com/50-data-structure-and-algorithms-interview-questions-for-programmers-b4b1ac61f5b0/)|"In this article, I’ll share some frequently asked programming interview questions from different interviews for programmers at different levels of experience"|
+|[BlockScoped - Random coding questions by topic and difficulty](https://blockscoped.com/javascript/)|It's all in the title|
+|[Developer Roadmaps](https://roadmap.sh/)|"Step by step guides and paths to learn different tools or technologies"|
 |[Front End Interview Handbook](https://github.com/yangshun/front-end-interview-handbook)|"Almost complete answers to "Front-end Job Interview Questions" which you can use to interview potential candidates, test yourself or completely ignore"|
-|[JavaScript Questions](https://github.com/lydiahallie/javascript-questions/)||
-|[Refactoring Guru](https://refactoring.guru/)||
-|[SourceMaking](https://sourcemaking.com/)||
+|[Refactoring Guru](https://refactoring.guru/)|"Refactoring is a controllable process of improving code without creating new functionality. Design Patterns are typical solutions to the commonly occurring problems in software design."|
+|[SourceMaking](https://sourcemaking.com/)|"Design Patterns and Refactoring articles and guides. Design Patterns video tutorials for newbies. Simple descriptions and full source code examples in Java, C++, C#, PHP and Delphi."|
 |[VS Code can do that?!](https://www.vscodecandothat.com/)|All the best things about Visual Studio Code that nobody ever bothered to tell you|
-|[Watch technical mock interviews](https://interviewing.io/recordings/)||
-|[What the f*ck JavaScript?](https://github.com/denysdovhan/wtfjs/)||
 
 ## Javascript
-This is reduntant. Need to shuffle those links bit.
+Also a lot of knowledge, this time purely about JavaScript
 
 |link|description|
 |---|---|
-|[Guide for the daily JavaScripter](https://dev.to/damxipo/guide-for-the-daily-javascripter-87o/)||
-|[JavaScript Algorithms and Data Structures](https://github.com/trekhleb/javascript-algorithms/)||
-|[JavaScript The Right Way](http://jstherightway.org/)||
-|[JavaScript Visualized](https://dev.to/lydiahallie/javascript-visualized-event-loop-3dif)||
-|[The JavaScript Beginner's Handbook](https://www.freecodecamp.org/news/the-complete-javascript-handbook-f26b2c71719c/)||
-|[The Modern JavaScript Tutorial](https://javascript.info/)||
+|[Guide for the daily JavaScripter](https://dev.to/damxipo/guide-for-the-daily-javascripter-87o/)|"This document is a summary of good programming practices in js in general."|
+|[JavaScript Algorithms and Data Structures](https://github.com/trekhleb/javascript-algorithms/)|"This repository contains JavaScript based examples of many popular algorithms and data structures."|
+|[JavaScript The Right Way](http://jstherightway.org/)|"A quick reference to best practices for writing JavaScript -- links to code patterns and tutorials from around the web"|
+|[JavaScript Questions](https://github.com/lydiahallie/javascript-questions/)|"From basic to advanced: test how well you know JavaScript, refresh your knowledge a bit, or prepare for your coding interview!"|
+|[JavaScript Visualized](https://dev.to/lydiahallie/javascript-visualized-event-loop-3dif)|First part of a great series on javascript fundamentals|
+|[The JavaScript Beginner's Handbook](https://www.freecodecamp.org/news/the-complete-javascript-handbook-f26b2c71719c/)|The title is self-explanatory|
+|[The Modern JavaScript Tutorial](https://javascript.info/)|"How it's done now. From the basics to advanced topics with simple, but detailed explanations."|
+|[What the f*ck JavaScript?](https://github.com/denysdovhan/wtfjs/)|"A list of funny and tricky JavaScript examples"|
 
 ## Online editors of things
 Need to quickly put together some code? Not enough time to set up your favourite environment? The below websites come to resque!
 
 |link|description|
 |---|---|
-|[Carbon](https://carbon.now.sh/)|"Create and share beautiful images of your source code."|
 |[Code Sandbox](https://codesandbox.io/)|"An instant IDE and prototyping tool for rapid web development"|
+|[Carbon](https://carbon.now.sh/)|"Create and share beautiful images of your source code."|
 |[regex101](https://regex101.com/)|"Free PCRE-based regular expression debugger with real time explanation, error detection and highlighting"|
 
 ## Learing platforms
@@ -150,10 +150,10 @@ There are plenty of podcasts. I'm subscribed to, like, thirty but I regurarily l
 
 |link|description|
 |---|---|
-|[CodeNewbie](https://www.codenewbie.org/podcast)|"The most supportive community of programmers
+|[CodeNewbie](https://www.codenewbie.org/podcast)|"The most supportive community of programmers and people learning to code|
 |[Ladybug Podcast](https://www.ladybug.dev/)|"We’re debugging the tech industry."|
 |[Syntax](https://syntax.fm/)|"A Tasty Treats Podcast for Web Developers."|
-and people learning to code|
+
 
 ## Whiteboard challenges
 If you're thinking of becoming a professional developer then sooner or later you're going to encounter coding challenge during an interview. Why not prepare for that in advance?
@@ -176,15 +176,13 @@ This is not the only list. In fact there's plenty of them. Below you will find t
 ## Youtube channels
 I wish I had the time to watch all of the videos my subscription feed is throwing at me.
 
-|link|description|
-|---|---|
-|[Academind](https://www.youtube.com/channel/UCSJbGtTlrDami-tDGPUV9-w)||
-|[Coding Blonde](https://www.youtube.com/channel/UCjdRbKZ494DfZ4zeX19rICw)||
-|[Colt Steele](https://www.youtube.com/channel/UCrqAGUPPMOdo0jfQ6grikZw)||
-|[Fireship](https://www.youtube.com/channel/UCsBjURrPoezykLs9EqgamOA)||
-|[mayuko](https://www.youtube.com/user/hellomayuko)||
-|[The Net Ninja](https://www.youtube.com/channel/UCW5YeuERMmlnqo4oq8vwUpg)|
-|[Traversy Media](https://www.youtube.com/channel/UC29ju8bIPH5as8OGnQzwJyA)||
+[Academind](https://www.youtube.com/channel/UCSJbGtTlrDami-tDGPUV9-w) \
+[Coding Blonde](https://www.youtube.com/channel/UCjdRbKZ494DfZ4zeX19rICw) \
+[Colt Steele](https://www.youtube.com/channel/UCrqAGUPPMOdo0jfQ6grikZw) \
+[Fireship](https://www.youtube.com/channel/UCsBjURrPoezykLs9EqgamOA) \
+[mayuko](https://www.youtube.com/user/hellomayuko) \
+[The Net Ninja](https://www.youtube.com/channel/UCW5YeuERMmlnqo4oq8vwUpg) \
+[Traversy Media](https://www.youtube.com/channel/UC29ju8bIPH5as8OGnQzwJyA)
 
 ## Twitter people to follow
 Twitter is a gold mine when it comes to talking about tech. Here's a list so you won't have to dig through hordes of people. Sorry if you're on Twitter and you're not on the list.
