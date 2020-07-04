@@ -35,7 +35,7 @@ module.exports = {
     {
       use: 'gridsome-source-graphql',
       options: {
-        url: 'https://slawinski-dev-projects.herokuapp.com/v1/graphql',
+        url: process.env.HASURA_GRAPHQL_ENDPOINT,
         fieldName: 'projects',
         typeName: 'projectTypes',
       },

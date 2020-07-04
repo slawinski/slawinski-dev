@@ -7,7 +7,7 @@
     "explore": "gridsome explore",
     "postinstall": "netlify-lambda install",
     "prettier": "prettier --write '**/*.{js,vue}'",
-    "lint": "eslint . --ext .js,.vue --ignore-path .gitignore"
+    "lint": "eslint . --ext .js,.vue --ignore-path .gitignore ."
   },
   "dependencies": {
     "@gridsome/source-filesystem": "^0.6.2",
