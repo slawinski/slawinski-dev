@@ -49,7 +49,7 @@ Add basic config in `nuxt.config.js`:
 ```
 The `ws` stands for websockets and will be required further on to subscribe to changes in the database.
 
-## Write some querries
+## Write some queries
 
 Let's prepare a template in `/pages/index.vue`:
 

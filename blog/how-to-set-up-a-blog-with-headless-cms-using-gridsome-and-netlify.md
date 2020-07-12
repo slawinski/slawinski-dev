@@ -126,7 +126,7 @@ Good job, we got ourselves a blog! Check your localhost to see the results.
 
 Now let's host it so it is accessible to everybody in the whole world. For that let's use Netlify.
 
-Go to netlify.com, log in, create new, add form github, build command `gridsome build`, publish directory `dist`
+Go to [netlify.com](https://www.netlify.com/), log in, create new, add from github, build command `gridsome build`, publish directory `dist`
 
 Great. Adding new posts now looks like this: we need to write a post in markdown, put it in the /blog directory, commit and push changes. Seems like a lot of fuss for such a simple task. Let's add a headless CMS to our blog to make it easier.
 

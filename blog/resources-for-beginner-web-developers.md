@@ -16,7 +16,7 @@ If you don't know anything about programming and/or web development I recommend 
 🔥 [Javascript30](https://javascript30.com/) 🔥
 
 ## Blogs
-There are a lot of creators out there and some of them particularily focus on beginners. I regret this list is so short!
+There are a lot of creators out there and some of them particularly focus on beginners. I regret this list is so short!
 
 |link|description|
 |---|---|
@@ -26,12 +26,12 @@ There are a lot of creators out there and some of them particularily focus on be
 |[https://www.giftegwuenu.com/](https://www.giftegwuenu.com/)|Great articles and a lot of videos on many aspects of programming|
 |[We learn code](https://welearncode.com/) |"Ali’s friendly guides to your biggest coding questions."|
 
-## Blogposts
+## Blog posts
 Every now and then I stumble upon a post which resonates with my inner programmer. I hope you also will find them interesting.
 
 |link|description|
 |---|---|
-|[Am I a real software engineer yet](https://www.freecodecamp.org/news/am-i-a-real-software-engineer-yet-a0f38a2248c0/)|Interesting take on what poeple think about web developers and why should you care|
+|[Am I a real software engineer yet](https://www.freecodecamp.org/news/am-i-a-real-software-engineer-yet-a0f38a2248c0/)|Interesting take on what people think about web developers and why should you care|
 |[Deep work](https://doist.com/blog/deep-work/)|"How to master the #1 job skill that will never be obsolete"|
 |[Why learning code is so damn hard](https://www.thinkful.com/blog/why-learning-to-code-is-so-damn-hard/)|"What every beginner absolutely needs to know about the journey ahead"|
 |[Yes, You Should Learn Vanilla JavaScript Before Fancy JS Frameworks](https://snipcart.com/blog/learn-vanilla-javascript-before-using-js-frameworks)|There's no argument it that. Read it to learn why|
@@ -46,7 +46,7 @@ The problem with books is while they get written, edited, printed, and optionall
 |[The Ultimate Guide To Getting Started As A Software Engineer](https://randallkanna.com/wp-content/uploads/2020/02/The-Ultimate-Guide-To-Getting-Started-As-A-Software-Engineer.pdf)|"This guide will help you get started coding with low risk to your financial future and time."|
 
 ## Online courses
-I like to have a plan of what should I learn. A step-by-step guide. Someone who will say "Welcome back!" when I log in. Online courses have it all (the 'welcome back' part depends on the good will of the presenter though).
+I like to have a plan of what should I learn. A step-by-step guide. Someone who will say *Welcome back!* when I log in. Online courses have it all (the 'welcome back' part depends on the good will of the presenter though).
 
 |link|description|
 |---|---|
@@ -56,7 +56,7 @@ I like to have a plan of what should I learn. A step-by-step guide. Someone who 
 |[Javascript30](https://javascript30.com/)|"Build 30 things in 30 days with 30 tutorials. No Frameworks. No Compilers. No Libraries. No Boilerplate"|
 
 ## Gamification
-Some aspects of programming can be taught by games which makes learning fun and, hopefuly, quicker.
+Some aspects of programming can be taught by games which makes learning fun and, hopefully, quicker.
 
 |link|description|
 |---|---|
@@ -107,7 +107,7 @@ Sometimes I need a solid source of knowledge. Reliable, up-to-date and easy to u
 |[30 seconds of interviews](https://30secondsofinterviews.org/)|"A curated collection of common web development interview questions to help you prepare for your next interview."|
 |[33 Concepts Every JavaScript Developer Should Know](https://github.com/leonardomso/33-js-concepts#readme/)|"This repository was created with the intention of helping developers master their concepts in JavaScript. It is not a requirement, but a guide for future studies. "|
 |[50+ Data Structure and Algorithms Interview Questions for Programmers](https://hackernoon.com/50-data-structure-and-algorithms-interview-questions-for-programmers-b4b1ac61f5b0/)|"In this article, I’ll share some frequently asked programming interview questions from different interviews for programmers at different levels of experience"|
-|[BlockScoped - Random coding questions by topic and difficulty](https://blockscoped.com/javascript/)|It's all in the title|
+|[BlockScoped](https://blockscoped.com/javascript/)|"Random coding questions by topic and difficulty"|
 |[Developer Roadmaps](https://roadmap.sh/)|"Step by step guides and paths to learn different tools or technologies"|
 |[Front End Interview Handbook](https://github.com/yangshun/front-end-interview-handbook)|"Almost complete answers to "Front-end Job Interview Questions" which you can use to interview potential candidates, test yourself or completely ignore"|
 |[Refactoring Guru](https://refactoring.guru/)|"Refactoring is a controllable process of improving code without creating new functionality. Design Patterns are typical solutions to the commonly occurring problems in software design."|
@@ -129,7 +129,7 @@ Also a lot of knowledge, this time purely about JavaScript
 |[What the f*ck JavaScript?](https://github.com/denysdovhan/wtfjs/)|"A list of funny and tricky JavaScript examples"|
 
 ## Online editors of things
-Need to quickly put together some code? Not enough time to set up your favourite environment? The below websites come to resque!
+Need to quickly put together some code? Not enough time to set up your favorite environment? The below websites come to rescue!
 
 |link|description|
 |---|---|
@@ -137,7 +137,7 @@ Need to quickly put together some code? Not enough time to set up your favourite
 |[Carbon](https://carbon.now.sh/)|"Create and share beautiful images of your source code."|
 |[regex101](https://regex101.com/)|"Free PCRE-based regular expression debugger with real time explanation, error detection and highlighting"|
 
-## Learing platforms
+## Learning platforms
 It's all there.
 
 |link|description|
@@ -146,7 +146,7 @@ It's all there.
 |[The Odin Project](https://www.theodinproject.com/)|"Provides a free open source coding curriculum that can be taken entirely online."|
 
 ## Podcasts
-There are plenty of podcasts. I'm subscribed to, like, thirty but I regurarily listen to one or two. Here's the ones which might be of use for the beginner developers.
+There are plenty of podcasts. I'm subscribed to, like, thirty but I regularly listen to one or two. Here's the ones which might be of use for the beginner developers.
 
 |link|description|
 |---|---|
@@ -173,7 +173,7 @@ This is not the only list. In fact there's plenty of them. Below you will find t
 |[How to Hack Together Your Own CS Degree Online for Free](https://www.freecodecamp.org/news/how-to-hack-your-own-cs-degree-for-free/)|A list of resources related to computer science like algorithms, operating systems, maths etc.|
 |[Learn Vanilla JavaScript](https://github.com/snipcart/learn-vanilla-js)|Open source list of paid & free resources to learn vanilla JavaScript|
 
-## Youtube channels
+## YouTube channels
 I wish I had the time to watch all of the videos my subscription feed is throwing at me.
 
 [Academind](https://www.youtube.com/channel/UCSJbGtTlrDami-tDGPUV9-w) \
