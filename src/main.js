@@ -32,7 +32,7 @@ export default function (Vue, { router, head, isClient }) {
     key: 'og:image',
     name: 'og:image',
     content:
-      'https://res.cloudinary.com/slawinski-dev/image/upload/w_1280,h_669,c_fill,q_auto,f_auto/w_760,c_fit,co_rgb:000000,g_south_west,x_50,y_300,l_text:arial_64_bold:slawinski.dev/w_760,c_fit,co_rgb:000000,g_north_west,x_50,y_400,l_text:arial_48:Tekst%20dolny/social-image_ptyaka',
+      'https://res.cloudinary.com/slawinski-dev/image/upload/w_1280,h_669,c_fill,q_auto,f_auto/w_760,c_fit,co_rgb:000000,g_south_west,x_50,y_300,l_text:arial_64_bold:slawinski.dev/w_760,c_fit,co_rgb:000000,g_north_west,x_50,y_400,l_text:arial_48:Spreading%20love@20for@20webdev@20one@20blog@20post@20at@20a@20time/social-image_ptyaka',
   });
 
   head.meta.push({
@@ -45,6 +45,13 @@ export default function (Vue, { router, head, isClient }) {
     key: 'twitter:card',
     name: 'twitter:card',
     content: `summary_large_image`,
+  });
+
+  head.meta.push({
+    key: 'twitter:image',
+    name: 'twitter:image',
+    content:
+      'https://res.cloudinary.com/slawinski-dev/image/upload/w_1280,h_669,c_fill,q_auto,f_auto/w_760,c_fit,co_rgb:000000,g_south_west,x_50,y_300,l_text:arial_64_bold:slawinski.dev/w_760,c_fit,co_rgb:000000,g_north_west,x_50,y_400,l_text:arial_48:Spreading%20love%20for%20webdev%20one%20blog%20post%20at%20a%20time/social-image_ptyaka',
   });
 
   router.beforeEach((to, _from, next) => {
