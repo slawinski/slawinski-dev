@@ -8,3 +8,7 @@ Back in April I gave a talk about Composition API - the most game changing impro
 `youtube:https://youtu.be/HxlwgrRcg9E`
 
 The snippet above should result in embedded youtube video. Did it work?
+
+...
+
+Oh yes, it did.
