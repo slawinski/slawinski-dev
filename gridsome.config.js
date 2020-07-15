@@ -15,12 +15,7 @@ module.exports = {
         remark: {
           // remark options
           plugins: [
-            [
-              '@noxify/gridsome-plugin-remark-embed',
-              {
-                enabledProviders: ['Youtube', 'Twitter', 'Gist'],
-              },
-            ],
+            ['gridsome-plugin-remark-youtube'],
             [
               'gridsome-plugin-remark-shiki',
               { theme: 'light_plus', skipInline: true },
