@@ -27,6 +27,8 @@ As always - the hardest part is to start. Fortunately, with the web technologies
 
 In the end, there are no magic beans, and you still will have to learn — a lot. To become a rockstar developer, you will have to acquire a sort of student mentality because you will have to learn until you basically retire. And don’t jump instantly into that new and trending framework everyone is talking about. Wait a while until the technology matures. You don’t want to waste your time on stuff which will not stay around for long, do you? Remember - cutting edge is not the place you want to be.
 
+If you can't wait any longer and want to start learning NOW then I got good news for you - I put together a couple of links that can help you. You can find them in this blog post: [Resources for beginner developers](https://slawinski.dev/blog/resources-for-beginner-web-developers/).
+
 ## Expectations vs. Reality
 
 Ok, now that you’ve read most of the books and watched some of the tutorials you might think the time has come to take a look at the job market and start applying. And you're right, so do it. Did you do it? Ok, now take a look at the chart below.
@@ -67,7 +69,7 @@ But you got the job! Congratulations! It’s only sweet, sweet work from now on.
 
 You might want to fight the impostor syndrome with acting that you know your stuff. Fake it till you make it, riiiight? I’m sorry. People in the company will see through you in a matter of days. Be honest. Don't be afraid to say *I don't know*. No one will fire you right away after you admit that you don’t know something. Hardly any new employee brings revenue in the first couple of months, even in a senior position.
 
-I get through the impostor syndrome by making a list of my coding achievements and looking at it whenever I'm questioning my skills again. They can be even the smallest of things like *I solved a merging conflict by myself* or *I made an alias for a very long command line*. It helps a ton when I start to experience the symptoms of imposter syndrome yet again. Also the bunny from the tweet below has a spot on advice for you.
+I get through the impostor syndrome by making a list of my coding achievements and looking at it whenever I'm questioning my skills again. They can be even the smallest of things like *I solved a merging conflict by myself* or *I made an alias for a very long command line*. It helps a ton when I start to experience the symptoms of imposter syndrome yet again. Also the bunny from the tweet below has a spot on advice for you:
 
 https://twitter.com/ASpittel/status/1115593200184377346
 
@@ -89,9 +91,9 @@ Here are a bunch of useful (and free!) links I wish I knew about at the beginnin
 
 * [freeCodeCamp](https://www.freecodecamp.org/) - I owe them the most, especially at the beginning of my coding adventure. I really really recommend it to anyone who wants to code but does not know where to start. It's a great place to learn the basics and more of many web technologies.
 * [30secondsofinterviews](https://30secondsofinterviews.org/) - They have answers to almost all trick questions a recruiter can ask. Unfortunately, I only learned about this website after my first failed technical interview. Embarrassingly when I decided to bookmark it, I discovered it already was in my Bookmarks folder.
-* [You Don’t Know JS](https://github.com/getify/You-Dont-Know-JS) - I don’t know which book about JavaScript should be your first, but I sure do know that You Don’t Know JS should be your second. Kyle Simpson covers a lot of material and gets very technical very quickly; that's why I do not recommend it for beginners. It also has answers to all that trick questions from interviews, including a thorough technical substantiation.
-* [Syntax.fm](https://syntax.fm/) - A podcast from Wes Bos and Scott Tolinski. They talk about everything related to web dev and more (barbeque and dancing usually) for over 100 episodes, and it does not get dull for even a second. Best. Podcast. Ever.
-* [codewars](https://www.codewars.com) - Are you interested in whiteboard challenges and martial arts? Then this website is for you. For every solved algorithm (kata), you get points (kyu) which eventually gets you a belt. Just like in Karate Kid!
+* [You Don’t Know JS](https://github.com/getify/You-Dont-Know-JS) - I don’t know which book about JavaScript should be your first, but I sure do know that You Don’t Know JS should be your second book (series). Kyle Simpson covers a lot of material and gets very technical very quickly; that's why I do not recommend it for beginners. It also has answers to all that trick questions from interviews, including a thorough technical substantiation.
+* [Syntax.fm](https://syntax.fm/) - A podcast from Wes Bos and Scott Tolinski. They talk about everything related to web dev and more (barbeque and dancing usually) for over 200 episodes, and it does not get dull for even a second. Best. Podcast. Ever.
+* [CodeWars](https://www.codewars.com) - Are you interested in whiteboard challenges and martial arts? Then this website is for you. For every solved algorithm (kata), you get points (kyu) which eventually gets you a belt. Just like in Karate Kid!
 * [CS50](https://www.edx.org/course/cs50s-introduction-computer-science-harvardx-cs50x) - This is a whole curriculum which in its design will teach you the basics of computer science. It's taught at Harvard, but it's also available online.
 
 ## Conclusions

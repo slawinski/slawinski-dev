@@ -16,6 +16,7 @@ module.exports = {
           // remark options
           plugins: [
             ['gridsome-plugin-remark-youtube'],
+            ['gridsome-plugin-remark-twitter'],
             [
               'gridsome-plugin-remark-shiki',
               { theme: 'light_plus', skipInline: true },
