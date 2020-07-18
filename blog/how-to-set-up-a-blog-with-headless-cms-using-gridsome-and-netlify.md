@@ -4,11 +4,11 @@ description: A step-by-step guide to create your own blogging platform from scra
 date: 2020-05-14T10:22:03.035Z
 ---
 
-Every developer has a moment when he or she decides to start blogging. Usually they make their first steps on a platform like [dev.to](https://dev.to/) or [medium.com](https://medium.com/) but sometimes the ready-made solutions just don't cut it or they wan't to grow their personal brand with a tailored website of their own. If you're motivated by any of those reasons then you're in the right place. Let's create ourselves a blog!
+Every developer has a moment when he or she decides to start blogging. Usually, they make their first steps on a platform like [dev.to](https://dev.to/) or [medium.com](https://medium.com/) but sometimes the ready-made solutions just don't cut it or they want to grow their brand with a tailored website of their own. If you're motivated by any of those reasons then you're in the right place. Let's create a blog!
 
 ## Create the blog
 
-First we need to install Gridsome CLI tool:
+First, we need to install Gridsome CLI tool:
 
 ```bash
 npm install --global @gridsome/cli
@@ -28,7 +28,7 @@ gridsome develop
 
 It will spin up our project and open a port on localhost where we will be able to check it out.
 
-Ok, now we need some plugins. Thankfully Gridsome community provided us with a lot of very useful plugins. We need `@gridsome/source-filesystem` to access file system on our machine and `@gridsome/transformer-remark` to interpret that markdown we are gonna write our posts with.
+Ok, now we need some plugins. Thankfully Gridsome community provided us with a lot of very useful plugins. We need `@gridsome/source-filesystem` to access the file system on our machine and `@gridsome/transformer-remark` to interpret that markdown we are gonna write our posts with.
 
 ```bash
 npm install @gridsome/source-filesystem @gridsome/transformer-remark
@@ -97,7 +97,7 @@ title: First Post
 This is the **first** post on my blog!
 ```
 
-Out posts will be written in markdown and each one has to be in the `/blog` directory.
+Our posts will be written in markdown and each one has to be in the `/blog` directory.
 
 In `src/components` create `PostList.vue`
 
@@ -126,7 +126,7 @@ Good job, we got ourselves a blog! Check your localhost to see the results.
 
 Now let's host it so it is accessible to everybody in the whole world. For that let's use Netlify.
 
-Go to [netlify.com](https://www.netlify.com/), log in, create new, add from github, build command `gridsome build`, publish directory `dist`
+Go to [netlify.com](https://www.netlify.com/), log in, create new, add from GitHub, build command `gridsome build`, publish directory `dist`
 
 Great. Adding new posts now looks like this: we need to write a post in markdown, put it in the /blog directory, commit and push changes. Seems like a lot of fuss for such a simple task. Let's add a headless CMS to our blog to make it easier.
 
@@ -208,6 +208,6 @@ ${scripts}
 
 Then we need to commit and push.
 
-On Netlify we have to go to the `Identity` tab and click `Enable Identity` button. Then under `Settings and usage` we should select `invite only` and enable `Git gateway`. After that we can invite users who can edit our blog under `Invite users` in the `Identity` tab.
+On Netlify we have to go to the `Identity` tab and click the `Enable Identity` button. Then under `Settings and usage` we should select `invite only` and enable `Git gateway`. After that, we can invite users who can edit our blog under `Invite users` in the `Identity` tab.
 
-After confirming email address we should have access to the admin panel. Let's edit the URL by adding `/admin` at the end. We can now choose password and edit our blog through the browser.
+After confirming the email address we should have access to the admin panel. Let's edit the URL by adding `/admin` at the end. We can now choose a password and edit our blog through the browser.

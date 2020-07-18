@@ -9,7 +9,7 @@ date: 2020-06-26T20:20:18.997Z
 
 
 ## Getting down to business
-If you don't know anything about programming and/or web development I recommend you to take a look at any of the three resources listed below. They were created with beginners in mind and will set you up for the upcoming journey of becoming a developer. I really recommend to check out the rest of this list too - it's full of great stuff!
+If you don't know anything about programming and/or web development I recommend you take a look at any of the three resources listed below. They were created with beginners in mind and will set you up for the upcoming journey of becoming a developer. I really recommend to check out the rest of this list too - it's full of great stuff!
 
 🔥 [Colt's Code Camp](https://www.youtube.com/playlist?list=PLblA84xge2_xNtaFnZhefjFbnDrpySKD3)
 🔥 [Free Code Camp](https://www.freecodecamp.org/learn)
@@ -37,7 +37,7 @@ Every now and then I stumble upon a post which resonates with my inner programme
 |[Yes, You Should Learn Vanilla JavaScript Before Fancy JS Frameworks](https://snipcart.com/blog/learn-vanilla-javascript-before-using-js-frameworks)|There's no argument it that. Read it to learn why|
 
 ## Books
-The problem with books is while they get written, edited, printed, and optionally translated, the javascript world moves forward and they quickly stop being relevant. But if books work for you and you enjoy the smell of that freshly downloaded pdf then here's a short list of books you might find useful.
+The problem with books is while they get written, edited, printed, and optionally translated, the javascript world moves forward and they quickly stop being relevant. But if books work for you and you enjoy the smell of that freshly downloaded pdf then here's a shortlist of books you might find useful.
 
 |link|description|
 |---|---|
@@ -46,7 +46,7 @@ The problem with books is while they get written, edited, printed, and optionall
 |[The Ultimate Guide To Getting Started As A Software Engineer](https://randallkanna.com/wp-content/uploads/2020/02/The-Ultimate-Guide-To-Getting-Started-As-A-Software-Engineer.pdf)|"This guide will help you get started coding with low risk to your financial future and time."|
 
 ## Online courses
-I like to have a plan of what should I learn. A step-by-step guide. Someone who will say *Welcome back!* when I log in. Online courses have it all (the 'welcome back' part depends on the good will of the presenter though).
+I like to have a plan for what should I learn. A step-by-step guide. Someone who will say *Welcome back!* when I log in. Online courses have it all (the 'welcome back' part depends on the goodwill of the presenter though).
 
 |link|description|
 |---|---|
@@ -90,7 +90,7 @@ Interviewing is hard. Passing an interview is even harder. Increase your chances
 |[Ace the coding interview, every time](https://medium.com/@nick.ciubotariu/ace-the-coding-interview-every-time-d169ce1fd3fc)|"A practical blueprint, refined with the help of experienced Engineers, that will help you succeed in a code-intensive technical interview"|
 |[Career tips](https://github.com/ElaMoscicka/Career-tips)|Career tips for Software Engineers and Recruiters|
 |[Decoding the Front-end Interview Process](https://codeburst.io/de-coding-the-front-end-development-interview-process-9601bc4c71e5)|"Let’s take a look at the front-end development interview process and learn some tips to have successful interviews."|
-|[Get that job at Facebook](https://www.facebook.com/notes/facebook-engineering/get-that-job-at-facebook/10150964382448920)|Pretty old post from a facebook engineer and interviewer|
+|[Get that job at Facebook](https://www.facebook.com/notes/facebook-engineering/get-that-job-at-facebook/10150964382448920)|Pretty old post from a Facebook engineer and interviewer|
 |[Get that job at Google](https://steve-yegge.blogspot.com/2008/03/get-that-job-at-google.html)|Even older post about interviewing for Google|
 |[How to fail a programming interview](https://dev.to/mortoray/how-to-fail-a-programming-interview-b5i)|A list of most common mistakes a candidate can make|
 |[How to write a killer Software Engineering résumé](https://www.freecodecamp.org/news/writing-a-killer-software-engineering-resume-b11c91ef699d/)|"An in-depth analysis of the résumé that got me interviews at Google, Facebook, Amazon, Microsoft, Apple, and more."|
@@ -99,7 +99,7 @@ Interviewing is hard. Passing an interview is even harder. Increase your chances
 |[Watch technical mock interviews](https://interviewing.io/recordings/)|"Watch technical mock interviews with engineers from Google, Amazon, and more"|
 
 ## Knowledge base (or brain dump)
-Sometimes I need a solid source of knowledge. Reliable, up-to-date and easy to understand. So far I found these to be of that kind.
+Sometimes I need a solid source of knowledge. Reliable, up-to-date, and easy to understand. So far I found these to be of that kind.
 
 |link|description|
 |---|---|
@@ -146,7 +146,7 @@ It's all there.
 |[The Odin Project](https://www.theodinproject.com/)|"Provides a free open source coding curriculum that can be taken entirely online."|
 
 ## Podcasts
-There are plenty of podcasts. I'm subscribed to, like, thirty but I regularly listen to one or two. Here's the ones which might be of use for the beginner developers.
+There are plenty of podcasts. I'm subscribed to, like, thirty but I regularly listen to one or two. Here are the ones which might be of use for beginner developers.
 
 |link|description|
 |---|---|
@@ -156,21 +156,21 @@ There are plenty of podcasts. I'm subscribed to, like, thirty but I regularly li
 
 
 ## Whiteboard challenges
-If you're thinking of becoming a professional developer then sooner or later you're going to encounter coding challenge during an interview. Why not prepare for that in advance?
+If you're thinking of becoming a professional developer then sooner or later you're going to encounter coding challenges during an interview. Why not prepare for that in advance?
 
 |link|description|
 |---|---|
 |[Code Wars](https://www.codewars.com/dashboard)|"Achieve code mastery through challenge"|
-|[Leet Code](https://leetcode.com/)|"LeetCode is the best platform to help you enhance your skills, expand your knowledge and prepare for technical interviews."|
+|[Leet Code](https://leetcode.com/)|"LeetCode is the best platform to help you enhance your skills, expand your knowledge, and prepare for technical interviews."|
 
 ## Other aggregators of tasty links
-This is not the only list. In fact there's plenty of them. Below you will find the most useful ones. At least in my opinion.
+This is not the only list. In fact, there's plenty of them. Below you will find the most useful ones. At least in my opinion.
 
 |link|description|
 |---|---|
 |[Design Resources For Developers](https://github.com/bradtraversy/design-resources-for-developers)|Curated list of design and UI resources from stock photos, web templates, CSS frameworks, UI libraries, tools and much more|
 |[Here are 450 Ivy League courses you can take online right now for free](https://www.freecodecamp.org/news/ivy-league-free-online-courses-a0d7ae675869/)|"Here are 450 Ivy League courses you can take online right now for free"|
-|[How to Hack Together Your Own CS Degree Online for Free](https://www.freecodecamp.org/news/how-to-hack-your-own-cs-degree-for-free/)|A list of resources related to computer science like algorithms, operating systems, maths etc.|
+|[How to Hack Together Your Own CS Degree Online for Free](https://www.freecodecamp.org/news/how-to-hack-your-own-cs-degree-for-free/)|A list of resources related to computer science like algorithms, operating systems, maths, etc.|
 |[Learn Vanilla JavaScript](https://github.com/snipcart/learn-vanilla-js)|Open source list of paid & free resources to learn vanilla JavaScript|
 
 ## YouTube channels

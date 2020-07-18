@@ -9,7 +9,7 @@ Let's assume that you already have an app deployed to Netlify. Now, install Netl
 npm i -g netlify-cli
 ```
 
-Create folder for functions in your root directory and put a .js file inside
+Create a folder for functions in your root directory and put a .js file inside
 
 ```bash
 touch /functions/MyFunction/myFunction.js
@@ -44,7 +44,7 @@ npm i netlify-lambda
 [netlify-lambda](https://github.com/netlify/netlify-lambda) is, as per documentation:
 >an optional tool that helps with building or locally developing Netlify Functions with a simple webpack/babel build step. For function folders, there is also a small utility to install function folder dependencies.
 
-Next add postinstall script in you root's `package.json`
+Next, add postinstall script in your root's `package.json`
 
 ```json
 {
@@ -53,9 +53,9 @@ Next add postinstall script in you root's `package.json`
   },
 }
 ```
-`netlify-lambda install` is a utility function for installing dependencies either locally or during build process.
+`netlify-lambda install` is a utility function for installing dependencies either locally or during the build process.
 
-Lastly run:
+Lastly, run:
 
 ```bash
 npm i

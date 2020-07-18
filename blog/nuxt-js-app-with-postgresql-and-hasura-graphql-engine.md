@@ -5,9 +5,9 @@ date: 2020-06-12T10:59:32.126Z
 ---
 ## Create a Postgres database on Heroku
 
-Go to hasura and spin up a heroku app with postgres database. It's all explained in Hasura docs: [Quickstart with Heroku](https://hasura.io/docs/1.0/graphql/manual/getting-started/heroku-simple.html)
+Go to Hasura and spin up a Heroku app with a Postgres database. It's all explained in Hasura docs: [Quickstart with Heroku](https://hasura.io/docs/1.0/graphql/manual/getting-started/heroku-simple.html)
 
-Using the GUI create a table `movies` and add following fields to it:
+Using the GUI create a table `movies` and add the following fields to it:
 
 ```bash
 title - text
@@ -21,7 +21,7 @@ Feed it some sample data (`poster` field should be a link to some jpeg) and move
 
 ## Create Nuxt.js app
 
-Next let's create [Nuxt.js](https://nuxtjs.org/guide/installation) app (there are no preferences towards answers for the questions):
+Next, let's create [Nuxt.js](https://nuxtjs.org/guide/installation) app (there are no preferences towards answers for the questions):
 
 ```bash
 npx create-nuxt-app nuxt-movie-database
@@ -47,7 +47,7 @@ Add basic config in `nuxt.config.js`:
    },
  },
 ```
-The `ws` stands for websockets and will be required further on to subscribe to changes in the database.
+The `ws` stands for WebSockets and will be required further on to subscribe to changes in the database.
 
 ## Write some queries
 
@@ -97,7 +97,7 @@ Let's prepare a template in `/pages/index.vue`:
 
 It's not very pretty, but we're not here to enjoy the views.
 
-Now write graphql queries (query for reading the data, mutation for writing/deleting the data and subscription to update the app whenever a change in the database is detected)
+Now write GraphQL queries (query for reading the data, mutation for writing/deleting the data and subscription to update the app whenever a change in the database is detected)
 
 ```vue
 <script>
@@ -160,4 +160,4 @@ export default {
 ```
 TADAA! If we didn't mess up our app then you should see your sample movies listed in your browser.
 
-Wait, there's more! If you add or edit records in your database through hasura app you will instantly see the results in the nuxt app because it's subscribed.
+Wait, there's more! If you add or edit records in your database through the Hasura app you will instantly see the results in the Nuxt app because it's subscribed.

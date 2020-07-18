@@ -11,9 +11,9 @@ If you want to learn more about serverless functions provided by Netlify I recom
 
 Remember that besides API key a user also has to do "Sender Authentication" and if she/he chooses "Single Sender Verification" then the `from` and `to` emails from your snippet have to be the same. For more information please refer to: [How to set up domain authentication](https://sendgrid.com/docs/ui/account-and-settings/how-to-set-up-domain-authentication/) and [Sender Identity](https://sendgrid.com/docs/for-developers/sending-email/sender-identity/).
 
-## Create serverless function
+## Create a serverless function
 
-Create folder for functions in your root directory and put a .js file inside
+Create a folder for functions in your root directory and put a .js file inside
 
 ```bash
 touch /functions/sendmail/sendmail.js
@@ -27,7 +27,7 @@ Let's also use the fact that Netlify can install packages during its build proce
 npm init -y
 ```
 
-This will setup package.json just for the `/sendmail` and will enable us to install packages in subfolder:
+This will setup package.json just for the `/sendmail` and will enable us to install packages in a subfolder:
 
 ```bash
 npm install --save @sendgrid/mail
@@ -97,7 +97,7 @@ Then, again in project root install:
 npm i netlify-lambda
 ```
 
-And add postinstall script in you root's `package.json`
+And add postinstall script in your root's `package.json`
 
 ```json
 {
@@ -107,7 +107,7 @@ And add postinstall script in you root's `package.json`
 }
 ```
 
-Lastly run:
+Lastly, run:
 
 ```bash
 npm i
@@ -115,7 +115,7 @@ npm i
 
 ## Set up environmental variables in Netlify
 
-In your project's panel on Netlify, in Settings section fill in you environmental variables.
+In your project's panel on Netlify, in the Settings section fill in your environmental variables.
 
 And you're all set to send emails from your contact form!
 

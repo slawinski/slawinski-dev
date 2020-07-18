@@ -11,9 +11,9 @@ If you want to learn more about serverless functions provided by Netlify I recom
 
 I find ConvertKit the most developer-friendly transactional email service since they allow you to put their physical address in your messages (CAN-SPAM requirement to have a physical address in every email you send). For details please refer to (Alternatives for your physical address)[https://help.convertkit.com/en/articles/2502494-alternatives-for-your-physical-address]
 
-## Create serverless function
+## Create a serverless function
 
-Create folder for functions in your root directory and put a .js file inside
+Create a folder for functions in your root directory and put a .js file inside
 
 ```bash
 touch /functions/subscribe/subscribe.js
@@ -27,7 +27,7 @@ Let's also use the fact that Netlify can install packages during its build proce
 npm init -y
 ```
 
-This will setup package.json just for the `/subscribe` and will enable us to install packages in subfolder:
+This will setup package.json just for the `/subscribe` and will enable us to install packages in a subfolder:
 
 ```bash
 npm i axios
@@ -94,7 +94,7 @@ Then, again in project root install:
 npm i netlify-lambda
 ```
 
-And add postinstall script in you root's `package.json`
+And add postinstall script in your root's `package.json`
 
 ```json
 {
@@ -104,7 +104,7 @@ And add postinstall script in you root's `package.json`
 }
 ```
 
-Lastly run:
+Lastly, run:
 
 ```bash
 npm i
@@ -112,7 +112,7 @@ npm i
 
 ## Set up environmental variables in Netlify
 
-In your project's panel on Netlify, in Settings section fill in you environmental variables.
+In your project's panel on Netlify, in the Settings section fill in your environmental variables.
 
 And you're all set to collect emails from visitors kind enough to provide it to you!
 
