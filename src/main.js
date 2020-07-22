@@ -17,9 +17,15 @@ export default function (Vue, { router, head, isClient }) {
   head.bodyAttrs = { class: 'bg-background leading-normal' };
 
   head.meta.push({
+    key: 'og:title',
+    name: 'og:title',
+    content: 'slawinski.dev',
+  });
+
+  head.meta.push({
     key: 'og:type',
     name: 'og:type',
-    content: `article`,
+    content: 'article',
   });
 
   head.meta.push({
@@ -56,7 +62,7 @@ export default function (Vue, { router, head, isClient }) {
     head.meta.push({
       key: 'og:url',
       name: 'og:url',
-      content: `https://slawinski.dev${to.path}`,
+      content: process.env.GRIDSOME_BASE_PATH + to.path,
     });
     next();
   });
