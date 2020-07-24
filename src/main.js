@@ -60,11 +60,10 @@ export default function (Vue, { router, head, isClient }) {
       name: 'og:url',
       content: process.env.GRIDSOME_BASE_PATH + to.path,
     });
+    head.link.push({
+      rel: 'canonical',
+      href: process.env.GRIDSOME_BASE_PATH + to.path,
+    });
     next();
-  });
-
-  head.link.push({
-    rel: 'canonical',
-    href: 'https://slawinski.dev',
   });
 }
