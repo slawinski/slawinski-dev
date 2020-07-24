@@ -53,28 +53,4 @@ export default function (Vue, { router, head, isClient }) {
       content: process.env.SOCIAL_IMAGE_LINK,
     },
   );
-
-  head.meta.push({
-    key: 'og:url',
-    name: 'og:url',
-    content: process.env.GRIDSOME_BASE_PATH,
-  });
-
-  head.link.push({
-    rel: 'canonical',
-    href: process.env.GRIDSOME_BASE_PATH,
-  });
-
-  // router.beforeEach((to, _from, next) => {
-  //   head.meta.push({
-  //     key: 'og:url',
-  //     name: 'og:url',
-  //     content: process.env.GRIDSOME_BASE_PATH + to.path,
-  //   });
-  //   head.link.push({
-  //     rel: 'canonical',
-  //     href: process.env.GRIDSOME_BASE_PATH + to.path,
-  //   });
-  //   next();
-  // });
 }
