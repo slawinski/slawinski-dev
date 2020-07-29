@@ -7,6 +7,11 @@
 module.exports = {
   siteName: 'slawinski.dev',
   siteUrl: 'https://slawinski.dev',
+  siteDescription: 'Piotr Slawinski thinks you might like it',
+  metadata: {
+    siteOgImage:
+      'https://res.cloudinary.com/slawinski-dev/image/upload/w_1280,h_669,c_fill,q_auto,f_auto/w_760,c_fit,co_rgb:000000,g_south_west,x_50,y_300,l_text:arial_64_bold:slawinski.dev/w_760,c_fit,co_rgb:000000,g_north_west,x_50,y_400,l_text:arial_48:Spreading%20love%20for%20webdev%20one%20blog%20post%20at%20a%20time/social-image_ptyaka',
+  },
   plugins: [
     {
       use: '@gridsome/source-filesystem',
