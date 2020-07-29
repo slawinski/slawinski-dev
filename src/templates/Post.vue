@@ -62,17 +62,17 @@ export default {
       meta: [
         {
           key: 'og:title',
-          name: 'og:title',
+          property: 'og:title',
           content: this.$page.post.title,
         },
         {
           key: 'og:description',
-          name: 'og:description',
+          property: 'og:description',
           content: this.$page.post.description,
         },
         {
           key: 'og:image',
-          name: 'og:image',
+          property: 'og:image',
           content: this.socialImage,
         },
         {

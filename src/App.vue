@@ -27,22 +27,22 @@ export default {
       meta: [
         {
           key: 'og:title',
-          name: 'og:title',
+          property: 'og:title',
           content: this.$static.metadata.siteName,
         },
         {
           key: 'og:type',
-          name: 'og:type',
+          property: 'og:type',
           content: 'article',
         },
         {
           key: 'og:description',
-          name: 'og:description',
+          property: 'og:description',
           content: this.$static.metadata.siteDescription,
         },
         {
           key: 'og:image',
-          name: 'og:image',
+          property: 'og:image',
           content: this.$static.metadata.siteOgImage,
         },
         {
