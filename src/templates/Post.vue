@@ -19,7 +19,11 @@ query Post ($path: String!) {
     content
     description
     date (format: "D MMMM YYYY")
-
+    path
+  }
+  metadata {
+    siteName
+    siteUrl
   }
 }
 </page-query>
@@ -48,6 +52,13 @@ export default {
   metaInfo() {
     return {
       title: this.$page.post.title,
+      link: [
+        {
+          key: `canonical`,
+          rel: `canonical`,
+          href: this.$page.metadata.siteUrl + this.$page.post.path,
+        },
+      ],
       meta: [
         {
           key: 'og:title',

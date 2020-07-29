@@ -6,6 +6,7 @@
 
 module.exports = {
   siteName: 'slawinski.dev',
+  siteUrl: 'https://slawinski.dev',
   plugins: [
     {
       use: '@gridsome/source-filesystem',
