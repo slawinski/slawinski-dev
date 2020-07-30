@@ -20,8 +20,8 @@ export default {
   computed: {
     socialImage() {
       return getShareImage({
-        title: this.$page.metadata.siteName,
-        tagline: this.$page.metadata.siteTagline,
+        title: this.$static.metadata.siteName,
+        tagline: this.$static.metadata.siteTagline,
         cloudName: 'slawinski-dev',
         imagePublicID: 'social-image_dju5tn',
         font: 'helvetica',
