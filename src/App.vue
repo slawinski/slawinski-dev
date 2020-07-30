@@ -21,7 +21,7 @@ export default {
     socialImage() {
       return getShareImage({
         title: this.$static.metadata.siteName,
-        tagline: this.$static.metadata.siteTagline,
+        tagline: this.$static.metadata.siteTagLine,
         cloudName: 'slawinski-dev',
         imagePublicID: 'social-image_dju5tn',
         font: 'helvetica',
