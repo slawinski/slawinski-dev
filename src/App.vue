@@ -8,13 +8,32 @@ query {
     siteName
     siteDescription
     siteUrl
-    siteOgImage
+    siteTagLine
   }
 }
 </static-query>
 
 <script>
+import getShareImage from '@jlengstorf/get-share-image';
+
 export default {
+  computed: {
+    socialImage() {
+      return getShareImage({
+        title: this.$page.metadata.siteName,
+        tagline: this.$page.metadata.siteTagline,
+        cloudName: 'slawinski-dev',
+        imagePublicID: 'social-image_dju5tn',
+        font: 'helvetica',
+        textLeftOffset: '0',
+        titleLeftOffset: '50',
+        titleBottomOffset: '300',
+        titleExtraConfig: '_bold',
+        taglineTopOffset: '400',
+        taglineLeftOffset: '50',
+      });
+    },
+  },
   metaInfo() {
     return {
       link: [
@@ -43,7 +62,7 @@ export default {
         {
           key: 'og:image',
           property: 'og:image',
-          content: this.$static.metadata.siteOgImage,
+          content: this.socialImage,
         },
         {
           key: 'twitter:description',
@@ -58,7 +77,7 @@ export default {
         {
           key: 'twitter:image',
           name: 'twitter:image',
-          content: this.$static.metadata.siteOgImage,
+          content: this.socialImage,
         },
       ],
     };
