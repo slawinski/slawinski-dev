@@ -8,7 +8,10 @@ module.exports = {
   siteName: 'slawinski.dev',
   siteUrl: 'https://slawinski.dev',
   siteDescription: 'Piotr Slawinski thinks you might like it',
-  siteTagLine: 'Spreading love for the web development one blog post at a time',
+  metadata: {
+    siteTagLine:
+      'Spreading love for the web development one blog post at a time',
+  },
   plugins: [
     {
       use: '@gridsome/source-filesystem',
