@@ -9,8 +9,7 @@ module.exports = {
   siteUrl: 'https://slawinski.dev',
   siteDescription: 'Piotr Slawinski thinks you might like it',
   metadata: {
-    siteTagLine:
-      'Spreading love for the web development one blog post at a time',
+    siteTagLine: 'Spreading love for the web dev one blog post at a time',
   },
   plugins: [
     {
