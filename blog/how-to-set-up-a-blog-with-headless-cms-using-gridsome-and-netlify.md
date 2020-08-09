@@ -4,7 +4,7 @@ description: A step-by-step guide to create your own blogging platform from scra
 date: 2020-05-14T10:22:03.035Z
 ---
 
-Every developer has a moment when he or she decides to start blogging. Usually, they make their first steps on a platform like [dev.to](https://dev.to/) or [medium.com](https://medium.com/) but sometimes the ready-made solutions just don't cut it or they want to grow their brand with a tailored website of their own. If you're motivated by any of those reasons then you're in the right place. Let's create a blog!
+Every developer has a life-changing moment when they decide to start blogging. Usually, they make their first steps on a platform like [dev.to](https://dev.to/) or [medium.com](https://medium.com/) but sometimes the ready-made solutions just don't cut it or they want to grow their brand with a tailored website of their own. If you're motivated by any of those reasons then you're in the right place. Let's create a blog!
 
 ## Create the blog
 
@@ -20,7 +20,7 @@ We will use the CLI to swiftly create our project. To do this go to your usual w
 gridsome create my-blog
 ```
 
-where "my-blog" is the name of our project. Now change directory to `my-blog` and run:
+where `my-blog` is the name of our project. Now change directory to `my-blog` and run:
 
 ```bash
 gridsome develop
@@ -28,7 +28,7 @@ gridsome develop
 
 It will spin up our project and open a port on localhost where we will be able to check it out.
 
-Ok, now we need some plugins. Thankfully Gridsome community provided us with a lot of very useful plugins. We need `@gridsome/source-filesystem` to access the file system on our machine and `@gridsome/transformer-remark` to interpret that markdown we are gonna write our posts with.
+Ok, before we start blogging we need some plugins. Thankfully Gridsome community provided us with a lot of very useful plugins. We need `@gridsome/source-filesystem` to import the local files into the GraphQL data layer and `@gridsome/transformer-remark` to interpret the markdown we are gonna write our posts with.
 
 ```bash
 npm install @gridsome/source-filesystem @gridsome/transformer-remark
@@ -59,35 +59,9 @@ module.exports = {
 }
 ```
 
-Noticed the `path` property? It's the directory where we will put our markdown. Oh, and let's not forget to run `gridsome develop` yet again since we've edited both `package.json` and `gridsome.config.js`
+Noticed the `path` property? It's the directory where we will put our posts. Also the `remark` prop is optional because Gridsome will automatically transform the files as long as transformer is installed. Oh, and let's not forget to run `gridsome develop` yet again since we've edited both `package.json` and `gridsome.config.js`
 
-Now we have to create few files. In `src/templates` directory create `Post.vue` containing the below:
-
-```vue
-<template>
-  <Layout>
-    <div>
-      <h1 v-html="$page.post.title"/>
-      <div v-html="$page.post.content"/>
-    </div>
-  </Layout>
-</template>
-
-<page-query>
-query Post ($path: String!) {
-  post: post (path: $path) {
-    title
-    content
-    date (format: "D MMMM YYYY")
-
-  }
-}
-</page-query>
-```
-
-It will become the scaffolding on which each of our posts will be built around.
-
-In `/blog` let's create `firstPost.md`.
+Our posts will be written in markdown. Let's create `firstPost.md` in `\blog`.
 
 ```markdown
 ---
@@ -97,28 +71,88 @@ title: First Post
 This is the **first** post on my blog!
 ```
 
-Our posts will be written in markdown and each one has to be in the `/blog` directory.
+In `src/templates` directory create `Post.vue` containing the below:
+
+```vue
+<template>
+  <Layout>
+    <div>
+      <h1>{{$page.post.title}}</h1>
+      <div v-html="$page.post.content"></div>
+    </div>
+  </Layout>
+</template>
+
+<page-query>
+  query Post ($path: String!) {
+    post (path: $path) {
+      title
+      content
+    }
+  }
+</page-query>
+```
+
+It will become the scaffolding on which each of our posts will be built around.
 
 In `src/components` create `PostList.vue`
 
 ```vue
 <template>
-  <div class="mb-32">
-    <g-link :to="post.path" >
-      <h1 v-html="post.title"/>
+  <div>
+    <g-link :to="post.path">
+      <h1>{{post.title}}</h1>
     </g-link>
-    <p v-html="post.description"/>
+    <p>{{post.description}}</p>
   </div>
+
 </template>
 
 <script>
-  export default {
-    props: ["post"],
-  };
+export default {
+  props: ["post"],
+}
 </script>
 ```
 
-That component will render a list of all posts available from the `/blog` folder. We can put it anywhere but let's put it in `Index.vue`.
+That component will render a list of all posts available in the `/blog` folder. We can import it anywhere but let's put it in `Index.vue`:
+
+```vue
+<template>
+  <Layout>
+    <PostList
+      v-for="edge in $page.allPost.edges"
+      :key="edge.node.id"
+      :post="edge.node"
+    />
+  </Layout>
+</template>
+
+<page-query>
+query {
+  allPost {
+    edges {
+      node {
+        path
+        title
+        description
+      }
+    }
+  }
+}
+</page-query>
+
+<script>
+import PostList from '../components/PostList';
+export default {
+  components: { PostList },
+  metaInfo: {
+    title: 'My blog'
+  }
+}
+</script>
+
+```
 
 Good job, we got ourselves a blog! Check your localhost to see the results.
 
@@ -211,3 +245,9 @@ Then we need to commit and push.
 On Netlify we have to go to the `Identity` tab and click the `Enable Identity` button. Then under `Settings and usage` we should select `invite only` and enable `Git gateway`. After that, we can invite users who can edit our blog under `Invite users` in the `Identity` tab.
 
 After confirming the email address we should have access to the admin panel. Let's edit the URL by adding `/admin` at the end. We can now choose a password and edit our blog through the browser.
+
+## References
+
+- https://gridsome.org/docs/querying-data/
+- https://gridsome.org/docs/deploy-to-netlify/
+- https://www.netlifycms.org/docs/add-to-your-site/
