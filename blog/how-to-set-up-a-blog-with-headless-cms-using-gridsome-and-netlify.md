@@ -34,7 +34,7 @@ Ok, before we start blogging we need some plugins. Thankfully Gridsome community
 npm install @gridsome/source-filesystem @gridsome/transformer-remark
 ```
 
-After successful installation we have to edit `gridsome.config.js`. It has to look like this:
+After successful installation we have to edit `gridsome.config.js`. It may look like this:
 
 ```javascript
 module.exports = {
@@ -59,41 +59,18 @@ module.exports = {
 }
 ```
 
-Noticed the `path` property? It's the directory where we will put our posts. Also the `remark` prop is optional because Gridsome will automatically transform the files as long as transformer is installed. Oh, and let's not forget to run `gridsome develop` yet again since we've edited both `package.json` and `gridsome.config.js`
+Noticed the `path` property? It's the directory where we will put our posts. Also the `remark` properties are optional because Gridsome will automatically transform the files as long as a transformer is installed. Oh, and let's not forget to run `gridsome develop` yet again since we've edited both `package.json` and `gridsome.config.js`
 
 Our posts will be written in markdown. Let's create `firstPost.md` in `\blog`.
 
 ```markdown
 ---
 title: First Post
+description: This is my first post.
 ---
 
 This is the **first** post on my blog!
 ```
-
-In `src/templates` directory create `Post.vue` containing the below:
-
-```vue
-<template>
-  <Layout>
-    <div>
-      <h1>{{$page.post.title}}</h1>
-      <div v-html="$page.post.content"></div>
-    </div>
-  </Layout>
-</template>
-
-<page-query>
-  query Post ($path: String!) {
-    post (path: $path) {
-      title
-      content
-    }
-  }
-</page-query>
-```
-
-It will become the scaffolding on which each of our posts will be built around.
 
 In `src/components` create `PostList.vue`
 
@@ -153,6 +130,30 @@ export default {
 </script>
 
 ```
+
+Now in `src/templates` directory create `Post.vue` containing the below:
+
+```vue
+<template>
+  <Layout>
+    <div>
+      <h1>{{$page.post.title}}</h1>
+      <div v-html="$page.post.content"></div>
+    </div>
+  </Layout>
+</template>
+
+<page-query>
+  query Post ($path: String!) {
+    post (path: $path) {
+      title
+      content
+    }
+  }
+</page-query>
+```
+
+It will become the scaffolding on which each of our posts will be built around.
 
 Good job, we got ourselves a blog! Check your localhost to see the results.
 
