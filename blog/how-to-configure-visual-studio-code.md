@@ -1,20 +1,20 @@
 ---
 title: How to configure Visual Studio Code right the first time
-description:
-date: 2020-08-16T19:24:03.035Z
+description: VS Code is a powerful tool but "batteries included" is not the expression this IDE is known for. Here's how to proceed to have the best developer experience.
+date: 2020-08-20T19:24:03.035Z
 ---
 When it comes to choosing an IDE choose wisely because a certain career-defining moment is secretly unveiling upon you. Should you go with Sublime, Webstorm, Atom, or VS Code? Obviously, there's no sorting hat to decide for you and you can change an IDE as many times as you want but have in mind that only one of them will be your favorite. I hope you choose VS Code because otherwise reading the rest of this post is pointless.
 ## Visual Studio Code - Insiders version
-There's actually an option or 'flavor' when choosing a VS Code as an editor. you can download the stable release or you can opt to use the latest build released for the earliest of adopters - the Insiders version. The choice is up to you but if you're enjoyed reading this post then it's rather obvious you should go with the regular.
+There's actually an option or 'flavor' when choosing a VS Code as an editor. you can download the stable release or you can opt to use the latest build released for the earliest of adopters - the Insiders version. The choice is up to you but if you're reading this post then it's rather obvious you should go with the regular.
 ## Extensions
-Ok, let's get down to business. First up - Extensions! I categorized them into groups. *Essentials*, in my opinion, are required to conduct any kind of coding work and stay sane. *Strongly recommended* extensions are welcome, but some of you might find them unnecessary or annoying. You can easily live without *Recommended* - they add value to your workflow but it's a very specific kind of workflow. Who knows? Maybe they work only for me?
+Ok, let's get down to business. First up - Extensions! I categorized them into groups. *Essentials*, in my opinion, are required to conduct any kind of coding and stay sane. *Strongly recommended* extensions are welcome, but some of you might find them unnecessary or annoying. You can easily live without *Recommended* - they add value to your workflow but it's a very specific kind of workflow. Who knows? Maybe they work only for me?
 
 ### Essential
 - Auto Rename Tag - It actually cuts in half the time required to edit two HTML tags!
 - Bracket Pair Colorizer - Enables color-coding of your brackets which helps to distinguish one scope from another.
 - Color Highlight - Gives you a hint of what color you've just typed in.
 - DotENV - Enables syntax highlight of your secrets in the .env files.
-- ESLint - This thing (if well configured) will save your butt. Hands down the biggest time-saver on this list. It finds problems in your code and it fixes them most of the time.
+- ESLint - This thing (if well configured) will save your butt. Hands down the biggest time-saver on this list. It finds problems in your code and it fixes them most of the time. Unless you're coding in TypeScript. Then it just sits there and does nothing.
 - JavaScript (ES6) code snippets - Less typing, more time to debug.
 - Prettier - Not as useful as ESLint but if configured together they actually make your codebase consistent and... Pretty.
 ### Strongly recommended
@@ -41,7 +41,7 @@ Here I gathered extensions which definitely aid only my workflow due to being fr
 - Tailwind CSS Intellisense - Recently I fell in love with TailwindCSS and this helps with typing in those utils
 - Vetur - This is for Vue.js and its ecosystem
 - Vue VS Code Snippets - Never too much of those snippets!
-## Settings
-TBD
-## dot files
-TBD
+
+## Conclusions
+
+There aren't any. Just pick what you like from the list above and keep on coding!
