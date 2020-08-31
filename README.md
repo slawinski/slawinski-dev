@@ -1,14 +1,7 @@
-# Default starter for Gridsome
+# slawinski.dev
 
-This is the project you get when you run `gridsome create new-project`.
+This is the very beginning of the documentation behind `slawinski.dev`
 
-### 1. Install Gridsome CLI tool if you don't have
+## Installation
 
-`npm install --global @gridsome/cli`
-
-### 2. Create a Gridsome project
-
-1. `gridsome create my-gridsome-site` to install default starter
-2. `cd my-gridsome-site` to open the folder
-3. `gridsome develop` to start a local dev server at `http://localhost:8080`
-4. Happy coding 🎉🙌
+TBD
