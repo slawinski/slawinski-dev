@@ -5,4 +5,5 @@ module.exports = {
   singleQuote: true,
   bracketSpacing: true,
   htmlWhitespaceSensitivity: 'ignore',
+  printWidth: 80,
 };
