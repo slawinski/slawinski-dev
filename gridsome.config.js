@@ -41,6 +41,28 @@ module.exports = {
         typeName: 'projectTypes',
       },
     },
+    {
+      use: 'gridsome-plugin-rss',
+      options: {
+        contentTypeName: 'Post',
+        feedOptions: {
+          title: 'slawinski.dev',
+          feed_url: 'https://slawinski.dev/rss.xml',
+          site_url: 'https://slawinski.dev',
+        },
+        feedItemOptions: (node) => ({
+          title: node.title,
+          description: node.description,
+          url: 'https://slawinski.dev/blog/' + node.path,
+          date: node.date || node.fields.date,
+          content: node.content,
+        }),
+        output: {
+          dir: './static',
+          name: 'rss.xml',
+        },
+      },
+    },
   ],
   transformers: {
     remark: {
