@@ -20,6 +20,7 @@
     "gridsome-plugin-remark-twitter": "^0.2.1",
     "gridsome-plugin-remark-youtube": "^1.0.1",
     "gridsome-source-graphql": "^1.0.2",
+    "markdown": "^0.5.0",
     "netlify-lambda": "^1.6.3",
     "postcss-import": "^12.0.1",
     "typeface-pt-sans": "0.0.72",
