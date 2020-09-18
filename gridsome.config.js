@@ -4,7 +4,6 @@
 // Changes here require a server restart.
 // To restart press CTRL + C in terminal and run `gridsome develop`
 
-const markdown = require('markdown').markdown;
 const { HASURA_GRAPHQL_ENDPOINT, GRIDSOME_BASE_PATH } = process.env;
 const SITE_NAME = 'slawinski.dev';
 const SITE_DESCRIPTION =
@@ -62,7 +61,7 @@ module.exports = {
         nodeToFeedItem: ({ title, date, content }) => ({
           title,
           date,
-          content: markdown.toHTML(content),
+          content,
         }),
       },
     },
