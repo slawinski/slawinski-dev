@@ -4,12 +4,17 @@
 // Changes here require a server restart.
 // To restart press CTRL + C in terminal and run `gridsome develop`
 
+const { HASURA_GRAPHQL_ENDPOINT, GRIDSOME_BASE_PATH } = process.env;
+const SITE_NAME = 'slawinski.dev';
+const SITE_DESCRIPTION =
+  'Spreading love for the web dev one blog post at a time';
+
 module.exports = {
-  siteName: 'slawinski.dev',
-  siteUrl: 'https://slawinski.dev',
-  siteDescription: 'Piotr Slawinski thinks you might like it',
+  siteName: SITE_NAME,
+  siteUrl: GRIDSOME_BASE_PATH,
+  siteDescription: SITE_DESCRIPTION,
   metadata: {
-    siteTagLine: 'Spreading love for the web dev one blog post at a time',
+    siteTagLine: SITE_DESCRIPTION,
   },
   plugins: [
     {
@@ -36,31 +41,28 @@ module.exports = {
     {
       use: 'gridsome-source-graphql',
       options: {
-        url: process.env.HASURA_GRAPHQL_ENDPOINT,
+        url: HASURA_GRAPHQL_ENDPOINT,
         fieldName: 'projects',
         typeName: 'projectTypes',
       },
     },
     {
-      use: 'gridsome-plugin-rss',
+      use: 'gridsome-plugin-feed',
       options: {
-        contentTypeName: 'Post',
+        contentTypes: ['Post'],
         feedOptions: {
-          title: 'slawinski.dev',
-          feed_url: 'https://slawinski.dev/rss.xml',
-          site_url: 'https://slawinski.dev',
+          title: SITE_NAME,
+          description: SITE_DESCRIPTION,
         },
-        feedItemOptions: (node) => ({
-          title: node.title,
-          description: node.description,
-          url: 'https://slawinski.dev/blog/' + node.path,
-          date: node.date || node.fields.date,
-          content: node.content,
+        rss: {
+          enabled: true,
+          output: '/rss.xml',
+        },
+        nodeToFeedItem: ({ title, date, content }) => ({
+          title,
+          date,
+          content,
         }),
-        output: {
-          dir: './static',
-          name: 'rss.xml',
-        },
       },
     },
   ],

@@ -19,7 +19,6 @@
     "gridsome-plugin-remark-shiki": "^0.3.1",
     "gridsome-plugin-remark-twitter": "^0.2.1",
     "gridsome-plugin-remark-youtube": "^1.0.1",
-    "gridsome-plugin-rss": "^1.2.0",
     "gridsome-source-graphql": "^1.0.2",
     "netlify-lambda": "^1.6.3",
     "postcss-import": "^12.0.1",
