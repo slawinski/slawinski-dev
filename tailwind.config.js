@@ -12,6 +12,7 @@ module.exports = {
       colors: {
         background: '#eff0f3',
         secondary: '#fffffe',
+        tertiary: '#d9376e',
         headline: '#0d0d0d',
         paragraph: '#2a2a2a',
         button: '#ff8e3c',

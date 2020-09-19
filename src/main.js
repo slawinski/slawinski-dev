@@ -44,7 +44,7 @@ export default function (Vue, { router, head, isClient, appOptions }) {
         state.button = 'Error!';
       },
       SET_SUBSCRIBED(state) {
-        state.button = 'Subscribed!';
+        state.button = 'Submitted!';
       },
       SET_SUBMITTING(state) {
         state.button = 'Submitting...';

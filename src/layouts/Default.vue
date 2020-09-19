@@ -9,7 +9,7 @@
             class="text-headline font-sans font-extrabold tracking-tight text-xl sm:text-2xl"
           >
             slawinski.
-            <span class="text-button">dev</span>
+            <span class="gradient-text">dev</span>
           </div>
         </g-link>
         <div class="sm:hidden">
@@ -178,4 +178,14 @@ export default {
 
 <style>
 @import '../main.css';
+
+.gradient-text {
+  background-color: #ff8e3c;
+  background-image: linear-gradient(120deg, #ff8e3c, #d9376e);
+  background-size: 100%;
+  -webkit-background-clip: text;
+  -moz-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  -moz-text-fill-color: transparent;
+}
 </style>
