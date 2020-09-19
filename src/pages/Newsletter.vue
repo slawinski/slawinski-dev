@@ -18,10 +18,10 @@
         <button
           type="submit"
           class="sm:mt-0 ml-4 py-1 px-2 bg-transparent hover:bg-button text-button text-xl sm:text-2xl font-sans font-bold hover:text-white border border-button hover:border-transparent rounded"
-          @click.prevent="preSubmit"
-          @keydown="preSubmit"
+          @click.prevent="submit({ data: { email }, lambda: 'subscribe' })"
+          @keydown="submit({ data: { email }, lambda: 'subscribe' })"
         >
-          {{ subscribeMessage }}
+          {{ button }}
         </button>
       </form>
     </div>
@@ -29,7 +29,7 @@
 </template>
 
 <script>
-import axios from 'axios';
+import { mapState, mapActions } from 'vuex';
 
 export default {
   metaInfo: {
@@ -38,47 +38,13 @@ export default {
   data() {
     return {
       email: '',
-      state: null,
     };
   },
   computed: {
-    subscribeMessage() {
-      if (this.state === 'subscribing') {
-        return 'Subscribing...';
-      }
-      if (this.state === 'error') {
-        return 'Error';
-      }
-      if (this.state === 'subscribed') {
-        return 'Done';
-      }
-      return 'Subscribe';
-    },
+    ...mapState(['button']),
   },
   methods: {
-    preSubmit() {
-      this.state = 'subscribing';
-      this.submit();
-    },
-    submit() {
-      setTimeout(async () => {
-        try {
-          await axios.post('/api/subscribe', {
-            email: this.email,
-          });
-        } catch (err) {
-          console.error(err);
-          return (this.state = 'error');
-        } finally {
-          if (this.state === 'subscribing') {
-            this.state = 'subscribed';
-          } else {
-            this.state = 'error';
-          }
-          this.email = '';
-        }
-      }, 1000);
-    },
+    ...mapActions(['submit']),
   },
 };
 </script>

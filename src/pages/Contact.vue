@@ -32,8 +32,18 @@
       ></textarea>
       <button
         class="self-end sm:mt-0 py-1 px-2 bg-transparent hover:bg-button text-button font-body text-xl sm:text-2xl font-sans font-bold hover:text-white border border-button hover:border-transparent rounded"
-        @click.prevent="submit({ senderName, senderEmail, message })"
-        @keydown="submit({ senderName, senderEmail, message })"
+        @click.prevent="
+          submit({
+            data: { senderName, senderEmail, message },
+            lambda: 'sendmail',
+          })
+        "
+        @keydown="
+          submit({
+            data: { senderName, senderEmail, message },
+            lambda: 'sendmail',
+          })
+        "
       >
         {{ button }}
       </button>
@@ -42,7 +52,6 @@
 </template>
 
 <script>
-// import axios from 'axios';
 import { mapState, mapActions } from 'vuex';
 
 export default {
@@ -61,21 +70,6 @@ export default {
   },
   methods: {
     ...mapActions(['submit']),
-    // async submit() {
-    //   try {
-    //     await axios.post('/api/sendmail', {
-    //       senderName: this.senderName,
-    //       senderEmail: this.senderEmail,
-    //       message: this.message,
-    //     });
-    //   } catch (err) {
-    //     console.error(err);
-    //   } finally {
-    //     this.senderName = '';
-    //     this.senderEmail = '';
-    //     this.message = '';
-    //   }
-    // },
   },
 };
 </script>

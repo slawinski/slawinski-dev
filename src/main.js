@@ -30,7 +30,7 @@ export default function (Vue, { router, head, isClient, appOptions }) {
         commit('SET_SUBMITTING');
         setTimeout(async () => {
           try {
-            await axios.post('/api/sendmail', payload);
+            await axios.post(`/api/${payload.lambda}`, payload.data);
             commit('SET_SUBSCRIBED');
           } catch (err) {
             console.error(err);
