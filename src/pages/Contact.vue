@@ -32,17 +32,18 @@
       ></textarea>
       <button
         class="self-end sm:mt-0 py-1 px-2 bg-transparent hover:bg-button text-button font-body text-xl sm:text-2xl font-sans font-bold hover:text-white border border-button hover:border-transparent rounded"
-        @click.prevent="submit"
-        @keydown="submit"
+        @click.prevent="submit({ senderName, senderEmail, message })"
+        @keydown="submit({ senderName, senderEmail, message })"
       >
-        Submit
+        {{ button }}
       </button>
     </form>
   </Layout>
 </template>
 
 <script>
-import axios from 'axios';
+// import axios from 'axios';
+import { mapState, mapActions } from 'vuex';
 
 export default {
   metaInfo: {
@@ -55,22 +56,26 @@ export default {
       message: '',
     };
   },
+  computed: {
+    ...mapState(['button']),
+  },
   methods: {
-    async submit() {
-      try {
-        await axios.post('/api/sendmail', {
-          senderName: this.senderName,
-          senderEmail: this.senderEmail,
-          message: this.message,
-        });
-      } catch (err) {
-        console.error(err);
-      } finally {
-        this.senderName = '';
-        this.senderEmail = '';
-        this.message = '';
-      }
-    },
+    ...mapActions(['submit']),
+    // async submit() {
+    //   try {
+    //     await axios.post('/api/sendmail', {
+    //       senderName: this.senderName,
+    //       senderEmail: this.senderEmail,
+    //       message: this.message,
+    //     });
+    //   } catch (err) {
+    //     console.error(err);
+    //   } finally {
+    //     this.senderName = '';
+    //     this.senderEmail = '';
+    //     this.message = '';
+    //   }
+    // },
   },
 };
 </script>

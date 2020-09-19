@@ -24,7 +24,8 @@
     "netlify-lambda": "^1.6.3",
     "postcss-import": "^12.0.1",
     "typeface-pt-sans": "0.0.72",
-    "typeface-public-sans": "^1.1.4"
+    "typeface-public-sans": "^1.1.4",
+    "vuex": "^3.5.1"
   },
   "devDependencies": {
     "@vue/cli-plugin-eslint": "^4.4.1",
