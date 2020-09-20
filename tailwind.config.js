@@ -11,17 +11,23 @@ module.exports = {
     extend: {
       colors: {
         background: '#eff0f3',
-        secondary: '#fffffe',
-        tertiary: '#d9376e',
+        'paragraph-inverted': '#fffffe',
+        secondary: '#d9376e',
         headline: '#0d0d0d',
         paragraph: '#2a2a2a',
-        button: '#ff8e3c',
+        primary: '#ff8e3c',
+        'orange-magenta': ['#ff8e3c', '#d9376e'],
       },
       fontSize: {
         '7xl': '5rem',
       },
     },
+    linearBorderGradients: (theme) => ({
+      colors: theme('colors'),
+    }),
   },
-  variants: {},
-  plugins: [],
+  variants: {
+    backgroundClip: ['responsive', 'hover', 'focus'],
+  },
+  plugins: [require('tailwindcss-border-gradients')()],
 };

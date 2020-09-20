@@ -9,7 +9,11 @@
             class="text-headline font-sans font-extrabold tracking-tight text-xl sm:text-2xl"
           >
             slawinski.
-            <span class="gradient-text">dev</span>
+            <span
+              class="bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary"
+            >
+              dev
+            </span>
           </div>
         </g-link>
         <div class="sm:hidden">
@@ -95,36 +99,36 @@
 
     <footer
       v-if="!isOpen"
-      class="p-4 sm:px-20 h-48 bg-headline text-secondary flex flex-col justify-around sm:flex sm:flex-row sm:justify-between sm:items-center"
+      class="p-4 sm:px-20 h-48 bg-headline text-paragraph-inverted flex flex-col justify-around sm:flex sm:flex-row sm:justify-between sm:items-center"
     >
       <g-link to="/">
         <div
-          class="text-secondary font-sans font-extrabold tracking-tight text-xl sm:text-2xl"
+          class="text-paragraph-inverted font-sans font-extrabold tracking-tight text-xl sm:text-2xl"
         >
           slawinski.dev
         </div>
       </g-link>
       <div class="flex flex-col items-baseline">
         <g-link
-          class="block font-sans font-bold text-base text-secondary hover:underline hover:text-gray-700"
+          class="block font-sans font-bold text-base text-paragraph-inverted hover:underline hover:text-gray-700"
           to="/"
         >
           Blog
         </g-link>
         <g-link
-          class="block font-sans font-bold text-base text-secondary hover:underline hover:text-gray-700"
+          class="block font-sans font-bold text-base text-paragraph-inverted hover:underline hover:text-gray-700"
           to="/projects/"
         >
           Projects
         </g-link>
         <g-link
-          class="block font-sans font-bold text-base text-secondary hover:underline hover:text-gray-700"
+          class="block font-sans font-bold text-base text-paragraph-inverted hover:underline hover:text-gray-700"
           to="/newsletter/"
         >
           Newsletter
         </g-link>
         <g-link
-          class="block font-sans font-bold text-base text-secondary hover:underline hover:text-gray-700"
+          class="block font-sans font-bold text-base text-paragraph-inverted hover:underline hover:text-gray-700"
           to="/contact/"
         >
           Contact
@@ -132,7 +136,7 @@
         <div class="mt-1 flex justify-between items-center">
           <g-link to="https://twitter.com/piotr_slawinski">
             <svg
-              class="h-5 w-5 fill-current text-secondary hover:text-gray-700"
+              class="h-5 w-5 fill-current text-paragraph-inverted hover:text-gray-700"
               viewBox="328 355 335 276"
               xmlns="http://www.w3.org/2000/svg"
             >
@@ -143,7 +147,7 @@
           </g-link>
           <g-link to="https://github.com/slawinski">
             <svg
-              class="h-5 w-5 ml-4 fill-current text-secondary hover:text-gray-700"
+              class="h-5 w-5 ml-4 fill-current text-paragraph-inverted hover:text-gray-700"
               viewBox="0 0 24 24"
               xmlns="http://www.w3.org/2000/svg"
             >
@@ -178,14 +182,4 @@ export default {
 
 <style>
 @import '../main.css';
-
-.gradient-text {
-  background-color: #ff8e3c;
-  background-image: linear-gradient(120deg, #ff8e3c, #d9376e);
-  background-size: 100%;
-  -webkit-background-clip: text;
-  -moz-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  -moz-text-fill-color: transparent;
-}
 </style>

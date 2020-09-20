@@ -17,7 +17,7 @@
         />
         <button
           type="submit"
-          class="sm:mt-0 ml-4 py-1 px-2 bg-transparent hover:bg-button text-button text-xl sm:text-2xl font-sans font-bold hover:text-white border border-button hover:border-transparent rounded"
+          class="bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary border-gradient-r-orange-magenta hover:bg-clip-border hover:from-primary hover:to-secondary hover:text-paragraph-inverted border-4 sm:mt-0 ml-4 py-1 px-2 text-xl sm:text-2xl font-sans font-bold"
           @click.prevent="submit({ data: { email }, lambda: 'subscribe' })"
           @keydown="submit({ data: { email }, lambda: 'subscribe' })"
         >

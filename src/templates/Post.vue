@@ -131,11 +131,11 @@ export default {
 }
 
 .markdown a {
-  @apply text-button;
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary;
 }
 
 .markdown a:hover {
-  @apply text-button underline;
+  @apply text-primary underline;
 }
 
 .markdown strong a {
