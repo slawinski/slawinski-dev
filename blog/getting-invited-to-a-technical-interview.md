@@ -4,7 +4,7 @@ description: Or how to get your foot in the door and pass that first filter!
 date: 2020-09-25T21:07:51.250Z
 ---
 
-Everyone knows what's required to ace a tech interview - 10% luck, 20% skill, 15% concentrated power of will, etc., but how to make sure that you're going to stand out in a sea of candidates? 
+In accordance with the famous philosopher Mike Shinoda, to ace a tech interview, the following ingredients are required: 10% luck, 20% skill, 15% concentrated power of will... The list goes on. But how to make sure that you're going to stand out in a sea of candidates?
 
 Resume
 
