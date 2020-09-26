@@ -18,4 +18,6 @@ Recruiters use LinkedIn extensively to source promising candidates, so to stand 
 
 Another place to shine is your Github profile. Until recently, there weren't many ways to advertise yourself on Github, but that has changed with the introduction of the Profile READMEs. That's right. You can now create a README in markdown, which will be displayed on your profile page. As you can expect, the choice of information to put there is limitless. [Here are some fun examples](https://www.aboutmonica.com/blog/how-to-create-a-github-profile-readme) as well as a step by step guide on how to make one yourself.
 
-That's it. It isn't much, and it certainly won't help you pass any interview, but it will (or at least I hope it will) get you that interview in the first place. The rest is up to you. Good luck!
+## Clonclusion
+
+That's it. It isn't much, and it certainly won't help you pass any interview, but it will (or at least I hope it will) increase you chances of getting that interview in the first place. The rest is up to you. Good luck!
