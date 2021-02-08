@@ -30,6 +30,7 @@
     "tailwindcss-border-gradients": "^2.0.3",
     "typeface-pt-sans": "0.0.72",
     "typeface-public-sans": "^1.1.13",
+    "update-notifier": "^5.1.0",
     "vuex": "^3.6.2"
   },
   "devDependencies": {
