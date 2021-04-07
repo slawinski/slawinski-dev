@@ -10,7 +10,7 @@
         <input
           v-model="email"
           type="email"
-          class="py-1 px-3 w-full shadow appearance-none border rounded font-body text-xl sm:text-2xl text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          class="py-1 px-3 w-full shadow appearance-none border rounded font-sans text-xl sm:text-2xl text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
           placeholder="Your email adress"
           aria-label="Email"
           required

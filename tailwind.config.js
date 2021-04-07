@@ -21,6 +21,27 @@ module.exports = {
       fontSize: {
         '7xl': '5rem',
       },
+      typography: {
+        DEFAULT: {
+          css: {
+            // disable default inline code styles
+            'code::before': {
+              content: '""',
+            },
+            'code::after': {
+              content: '""',
+            },
+            code: {
+              'border-radius': '5px',
+              // border: '1px solid #BCBEC0',
+              background: '#FFFFFF',
+              padding: '2px',
+              font:
+                '12px Menlo, Monaco,Consolas,"Andale  Mono","DejaVu Sans Mono",monospace',
+            },
+          },
+        },
+      },
     },
     linearBorderGradients: (theme) => ({
       colors: theme('colors'),
@@ -29,5 +50,8 @@ module.exports = {
   variants: {
     backgroundClip: ['responsive', 'hover', 'focus'],
   },
-  plugins: [require('tailwindcss-border-gradients')()],
+  plugins: [
+    require('tailwindcss-border-gradients')(),
+    require('@tailwindcss/typography'),
+  ],
 };

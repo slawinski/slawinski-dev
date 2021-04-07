@@ -9,7 +9,7 @@
       <input
         v-model="senderName"
         type="text"
-        class="mb-5 py-1 px-3 w-full shadow appearance-none border rounded font-body text-xl sm:text-2xl text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+        class="mb-5 py-1 px-3 w-full shadow appearance-none border rounded font-sans text-xl sm:text-2xl text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
         placeholder="Name"
         aria-label="Sender Name"
         required
@@ -17,7 +17,7 @@
       <input
         v-model="senderEmail"
         type="email"
-        class="mb-5 py-1 px-3 w-full shadow appearance-none border rounded font-body text-xl sm:text-2xl text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+        class="mb-5 py-1 px-3 w-full shadow appearance-none border rounded font-sans text-xl sm:text-2xl text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
         placeholder="Your email adress"
         aria-label="Sender Email"
         required
@@ -25,7 +25,7 @@
       <textarea
         v-model="message"
         type="text"
-        class="resize-y mb-5 py-1 px-3 w-full shadow appearance-none border rounded font-body text-xl sm:text-2xl text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+        class="resize-y mb-5 py-1 px-3 w-full shadow appearance-none border rounded font-sans text-xl sm:text-2xl text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
         placeholder="What's on your mind?"
         aria-label="Message"
         required

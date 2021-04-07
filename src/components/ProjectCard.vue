@@ -28,12 +28,12 @@
           </svg>
         </g-link>
       </div>
-      <div class="mb-4 text-paragraph font-body leading-tight text-2xl">
+      <div class="mb-4 text-paragraph font-sans leading-tight text-2xl">
         {{ project.description }}
       </div>
       <div class="mb-4 flex flex-wrap">
         <div v-for="(tag, index) in tags(project.tags)" :key="index">
-          <span class="text-paragraph font-body leading-tight text-xl mr-2">
+          <span class="text-paragraph font-sans leading-tight text-xl mr-2">
             #{{ tag }}
           </span>
         </div>

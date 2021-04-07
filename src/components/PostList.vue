@@ -7,7 +7,7 @@
         {{ post.title }}
       </h1>
     </g-link>
-    <p class="text-paragraph font-body leading-tight text-2xl">
+    <p class="text-paragraph font-sans leading-tight text-2xl">
       {{ post.description }}
     </p>
   </div>

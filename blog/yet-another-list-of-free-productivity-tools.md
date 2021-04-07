@@ -21,7 +21,6 @@ will find a list of handy tools which will help you.
 ## Browser (Chrome-based)
 
 - Octotree
-- The Great Suspender
 - Pocket
 - Grepper
 
