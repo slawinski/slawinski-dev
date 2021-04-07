@@ -1,7 +1,7 @@
 ---
 title: How I Learned to Stop Worrying and Love the JavaScript Engine
 description: >-
-  It's been way too many years during which I coded without even the basic understanding of what happens under the hood. It's time for a change.
+  I used to code without the basic understanding of what happens under the hood. It's time for a change.
 date: 2021-03-27T11:39:40.893Z
 ---
 It appears that there aren't many sources on the internet that would comprehensively describe what exactly happens when you feed your browser some code. I'm talking about the moment between parsing your code up and popping the program off the call stack. With this post, I'll try to fill the gaps as best as I can. Anyway, here's what I've found out.
