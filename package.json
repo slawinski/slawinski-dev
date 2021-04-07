@@ -13,9 +13,7 @@
     "@gridsome/source-filesystem": "^0.6.2",
     "@gridsome/transformer-remark": "^0.5.0",
     "@jlengstorf/get-share-image": "^0.7.1",
-    "@tailwindcss/postcss7-compat": "^2.0.3",
     "@tailwindcss/typography": "^0.4.0",
-    "autoprefixer": "^9.8.6",
     "axios": "^0.19.2",
     "cache-loader": "^4.1.0",
     "gridsome": "^0.7.23",
@@ -26,9 +24,7 @@
     "gridsome-source-graphql": "^1.0.2",
     "markdown": "^0.5.0",
     "netlify-lambda": "^1.6.3",
-    "postcss": "^7.0.35",
     "postcss-import": "^12.0.1",
-    "tailwindcss": "npm:@tailwindcss/postcss7-compat@^2.0.3",
     "tailwindcss-border-gradients": "^2.0.3",
     "typeface-pt-sans": "0.0.72",
     "typeface-public-sans": "^1.1.13",
@@ -36,9 +32,11 @@
     "vuex": "^3.6.2"
   },
   "devDependencies": {
+    "@tailwindcss/postcss7-compat": "^2.1.0",
     "@vue/cli-plugin-eslint": "^4.5.11",
     "@vue/cli-service": "^4.5.11",
     "@vue/eslint-config-prettier": "^6.0.0",
+    "autoprefixer": "^9.8.6",
     "babel-eslint": "^10.1.0",
     "eslint": "^7.19.0",
     "eslint-config-prettier": "^6.15.0",
@@ -51,6 +49,8 @@
     "eslint-plugin-vue": "^6.2.2",
     "eslint-plugin-vue-a11y": "0.0.31",
     "gridsome-plugin-tailwindcss": "^2.2.48",
-    "prettier": "^2.2.1"
+    "postcss": "^7.0.35",
+    "prettier": "^2.2.1",
+    "tailwindcss": "npm:@tailwindcss/postcss7-compat@^2.1.0"
   }
 }
