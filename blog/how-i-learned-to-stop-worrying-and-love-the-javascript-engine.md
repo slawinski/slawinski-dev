@@ -7,24 +7,24 @@ date: 2021-03-27T11:39:40.893Z
 It appears that there aren't many sources on the internet that would comprehensively describe what exactly happens when you feed your browser some code. I'm talking about the moment between parsing your code up and popping the program off the call stack. With this post, I'll try to fill the gaps as best as I can. Anyway, here's what I've found out.
 
 ## What's a JavaScript engine?
-The easiest explanation of what a JavaScript engine is might be that it's a program that:
+The simplest explanation of what a JavaScript engine is might be that it's a program that:
 - Translates source code into machine code and executes it on CPU.
 - Provides mechanics of parsing and JIT compilation.
 
-If you want to score extra points you might want to add that:
+If you want to score extra points, you might want to add that:
 - JavaScript engine should be created to ECMA standard.
 - There are many JavaScript engines (V8 in Chrome, Spidermonkey in Firefox, etc.)
 - Different JavaScript engines handle the code differently.
 
 Imagine that we're dropping into our browser an HTML file with some markup and a script tag containing:
-```jsx
+```javascript
 function helloWorld() {
   return 'hello world'
 }
 ```
 Then the following steps happen in order:<br />
 
-0. Firstly the HTML parser encounters the `<script>` tag, but that has nothing to do with the JavaScript engine yet.
+0. Firstly, the HTML parser encounters the `<script>` tag, but that has nothing to do with the JavaScript engine yet.
 
 1. **Decoding.**<br /> The script gets loaded from the network, cache, or service worker and passed to *byte stream decoder* as bytes for each character
 
@@ -32,10 +32,10 @@ Then the following steps happen in order:<br />
 
 3. **Parsing.**<br /> The tokens are then parsed by pre-parser (a.k.a *lazy parsing*, for code required later on) and parser (a.k.a *eager parsing*, for code required immediately). Parsed tokens create nodes of the Abstract Syntax Tree (like `Program`, `FunctionLiteral`, `ReturnStatement`, `StringLiteral`, etc.)
 
-4. **Code generation.**<br /> Then the *interpreter* goes through the AST and generates unoptimized bytecode which can be executed immediately by the engine's virtual machine. Once bytecode is generated, the AST gets deleted.
+4. **Code generation.**<br /> Then the *interpreter* goes through the AST and generates unoptimized bytecode, which can be executed immediately by the engine's virtual machine. Once bytecode is generated, the AST gets deleted.
 
 5. **Optimization.**<br />
-If the code (or part of it) is being run a couple of times then the JavaScript engine begins to translate the code into highly optimized machine code using *Just-In-Time compilation*. Then the compiler begins to run the machine code directly on the CPU.
+If the code (or part of it) runs a couple of times, then the JavaScript engine begins to translate the code into highly optimized machine code using *Just-In-Time compilation*. Then the compiler runs the machine code directly on the CPU.
 
 ## What's a Just-In-Time compilation?
 - It's a compilation that is done during code execution (contrary to Ahead-Of-Time compilation done before the code is run.)
@@ -56,35 +56,35 @@ Regardless, whenever any code is executed in JavaScript, it’s run inside an ex
 
 ## What's a call stack?
 A place in memory storing code in wrappers called execution contexts.
-- As the JavaScript engine comes across an actionable item (function call) it adds it to the call stack.
+- As the JavaScript engine comes across an actionable item (function call), it adds it to the call stack.
 - When the function finishes execution, its context is removed from the stack.
-- Handling of execution contexts is performed in a Last In, First Out manner (a.k.a LIFO).
-- The space in the call stack is limited and if exceeded (calling recursive functions without a break) will cause a stack overflow error (but no crash).
+- Execution contexts are handled in a Last In, First Out manner (a.k.a LIFO).
+- The space in the call stack is limited, and if exceeded (calling recursive functions without a break), will cause a stack overflow error (but no crash).
 
 ## What's an execution context?
 In simplest words, it's a place in the memory where the JavaScript code is evaluated and executed/called/invoked (it means the same thing).
 
-- When a javascript engine (during translation or optimization) goes through the code line-by-line in a single-threaded manner it creates execution contexts.
+- When a javascript engine (during translation or optimization) goes through the code line-by-line in a single-threaded manner, it creates execution contexts.
 - The abstract thing which goes line-by-line and in-and-out of functions is called the *thread of execution*.
-- If the script is being executed for the first time a *global execution context* is being created. Even if the script has zero lines of code.
-- When a function is called a new *functional execution context* is created.
+- If the script is being executed for the first time, a *global execution context* is being created. Even if the script has zero lines of code.
+- When a function is called, a new *functional execution context* is created.
 - There's a separate execution context for `eval()` function.
 - Each execution context is being added to the *call stack* during its creation phase.
-- Execution context is being popped off from the *call stack* at the end of its execution phase.
+- Execution context gets popped off from the *call stack* at the end of its execution phase.
 
 ### Global execution context
-- The code that is not in any function belongs to the global execution context meaning *everything outside of a function is global*
+- The code that is not in any function belongs to the global execution context, meaning *everything outside of a function is global*
 - There can only be one global execution context in a program
 
 ### Functional execution context
-- Every time a function is called a new functional execution context is created
+- Every time a function is called, a new functional execution context is created
 - There are as many functional execution contexts as there are function calls in the code
 
-Each execution context has two phases: the creation phase and the execution phase
+Each execution context has two phases: the creation phase and the execution phase.
 
 ### Creation phase
 
-During the creation phase the following environments are created:
+During the creation phase, the following environments are created:
 - **Lexical environment** consisting of:
   - *Environment record* where variable and function declarations are stored within *Lexical environment*. It, on its own, is consisting of:
     - *Declarative environment record* for functions. Also stores `arguments` object.
@@ -94,26 +94,26 @@ During the creation phase the following environments are created:
 - **Variable environment** (also a *Lexical environment* but for vars)
 used to store variable bindings only (`var`)
 
-So to sum up this is what happens:
+So to sum up, this is what happens:
 
 |Global execution context|Functional execution context|
 |---|---|
-|A *global object* (`window` for a browser or `global` for node) to which the executing code belongs to is created in *Object environment record*|An *arguments* object which contains a reference to the parameters passed to the function is created in *Declarative environment record*|
-|Memory for the variables and function declaration within the global execution context (defined globally) is allocated in *Object environment record*|Memory for the variables and function declaration within the function execution context (defined within the function) is allocated in *Declarative environment record*|
-|`this` variable referring to the global object is created|`this` variable referring to the global object or to an object to which the current code that’s being executed belongs is created.|
+|A *global object* (`window` for a browser or `global` for node), to which the executing code belongs, is created in *Object environment record*.|An *arguments* object which contains a reference to the parameters passed to the function is created in *Declarative environment record*.|
+|Memory for the variables and function declaration within the global execution context (defined globally) is allocated in *Object environment record*.|Memory for the variables and function declaration within the function execution context (defined within the function) is allocated in *Declarative environment record*.|
+|`this` variable referring to the global object is created.|`this` variable referring to the global object (or to an object to which the current code that’s being executed belongs) is created.|
 
 Variables are initialized as `undefined` (except `let` and `const` which will remain *uninitialized*). Functions get placed directly in the memory. That is why accessing `var` defined variable before declaring any value to it gets you undefined, but the same with `let` and `const` gets you the `ReferenceError`.
 
-This is when hoisting takes place as well as where closures are created.
+It's is when hoisting takes place as well as where closures are created.
 
 ### Execution phase
 The first function to be executed is the one with its execution context at the top of the call stack.
-Execution context gets popped off the stack when assignments to all the variables are done and the code is executed (function is returned).
-Finally, when the global execution context is being popped off the call stack the program ends.
+Execution context gets popped off the stack when assignments to all the variables are done, and the code is executed (function is returned).
+Finally, when the global execution context gets popped off the call stack, the program ends.
 
 ## Conclusions
 
-Well, this is it. This is what the JavaScript engine does on a high to medium level. Each concept could, of course, be covered in even more detail, but that is beyond my needs for now. Maybe someday. In the meantime, keep on coding!
+Well, this is it. That is how the JavaScript engine does on a high to medium level. Each concept could, of course, be covered in even more detail, but that is beyond my needs for now. Maybe someday. In the meantime, keep on coding!
 
 ## References
 - https://www.youtube.com/watch?v=xckH5s3UuX4

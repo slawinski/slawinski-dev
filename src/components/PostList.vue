@@ -24,13 +24,14 @@ export default {
 };
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .underline--magical {
   background-image: linear-gradient(120deg, #ff8e3c, #d9376e);
   background-repeat: no-repeat;
   background-size: 100% 0.1em;
   background-position: 0 88%;
   transition: background-size 0.25s ease-in;
+
   &:hover {
     background-size: 25% 100%;
   }
