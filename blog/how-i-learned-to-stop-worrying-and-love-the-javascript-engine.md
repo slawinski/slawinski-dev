@@ -34,8 +34,7 @@ Then the following steps happen in order:<br />
 
 4. **Code generation.**<br /> Then the *interpreter* goes through the AST and generates unoptimized bytecode, which can be executed immediately by the engine's virtual machine. Once bytecode is generated, the AST gets deleted.
 
-5. **Optimization.**<br />
-If the code (or part of it) runs a couple of times, then the JavaScript engine begins to translate the code into highly optimized machine code using *Just-In-Time compilation*. Then the compiler runs the machine code directly on the CPU.
+5. **Optimization.**<br /> If the code (or part of it) runs a couple of times, then the JavaScript engine begins to translate the code into highly optimized machine code using *Just-In-Time compilation*. Then the compiler runs the machine code directly on the CPU.
 
 ## What's a Just-In-Time compilation?
 - It's a compilation that is done during code execution (contrary to Ahead-Of-Time compilation done before the code is run.)
@@ -92,7 +91,7 @@ During the creation phase, the following environments are created:
   - *Reference to the outer Lexical environment* where JavaScript engine can look for variables if they cannot be found in the current *Lexical environment* (a possibly null reference).
   - `this` binding.
 - **Variable environment** (also a *Lexical environment* but for vars)
-used to store variable bindings only (`var`)
+used to store variable bindings only (`var`).
 
 So to sum up, this is what happens:
 
@@ -102,7 +101,7 @@ So to sum up, this is what happens:
 |Memory for the variables and function declaration within the global execution context (defined globally) is allocated in *Object environment record*.|Memory for the variables and function declaration within the function execution context (defined within the function) is allocated in *Declarative environment record*.|
 |`this` variable referring to the global object is created.|`this` variable referring to the global object (or to an object to which the current code that’s being executed belongs) is created.|
 
-Variables are initialized as `undefined` (except `let` and `const` which will remain *uninitialized*). Functions get placed directly in the memory. That is why accessing `var` defined variable before declaring any value to it gets you undefined, but the same with `let` and `const` gets you the `ReferenceError`.
+Variables are initialized as `undefined` (except `let` and `const` which will remain *uninitialized*). Functions get placed directly in the memory. That is why accessing `var` defined variable before declaring any value to it gets you `undefined`, but the same with `let` and `const` gets you the `ReferenceError`.
 
 It's is when hoisting takes place as well as where closures are created.
 
@@ -116,9 +115,9 @@ Finally, when the global execution context gets popped off the call stack, the p
 Well, this is it. That is how the JavaScript engine does on a high to medium level. Each concept could, of course, be covered in even more detail, but that is beyond my needs for now. Maybe someday. In the meantime, keep on coding!
 
 ## References
-- https://www.youtube.com/watch?v=xckH5s3UuX4
-- https://softwareengineeringdaily.com/2018/10/03/javascript-and-the-inner-workings-of-your-browser/
-- https://www.youtube.com/watch?v=p-iiEDtpy6I
-- https://hacks.mozilla.org/2017/02/a-crash-course-in-just-in-time-jit-compilers/
-- https://www.youtube.com/watch?v=exrc_rLj5iw
-- https://blog.greenroots.info/understanding-javascript-execution-context-like-never-before-ckb8x246k00f56hs1nefzpysq
+- [Understanding the V8 JavaScript Engine](https://www.youtube.com/watch?v=xckH5s3UuX4)
+- [JavaScript and the Inner Workings of your Browser](https://softwareengineeringdaily.com/2018/10/03/javascript-and-the-inner-workings-of-your-browser/)
+- [Franziska Hinkelmann: JavaScript engines - how do they even? | JSConf EU](https://www.youtube.com/watch?v=p-iiEDtpy6I)
+- [A crash course in just-in-time (JIT) compilers](https://hacks.mozilla.org/2017/02/a-crash-course-in-just-in-time-jit-compilers/)
+- [An Introduction to Functions, Execution Context and the Call Stack](https://www.youtube.com/watch?v=exrc_rLj5iw)
+- [Understanding JavaScript Execution Context like never before](https://blog.greenroots.info/understanding-javascript-execution-context-like-never-before-ckb8x246k00f56hs1nefzpysq)
