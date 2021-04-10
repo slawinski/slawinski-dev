@@ -26,27 +26,36 @@ module.exports = {
       fontSize: {
         '7xl': '5rem',
       },
-      typography: {
-        DEFAULT: {
-          css: {
-            // disable default inline code styles
-            'code::before': {
-              content: '""',
-            },
-            'code::after': {
-              content: '""',
-            },
-            code: {
-              'border-radius': '5px',
-              // border: '1px solid #BCBEC0',
-              background: '#FFFFFF',
-              padding: '2px',
-              font:
-                '12px Menlo, Monaco,Consolas,"Andale  Mono","DejaVu Sans Mono",monospace',
-            },
-          },
-        },
-      },
+      // typography: {
+      //   DEFAULT: {
+      //     css: {
+      //       pre: {
+      //       color: "#1F2933",
+      //       backgroundColor: '#F5F7FA,'
+      //     },
+      //     "pre code::before": {
+      //       "padding-left": "unset"
+      //     },
+      //     "pre code::after": {
+      //       "padding-right": "unset"
+      //     },
+      //     code: {
+      //       backgroundColor: "#F5F7FA",
+      //       color: "#DD1144",
+      //       fontWeight: "400",
+      //       "border-radius": "0.25rem"
+      //     },
+      //     "code::before": {
+      //       content: '""',
+      //       "padding-left": "0.25rem"
+      //     },
+      //     "code::after": {
+      //       content: '""',
+      //       "padding-right": "0.25rem"
+      //     }
+      //     },
+      //   },
+      // },
     },
     linearBorderGradients: (theme) => ({
       colors: theme('colors'),
