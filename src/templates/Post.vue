@@ -7,7 +7,7 @@
         {{ $page.post.title }}
       </h1>
       <h6 class="mb-10 text-lg">{{ $page.post.date }}</h6>
-      <div class="prose prose-2xl" v-html="$page.post.content" />
+      <div class="prose prose-lg sm:prose-2xl" v-html="$page.post.content" />
     </div>
   </Layout>
 </template>
