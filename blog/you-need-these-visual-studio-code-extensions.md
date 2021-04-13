@@ -17,7 +17,7 @@ Ok, let's get down to business. First up - Extensions! I categorized them into g
 - [Color Highlight](https://marketplace.visualstudio.com/items?itemName=naumovs.color-highlight) - Gives you a hint of what color you've just typed in.
 - [DotENV](https://marketplace.visualstudio.com/items?itemName=mikestead.dotenv) - Enables syntax highlight of your secrets in the .env files.
 - [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) - This thing (if well configured) will save your butt. Hands down the biggest time-saver on this list. It finds problems in your code and it fixes them most of the time. Unless you're coding in TypeScript. Then it just sits there and does nothing.
-- [JavaScript (ES6) code snippets](https://marketplace.visualstudio.com/items?itemName=xabikos.JavaScriptSnippets) - Less typing, more time to debug.
+- [ES7 React/Redux/GraphQL/React-Native snippets](https://marketplace.visualstudio.com/items?itemName=dsznajder.es7-react-js-snippets) - Less typing, more time to debug.
 - [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) - Not as useful as ESLint but if configured together they actually make your codebase consistent and... Pretty.
 
 ### Strongly recommended
@@ -27,14 +27,13 @@ Ok, let's get down to business. First up - Extensions! I categorized them into g
 - [Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) - Launches a development server and opens up a port to check your work in the browser. Live-reload included!
 - [npm Intellisense](https://marketplace.visualstudio.com/items?itemName=christian-kohler.npm-intellisense) - Helps out typing in those npm packages.
 - [Path Intellisense](https://marketplace.visualstudio.com/items?itemName=christian-kohler.path-intellisense) - Similarly to the above but for files.
-- [Settings Sync](https://marketplace.visualstudio.com/items?itemName=Shan.code-settings-sync) - Do you use VS Code on more than one machine and have trouble syncing your IDE between them? This one is for you. It stores your configs, extensions, etc. in a gist and enables you to download them to any machine you're currently using.
 - [Turbo Console Log](https://marketplace.visualstudio.com/items?itemName=ChakrounAnas.turbo-console-loghttps://marketplace.visualstudio.com/items?itemName=ChakrounAnas.turbo-console-log) - No more `cosnole.log' typos! With this extension, your logs will be inserted instantly, flawlessly, and elaborately.
 
 ### Recommended
 - [Code Spell Checker](https://marketplace.visualstudio.com/items?itemName=streetsidesoftware.code-spell-checker) - Helps with that pesky typos. Of course, a linter will make sure your code works, but this one just takes care of the orthography exclusively. You'll need to add some of the exotic words to your dictionary though.
 - [Night Owl](https://marketplace.visualstudio.com/items?itemName=sdras.night-owl) / [Cobalt2 Theme Official](https://marketplace.visualstudio.com/items?itemName=wesbos.theme-cobalt2) - VS Code basic color theme is okay I guess. But if you want to spice things up I recommend one of those themes. They're the best looking in my opinion.
 - [Image preview](https://marketplace.visualstudio.com/items?itemName=kisstkondoros.vscode-gutter-preview) - Gives you a nice inline thumbnail of and image the path to which you've just typed in.
-- [Kite Autocomplete for Python and JavaScript](https://marketplace.visualstudio.com/items?itemName=kiteco.kite) - This one's big. It requires additional stuff to be installed on your machine and uses MaChiNe LeARnInG to predict what you're about to type in. In the end, it saves keystrokes.
+- [Tabnine Autocomplete AI](https://marketplace.visualstudio.com/items?itemName=TabNine.tabnine-vscode) - This one's big. It uses MaChiNe LeARnInG to predict what you're about to type in. In the end, it saves keystrokes.
 - [Material Icon Theme](https://marketplace.visualstudio.com/items?itemName=PKief.material-icon-theme) - I don't know why but I just like to see nice colorful icons in that project tree.
 - [Polacode](https://marketplace.visualstudio.com/items?itemName=pnp.polacode) - makes a professional screenshot of your code. Looks great on twitter.
 - [Sort lines](https://marketplace.visualstudio.com/items?itemName=Tyriar.sort-lines) - It sorts your lines. Ascending, descending, case sensitive you name it.
