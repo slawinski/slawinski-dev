@@ -1,6 +1,6 @@
 ---
 title: You need these Visual Studio Code extensions!
-description: VS Code is a powerful tool but "batteries included" is not the expression this IDE is known for. Here's how to proceed to have the best developer experience.
+description: "Batteries included" isn't the expression VS Code is known for. Here's how to have the best developer experience.
 date: 2020-08-20T19:24:03.035Z
 ---
 When it comes to choosing an IDE you have to choose wisely because a certain career-defining moment is secretly unveiling upon you. Should you go with Sublime, Webstorm, Atom, or VS Code? Obviously, there's no sorting hat to decide for you and you can change an IDE as many times as you want but have in mind that only one of them will be your favorite. I hope you chose VS Code because otherwise reading the rest of this post is pointless.
