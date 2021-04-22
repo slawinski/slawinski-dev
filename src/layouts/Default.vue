@@ -108,6 +108,7 @@
           slawinski.dev
         </div>
       </g-link>
+      <a href="https://www.buymeacoffee.com/piotrslawinski" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/arial-white.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
       <div class="flex flex-col items-baseline">
         <g-link
           class="block font-sans font-bold text-base text-paragraph-inverted hover:underline hover:text-gray-700"
