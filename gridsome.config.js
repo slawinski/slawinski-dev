@@ -65,6 +65,13 @@ module.exports = {
         }),
       },
     },
+    {
+      use: "gridsome-plugin-monetization",
+      options: {
+        paymentPointer: process.env.PAYMENT_POINTER, // your payment pointer
+        global: true, // add monetization to every page; default: true
+      },
+    },
   ],
   transformers: {
     remark: {
