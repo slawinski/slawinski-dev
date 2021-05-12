@@ -50,7 +50,7 @@
     "eslint-plugin-vue-a11y": "0.0.31",
     "gridsome-plugin-tailwindcss": "^4.1.1",
     "node-sass": "^5.0.0",
-    "postcss": "^7.0.35",
+    "postcss": "^8.2.10",
     "prettier": "^2.2.1",
     "sass-loader": "^10.1.1",
     "tailwindcss": "npm:@tailwindcss/postcss7-compat@^2.1.0"
