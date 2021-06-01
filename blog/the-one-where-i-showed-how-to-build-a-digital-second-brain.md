@@ -1,0 +1,9 @@
+---
+title: The one where I showed how to build a digital second brain
+description: If anyone's interested in retaining one's knowledge for longer than
+  5 minutes or just sorting out the daily influx of information, I recommend
+  this talk I gave at the WarsawJS. I covered GTD, Zettelkasten, and Obsidian.
+  It's the bee's knees!
+date: 2021-06-01T18:25:06.995Z
+---
+`https://youtu.be/I2hJ-sRXIvI`
