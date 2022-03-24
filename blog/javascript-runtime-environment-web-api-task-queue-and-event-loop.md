@@ -67,3 +67,13 @@ date: 2022-03-20T19:23:25.552Z
 3.  Render changes if any.
 4.  If the task queue is empty, wait until a task appears.
 5.  Go to step 1.
+
+## References
+
+- https://medium.com/@antwan29/browser-and-web-apis-d48c3fd8739
+- https://frontendmasters.com/books/front-end-handbook/2018/learning/web-api.html
+- https://developer.mozilla.org/en-US/docs/Web/API
+- https://developer.mozilla.org/en-US/docs/Web/API/HTML_DOM_API/Microtask_guide
+- https://developer.mozilla.org/en-US/docs/Web/API/HTML_DOM_API/Microtask_guide/In_depth
+- https://dev.to/lydiahallie/javascript-visualized-event-loop-3dif
+- https://javascript.info/event-loop
