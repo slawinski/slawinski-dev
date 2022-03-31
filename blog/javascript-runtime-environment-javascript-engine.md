@@ -125,7 +125,7 @@ The first function to be executed is the one with its execution context at the t
 Execution context gets popped off the stack when assignments to all the variables are done, and the code is executed (function is returned).
 Finally, when the global execution context gets popped off the call stack, the program ends.
 
-If a function is asynchronous or uses objects not provided by the JavaScript engine, the [Web API, queue and event loop](https://slawinski.dev/blog/javascript-runtime-environment-web-api-task-queue-and-event-loop/) steps in, but that's a story for another article.
+If a function is asynchronous or uses objects not provided by the JavaScript engine, the Web API, queue and event loop steps in, but that's a story for another article (it's here, just follow [this](https://slawinski.dev/blog/javascript-runtime-environment-web-api-task-queue-and-event-loop/) link).
 
 ## Conclusions
 

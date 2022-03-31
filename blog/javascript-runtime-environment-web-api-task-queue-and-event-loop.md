@@ -5,6 +5,10 @@ description: I used to think that I knew the gist of how JavaScript works under
 date: 2022-03-20T19:23:25.552Z
 ---
 
+In the last article of this series (available [here](https://slawinski.dev/blog/javascript-runtime-environment-javascript-engine/)) we've talked a little about the JavaScript engine. That covered the basic features of the language like calculations or loops, but what about asynchronous code or the objects provided by the browser? The current situation can be found in the schema below.
+
+![javascript-runtime-environment-schema](https://res.cloudinary.com/slawinski-dev/image/upload/v1648757381/javascript-runtime-environment.png)
+
 ## Web API
 
 > _Browser gives us some features that the JavaScript engine itself doesn’t provide_
