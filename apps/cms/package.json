@@ -1,0 +1,33 @@
+{
+  "name": "@slawinski/cms",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "cross-env PORT=3001 NODE_OPTIONS=--no-deprecation payload generate:importmap && cross-env PORT=3001 NODE_OPTIONS=--no-deprecation next dev",
+    "build": "cross-env NODE_OPTIONS=\"--no-deprecation --max-old-space-size=4096\" payload build",
+    "start": "cross-env PORT=3001 NODE_OPTIONS=--no-deprecation next start",
+    "payload": "cross-env NODE_OPTIONS=--no-deprecation payload",
+    "generate:types": "cross-env NODE_OPTIONS=--no-deprecation payload generate:types",
+    "generate:importmap": "cross-env NODE_OPTIONS=--no-deprecation payload generate:importmap",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@payloadcms/db-sqlite": "3.89.0",
+    "@payloadcms/next": "3.89.0",
+    "@payloadcms/richtext-lexical": "3.89.0",
+    "@payloadcms/ui": "3.89.0",
+    "cross-env": "10.1.0",
+    "graphql": "^16.11.0",
+    "next": "16.3.5",
+    "payload": "3.89.0",
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
+    "sharp": "0.35.4"
+  },
+  "devDependencies": {
+    "@types/node": "24.12.3",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "typescript": "6.0.3"
+  }
+}
