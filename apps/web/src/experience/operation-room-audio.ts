@@ -30,6 +30,7 @@ export const createOperationRoomMusic = () => {
   const AudioContextClass = window.AudioContext ?? (window as AudioContextWithWebkit).webkitAudioContext
   if (!AudioContextClass) {
     return {
+      play: async () => false,
       toggle: async () => false,
       stop: () => undefined,
       dispose: () => undefined,
@@ -329,6 +330,7 @@ export const createOperationRoomMusic = () => {
   }
 
   return {
+    play,
     toggle,
     stop,
     dispose,

@@ -1113,6 +1113,7 @@ export const mountOperationRoom = (root: HTMLElement) => {
   const canvas = root.querySelector<HTMLCanvasElement>('[data-operation-room-canvas]')
   const loading = root.querySelector<HTMLElement>('[data-operation-room-loading]')
   const live = root.querySelector<HTMLElement>('[data-operation-room-live]')
+  const zoomOutButton = root.querySelector<HTMLButtonElement>('[data-operation-room-zoom-out]')
   if (!canvas) return () => undefined
 
   const scene = new THREE.Scene(); scene.background = new THREE.Color(0x35413f); scene.fog = new THREE.Fog(0x35413f, 12, 30)
@@ -1135,6 +1136,7 @@ export const mountOperationRoom = (root: HTMLElement) => {
   const HOME_POSITION = new THREE.Vector3(-5.08, 4.14, 8.58)
   const HOME_TARGET = new THREE.Vector3(-2.15, 2.7, -4.75)
   const MAP_TARGET = new THREE.Vector3(WORLD.map.x, WORLD.map.y, WORLD.map.z + 0.06)
+  const RADIO_TARGET = new THREE.Vector3(WORLD.radioDesk.x, 1.92, WORLD.radioDesk.z + 0.04)
   const TARGET_BOUNDS = { minX: -6, maxX: 4, minY: 0.8, maxY: 5.2, minZ: -5.8, maxZ: 4 }
   const cameraTarget = HOME_TARGET.clone()
   const controls = new OrbitControls(camera, canvas)
@@ -1154,13 +1156,14 @@ export const mountOperationRoom = (root: HTMLElement) => {
   let lastTime = performance.now()
   let projectorActive = false
   let projectorScreenProgress = 0
-  let viewMode: 'home' | 'transition' | 'map' = 'home'
+  let viewMode: 'home' | 'transition' | 'map' | 'radio' = 'home'
   let cameraTransition: {
     startTime: number
     duration: number
     path: THREE.CatmullRomCurve3
     startTarget: THREE.Vector3
     endTarget: THREE.Vector3
+    destination: 'home' | 'map' | 'radio'
   } | null = null
   const FAN_SPEED = 4
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -1186,6 +1189,21 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
     const distance = Math.max(verticalDistance, horizontalDistance) * 1.015
     return new THREE.Vector3(WORLD.map.x, WORLD.map.y, WORLD.map.z + distance)
   }
+  const getRadioViewPosition = () => {
+    // Keep the whole communications bench in frame while moving the camera
+    // physically through the room. This is a real dolly move, not a CSS/FOV fake.
+    const frameWidth = WORLD.radioDesk.width + 0.45
+    const frameHeight = 2.55
+    const verticalHalfFov = THREE.MathUtils.degToRad(camera.fov * 0.5)
+    const verticalDistance = (frameHeight * 0.5) / Math.tan(verticalHalfFov)
+    const horizontalHalfFov = Math.atan(Math.tan(verticalHalfFov) * camera.aspect)
+    const horizontalDistance = (frameWidth * 0.5) / Math.tan(horizontalHalfFov)
+    const distance = Math.max(verticalDistance, horizontalDistance) * 1.06
+    return new THREE.Vector3(RADIO_TARGET.x, RADIO_TARGET.y + 0.12, RADIO_TARGET.z + distance)
+  }
+  const setZoomOutVisible = (visible: boolean) => {
+    if (zoomOutButton) zoomOutButton.hidden = !visible
+  }
   const resize = () => {
     const width = root.clientWidth
     const height = root.clientHeight
@@ -1197,6 +1215,10 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
       camera.position.copy(getMapViewPosition())
       cameraTarget.copy(MAP_TARGET)
       controls.target.copy(MAP_TARGET)
+    } else if (viewMode === 'radio') {
+      camera.position.copy(getRadioViewPosition())
+      cameraTarget.copy(RADIO_TARGET)
+      controls.target.copy(RADIO_TARGET)
     }
   }
   const updatePointer = (event: PointerEvent) => { const bounds = canvas.getBoundingClientRect(); pointer.x = ((event.clientX - bounds.left) / bounds.width) * 2 - 1; pointer.y = -((event.clientY - bounds.top) / bounds.height) * 2 + 1 }
@@ -1216,6 +1238,7 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
       cameraTarget.copy(MAP_TARGET)
       controls.target.copy(MAP_TARGET)
       viewMode = 'map'
+      setZoomOutVisible(true)
       return
     }
 
@@ -1229,7 +1252,43 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
       path: new THREE.CatmullRomCurve3([start, firstGuide, secondGuide, end], false, 'catmullrom', 0.42),
       startTarget: cameraTarget.clone(),
       endTarget: MAP_TARGET.clone(),
+      destination: 'map',
     }
+    setZoomOutVisible(false)
+    viewMode = 'transition'
+  }
+  const startRadioDolly = () => {
+    if (viewMode !== 'home') return
+
+    hoverTargets.forEach((target) => { target.material.opacity = 0 })
+    hotspots.forEach((hotspot) => { hotspot.highlight.visible = false })
+    boardDraw('CONTACT')
+
+    const end = getRadioViewPosition()
+    if (reducedMotion.matches) {
+      camera.position.copy(end)
+      cameraTarget.copy(RADIO_TARGET)
+      controls.target.copy(RADIO_TARGET)
+      viewMode = 'radio'
+      setZoomOutVisible(true)
+      return
+    }
+
+    const start = camera.position.clone()
+    const direction = end.clone().sub(start)
+    // The guide points make the move feel like a camera riding a short track:
+    // forward first, then a gentle lateral settle in front of the equipment.
+    const firstGuide = start.clone().addScaledVector(direction, 0.30).add(new THREE.Vector3(-0.10, 0.02, 0.20))
+    const secondGuide = start.clone().addScaledVector(direction, 0.72).add(new THREE.Vector3(-0.18, -0.02, 0.06))
+    cameraTransition = {
+      startTime: performance.now(),
+      duration: 1900,
+      path: new THREE.CatmullRomCurve3([start, firstGuide, secondGuide, end], false, 'catmullrom', 0.42),
+      startTarget: cameraTarget.clone(),
+      endTarget: RADIO_TARGET.clone(),
+      destination: 'radio',
+    }
+    setZoomOutVisible(false)
     viewMode = 'transition'
   }
   const setProjectorActive = (active: boolean) => {
@@ -1258,6 +1317,7 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
     // Any other menu selection retracts the screen and powers the projector off.
     setProjectorActive(false)
     if (target.id === 'map') startMapDolly()
+    if (target.id === 'radio') startRadioDolly()
   }
   const onPointerMove = (event: PointerEvent) => {
     // Desktop interaction is hover-only: moving the pointer over a menu region
@@ -1287,11 +1347,35 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
     cameraTransition = null
     viewMode = 'home'
     setProjectorActive(false)
+    setZoomOutVisible(false)
     camera.position.copy(HOME_POSITION)
     cameraTarget.copy(HOME_TARGET)
     controls.target.copy(HOME_TARGET)
     controls.update()
     selectDefault()
+  }
+  const startZoomOut = () => {
+    if (viewMode !== 'map' && viewMode !== 'radio') return
+    setZoomOutVisible(false)
+
+    if (reducedMotion.matches) {
+      resetView()
+      return
+    }
+
+    const start = camera.position.clone()
+    const direction = HOME_POSITION.clone().sub(start)
+    const firstGuide = start.clone().addScaledVector(direction, 0.30).add(new THREE.Vector3(0, 0.08, 0.10))
+    const secondGuide = start.clone().addScaledVector(direction, 0.72).add(new THREE.Vector3(0.08, 0.08, 0.16))
+    cameraTransition = {
+      startTime: performance.now(),
+      duration: 1850,
+      path: new THREE.CatmullRomCurve3([start, firstGuide, secondGuide, HOME_POSITION.clone()], false, 'catmullrom', 0.42),
+      startTarget: cameraTarget.clone(),
+      endTarget: HOME_TARGET.clone(),
+      destination: 'home',
+    }
+    viewMode = 'transition'
   }
   const dolly = (direction: 1 | -1) => {
     const offset = camera.position.clone().sub(controls.target)
@@ -1369,11 +1453,14 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
       updateCameraReadout()
 
       if (progress >= 1) {
-        camera.position.copy(getMapViewPosition())
-        cameraTarget.copy(MAP_TARGET)
-        controls.target.copy(MAP_TARGET)
+        const destination = cameraTransition.destination
+        camera.position.copy(cameraTransition.path.getPoint(1))
+        cameraTarget.copy(cameraTransition.endTarget)
+        controls.target.copy(cameraTransition.endTarget)
         cameraTransition = null
-        viewMode = 'map'
+        viewMode = destination
+        setZoomOutVisible(destination === 'map' || destination === 'radio')
+        if (destination === 'home') selectDefault()
       }
     }
 
@@ -1383,6 +1470,7 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
   const onContextLost = (event: Event) => { event.preventDefault(); root.dataset.webgl = 'failed' }
   const resetButton = root.querySelector<HTMLElement>('[data-operation-room-reset]')
   const onResetClick = () => resetView()
+  const onZoomOutClick = () => startZoomOut()
   const copyCameraButton = root.querySelector<HTMLButtonElement>('[data-operation-room-copy-camera]')
   const cameraReadout = document.createElement('code')
   cameraReadout.className = 'operation-room__camera-readout'
@@ -1432,7 +1520,7 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
 
   resize(); selectDefault(); updateCameraReadout(); loading?.setAttribute('data-ready', 'true')
   controls.addEventListener('change', updateCameraReadout)
-  canvas.addEventListener('pointermove', onPointerMove); canvas.addEventListener('pointerup', onPointerUp); canvas.addEventListener('keydown', onKeyDown); canvas.addEventListener('webglcontextlost', onContextLost); resetButton?.addEventListener('click', onResetClick); copyCameraButton?.addEventListener('click', onCopyCameraClick)
+  canvas.addEventListener('pointermove', onPointerMove); canvas.addEventListener('pointerup', onPointerUp); canvas.addEventListener('keydown', onKeyDown); canvas.addEventListener('webglcontextlost', onContextLost); resetButton?.addEventListener('click', onResetClick); zoomOutButton?.addEventListener('click', onZoomOutClick); copyCameraButton?.addEventListener('click', onCopyCameraClick)
   if (typeof reducedMotion.addEventListener === 'function') reducedMotion.addEventListener('change', applyMotionPreference)
   window.addEventListener('resize', resize)
   frame = requestAnimationFrame(render)
@@ -1441,7 +1529,7 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
     disposed = true; cancelAnimationFrame(frame)
     controls.removeEventListener('change', updateCameraReadout)
     cameraReadout.remove()
-    canvas.removeEventListener('pointermove', onPointerMove); canvas.removeEventListener('pointerup', onPointerUp); canvas.removeEventListener('keydown', onKeyDown); canvas.removeEventListener('webglcontextlost', onContextLost); resetButton?.removeEventListener('click', onResetClick); copyCameraButton?.removeEventListener('click', onCopyCameraClick)
+    canvas.removeEventListener('pointermove', onPointerMove); canvas.removeEventListener('pointerup', onPointerUp); canvas.removeEventListener('keydown', onKeyDown); canvas.removeEventListener('webglcontextlost', onContextLost); resetButton?.removeEventListener('click', onResetClick); zoomOutButton?.removeEventListener('click', onZoomOutClick); copyCameraButton?.removeEventListener('click', onCopyCameraClick)
     if (typeof reducedMotion.removeEventListener === 'function') reducedMotion.removeEventListener('change', applyMotionPreference)
     window.removeEventListener('resize', resize); controls.dispose(); renderer.dispose()
     scene.traverse((object) => {
