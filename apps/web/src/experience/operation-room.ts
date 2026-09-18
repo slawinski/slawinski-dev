@@ -1137,6 +1137,7 @@ export const mountOperationRoom = (root: HTMLElement) => {
   const HOME_TARGET = new THREE.Vector3(-2.15, 2.7, -4.75)
   const MAP_TARGET = new THREE.Vector3(WORLD.map.x, WORLD.map.y, WORLD.map.z + 0.06)
   const RADIO_TARGET = new THREE.Vector3(WORLD.radioDesk.x, 1.92, WORLD.radioDesk.z + 0.04)
+  const TRAYS_TARGET = new THREE.Vector3(-1.95, 1.61, -0.15)
   const TARGET_BOUNDS = { minX: -6, maxX: 4, minY: 0.8, maxY: 5.2, minZ: -5.8, maxZ: 4 }
   const cameraTarget = HOME_TARGET.clone()
   const controls = new OrbitControls(camera, canvas)
@@ -1156,14 +1157,14 @@ export const mountOperationRoom = (root: HTMLElement) => {
   let lastTime = performance.now()
   let projectorActive = false
   let projectorScreenProgress = 0
-  let viewMode: 'home' | 'transition' | 'map' | 'radio' = 'home'
+  let viewMode: 'home' | 'transition' | 'map' | 'radio' | 'trays' = 'home'
   let cameraTransition: {
     startTime: number
     duration: number
-    path: THREE.CatmullRomCurve3
+    path: THREE.Curve<THREE.Vector3>
     startTarget: THREE.Vector3
     endTarget: THREE.Vector3
-    destination: 'home' | 'map' | 'radio'
+    destination: 'home' | 'map' | 'radio' | 'trays'
   } | null = null
   const FAN_SPEED = 4
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -1198,8 +1199,21 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
     const verticalDistance = (frameHeight * 0.5) / Math.tan(verticalHalfFov)
     const horizontalHalfFov = Math.atan(Math.tan(verticalHalfFov) * camera.aspect)
     const horizontalDistance = (frameWidth * 0.5) / Math.tan(horizontalHalfFov)
-    const distance = Math.max(verticalDistance, horizontalDistance) * 1.06
-    return new THREE.Vector3(RADIO_TARGET.x, RADIO_TARGET.y + 0.12, RADIO_TARGET.z + distance)
+    const distance = Math.max(verticalDistance, horizontalDistance) * 1.10
+    return new THREE.Vector3(RADIO_TARGET.x + 0.04, RADIO_TARGET.y + 0.10, RADIO_TARGET.z + distance)
+  }
+  const getTraysViewPosition = () => {
+    // Near-vertical framing of the writing trays. A tiny forward offset keeps
+    // THREE.Camera.lookAt away from the singular perfectly-vertical case while
+    // remaining visually top-down.
+    const frameWidth = 1.95
+    const frameDepth = 1.50
+    const verticalHalfFov = THREE.MathUtils.degToRad(camera.fov * 0.5)
+    const verticalDistance = (frameDepth * 0.5) / Math.tan(verticalHalfFov)
+    const horizontalHalfFov = Math.atan(Math.tan(verticalHalfFov) * camera.aspect)
+    const horizontalDistance = (frameWidth * 0.5) / Math.tan(horizontalHalfFov)
+    const distance = Math.max(verticalDistance, horizontalDistance) * 1.18
+    return new THREE.Vector3(TRAYS_TARGET.x + 0.03, TRAYS_TARGET.y + distance, TRAYS_TARGET.z + 0.16)
   }
   const setZoomOutVisible = (visible: boolean) => {
     if (zoomOutButton) zoomOutButton.hidden = !visible
@@ -1219,12 +1233,16 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
       camera.position.copy(getRadioViewPosition())
       cameraTarget.copy(RADIO_TARGET)
       controls.target.copy(RADIO_TARGET)
+    } else if (viewMode === 'trays') {
+      camera.position.copy(getTraysViewPosition())
+      cameraTarget.copy(TRAYS_TARGET)
+      controls.target.copy(TRAYS_TARGET)
     }
   }
   const updatePointer = (event: PointerEvent) => { const bounds = canvas.getBoundingClientRect(); pointer.x = ((event.clientX - bounds.left) / bounds.width) * 2 - 1; pointer.y = -((event.clientY - bounds.top) / bounds.height) * 2 + 1 }
-  const easeInOutCubic = (value: number) => value < 0.5
-    ? 4 * value * value * value
-    : 1 - Math.pow(-2 * value + 2, 3) / 2
+  // Fifth-order smoothstep gives zero velocity and zero acceleration at both
+  // ends, closer to a programmed motion-control camera move.
+  const easeMotionControl = (value: number) => value * value * value * (value * (value * 6 - 15) + 10)
   const startMapDolly = () => {
     if (viewMode !== 'home') return
 
@@ -1276,17 +1294,52 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
 
     const start = camera.position.clone()
     const direction = end.clone().sub(start)
-    // The guide points make the move feel like a camera riding a short track:
-    // forward first, then a gentle lateral settle in front of the equipment.
-    const firstGuide = start.clone().addScaledVector(direction, 0.30).add(new THREE.Vector3(-0.10, 0.02, 0.20))
-    const secondGuide = start.clone().addScaledVector(direction, 0.72).add(new THREE.Vector3(-0.18, -0.02, 0.06))
+    // A single cubic Bezier avoids the small Catmull-Rom overshoot that made
+    // the old radio move wobble near the desk. The controls preserve forward
+    // momentum and only introduce a restrained lateral settle at the end.
+    const controlA = start.clone().addScaledVector(direction, 0.30).add(new THREE.Vector3(-0.05, 0.06, 0.12))
+    const controlB = start.clone().addScaledVector(direction, 0.72).add(new THREE.Vector3(-0.04, 0.03, 0.06))
     cameraTransition = {
       startTime: performance.now(),
-      duration: 1900,
-      path: new THREE.CatmullRomCurve3([start, firstGuide, secondGuide, end], false, 'catmullrom', 0.42),
+      duration: 2350,
+      path: new THREE.CubicBezierCurve3(start, controlA, controlB, end),
       startTarget: cameraTarget.clone(),
       endTarget: RADIO_TARGET.clone(),
       destination: 'radio',
+    }
+    setZoomOutVisible(false)
+    viewMode = 'transition'
+  }
+  const startTraysDolly = () => {
+    if (viewMode !== 'home') return
+
+    hoverTargets.forEach((target) => { target.material.opacity = 0 })
+    hotspots.forEach((hotspot) => { hotspot.highlight.visible = false })
+    boardDraw('WRITING')
+
+    const end = getTraysViewPosition()
+    if (reducedMotion.matches) {
+      camera.position.copy(end)
+      cameraTarget.copy(TRAYS_TARGET)
+      controls.target.copy(TRAYS_TARGET)
+      viewMode = 'trays'
+      setZoomOutVisible(true)
+      return
+    }
+
+    const start = camera.position.clone()
+    const direction = end.clone().sub(start)
+    // Motion-control style move: glide toward the desk, arc over the trays,
+    // then settle into a near-perfect top-down inspection shot.
+    const controlA = start.clone().addScaledVector(direction, 0.28).add(new THREE.Vector3(0.12, 0.55, 0.38))
+    const controlB = start.clone().addScaledVector(direction, 0.74).add(new THREE.Vector3(0.08, 0.52, 0.10))
+    cameraTransition = {
+      startTime: performance.now(),
+      duration: 2700,
+      path: new THREE.CubicBezierCurve3(start, controlA, controlB, end),
+      startTarget: cameraTarget.clone(),
+      endTarget: TRAYS_TARGET.clone(),
+      destination: 'trays',
     }
     setZoomOutVisible(false)
     viewMode = 'transition'
@@ -1318,6 +1371,7 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
     setProjectorActive(false)
     if (target.id === 'map') startMapDolly()
     if (target.id === 'radio') startRadioDolly()
+    if (target.id === 'trays') startTraysDolly()
   }
   const onPointerMove = (event: PointerEvent) => {
     // Desktop interaction is hover-only: moving the pointer over a menu region
@@ -1355,7 +1409,7 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
     selectDefault()
   }
   const startZoomOut = () => {
-    if (viewMode !== 'map' && viewMode !== 'radio') return
+    if (viewMode !== 'map' && viewMode !== 'radio' && viewMode !== 'trays') return
     setZoomOutVisible(false)
 
     if (reducedMotion.matches) {
@@ -1370,7 +1424,7 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
     cameraTransition = {
       startTime: performance.now(),
       duration: 1850,
-      path: new THREE.CatmullRomCurve3([start, firstGuide, secondGuide, HOME_POSITION.clone()], false, 'catmullrom', 0.42),
+      path: new THREE.CubicBezierCurve3(start, firstGuide, secondGuide, HOME_POSITION.clone()),
       startTarget: cameraTarget.clone(),
       endTarget: HOME_TARGET.clone(),
       destination: 'home',
@@ -1446,7 +1500,7 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
     if (cameraTransition) {
       const elapsed = now - cameraTransition.startTime
       const progress = Math.min(elapsed / cameraTransition.duration, 1)
-      const eased = easeInOutCubic(progress)
+      const eased = easeMotionControl(progress)
       camera.position.copy(cameraTransition.path.getPoint(eased))
       cameraTarget.lerpVectors(cameraTransition.startTarget, cameraTransition.endTarget, eased)
       controls.target.copy(cameraTarget)
@@ -1459,7 +1513,7 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
         controls.target.copy(cameraTransition.endTarget)
         cameraTransition = null
         viewMode = destination
-        setZoomOutVisible(destination === 'map' || destination === 'radio')
+        setZoomOutVisible(destination === 'map' || destination === 'radio' || destination === 'trays')
         if (destination === 'home') selectDefault()
       }
     }
