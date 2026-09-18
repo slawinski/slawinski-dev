@@ -403,24 +403,96 @@ const createRadioDesk = (scene: THREE.Scene) => {
 
 const createProjector = (scene: THREE.Scene) => {
   const group = new THREE.Group(); group.position.set(1.4, 1.88, 3.9); group.rotation.y = -1.57
-  group.add(box([0.72, 0.85, 0.8], [0, 0.33, 0], materials.metal))
-  for (const fx of [-0.26, 0.26]) for (const fz of [-0.3, 0.3]) group.add(box([0.1, 0.08, 0.1], [fx, -0.135, fz], materials.metalDark))
-  for (const [y, radius] of [[0.98, 0.45], [0.3, 0.38]] as const) {
-    group.add(cylinder(radius, 0.1, [0.12, y, -0.04], materials.metal, 10, [Math.PI / 2, 0, 0]))
-    group.add(cylinder(radius * 0.18, 0.14, [0.12, y, -0.09], materials.metalDark, 8, [Math.PI / 2, 0, 0]))
-  }
-  group.add(cylinder(0.12, 0.85, [-0.45, 0.42, 0.02], materials.metalDark, 8, [0, 0, Math.PI / 2]))
-  group.add(cylinder(0.15, 0.08, [-0.88, 0.42, 0.02], materials.metalDark, 8, [0, 0, Math.PI / 2]))
+
+  // The projector is deliberately more detailed than the surrounding props,
+  // because it doubles as the ABOUT hotspot. Keep the geometry chunky and
+  // low-poly, but make the silhouette unmistakably a 1930s/40s 16 mm machine:
+  // pale die-cast body, open spoke reels, exposed film path and long lens tube.
+  const enamel = makeMaterial(0xb8b5a8, 0.74); enamel.flatShading = true
+  const enamelDark = makeMaterial(0x747975, 0.78); enamelDark.flatShading = true
+  const reelMetal = makeMaterial(0xc4c0b1, 0.66); reelMetal.flatShading = true
+  const rubber = makeMaterial(0x262928, 0.94)
+
+  // Wide cast base with four dark isolation feet.
+  group.add(box([1.02, 0.10, 0.84], [0, -0.08, 0], enamelDark))
+  group.add(box([0.88, 0.045, 0.72], [0, -0.005, 0], enamel))
+  for (const fx of [-0.38, 0.38]) for (const fz of [-0.29, 0.29]) group.add(box([0.13, 0.08, 0.13], [fx, -0.155, fz], rubber))
+
+  // Main motor/lamp housing. The stacked boxes create a cast, tapered profile
+  // without introducing a smooth modern-looking shell.
+  group.add(box([0.76, 0.58, 0.64], [0.02, 0.29, 0], enamel))
+  group.add(box([0.64, 0.24, 0.58], [0.00, 0.69, 0], enamel))
+  group.add(box([0.47, 0.22, 0.54], [0.08, 0.87, 0], enamel, [0, 0, -0.10]))
+  group.add(box([0.42, 0.46, 0.035], [-0.02, 0.41, 0.338], enamelDark))
+  group.add(box([0.29, 0.26, 0.025], [-0.03, 0.43, 0.362], materials.black))
+
+  // Ribbed ventilation on the visible side panel, plus a small period maker's
+  // plate. These read clearly at the home camera distance without tiny meshes.
+  for (let i = 0; i < 4; i += 1) group.add(box([0.30, 0.026, 0.018], [0.09, 0.12 + i * 0.085, 0.374], materials.black))
+  group.add(box([0.25, 0.11, 0.02], [0.07, 0.63, 0.375], materials.brass))
+
+  // Lens turret and stepped focusing barrel. The final glass stays slightly
+  // warm, echoing an incandescent projection lamp without turning into a glow.
+  group.add(cylinder(0.19, 0.20, [-0.43, 0.49, 0.01], enamelDark, 10, [0, 0, Math.PI / 2]))
+  group.add(cylinder(0.145, 0.34, [-0.68, 0.49, 0.01], materials.metalDark, 10, [0, 0, Math.PI / 2]))
+  group.add(cylinder(0.16, 0.09, [-0.87, 0.49, 0.01], enamelDark, 10, [0, 0, Math.PI / 2]))
+  group.add(cylinder(0.13, 0.17, [-0.99, 0.49, 0.01], materials.metal, 10, [0, 0, Math.PI / 2]))
   const lensGlass = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.11, 0.11, 0.02, 12),
-    new THREE.MeshStandardMaterial({ color: 0x1a2530, roughness: 0.2, metalness: 0.2, emissive: 0xffe2a8, emissiveIntensity: 0.5 }),
+    new THREE.CylinderGeometry(0.105, 0.105, 0.025, 12),
+    new THREE.MeshStandardMaterial({ color: 0x17232b, roughness: 0.18, metalness: 0.18, emissive: 0xe6b975, emissiveIntensity: 0.32 }),
   )
-  lensGlass.position.set(-0.93, 0.42, 0.02); lensGlass.rotation.z = Math.PI / 2; group.add(lensGlass)
-  for (let i = 0; i < 4; i += 1) group.add(box([0.3, 0.03, 0.02], [0.1, 0.08 + i * 0.09, -0.41], materials.black))
-  group.add(cylinder(0.05, 0.07, [0.22, 0.79, 0.28], materials.brass, 8))
-  group.add(cylinder(0.045, 0.06, [-0.2, 0.785, 0.28], materials.metalDark, 8))
-  for (const hx of [-0.2, 0.2]) group.add(box([0.05, 0.2, 0.05], [hx, 0.855, -0.28], materials.metalDark))
-  group.add(box([0.45, 0.05, 0.05], [0, 0.975, -0.28], materials.metalDark))
+  lensGlass.position.set(-1.087, 0.49, 0.01); lensGlass.rotation.z = Math.PI / 2; lensGlass.castShadow = true; group.add(lensGlass)
+
+  // Reel support mast and film gate. The top arm is intentionally asymmetric,
+  // like period portable projectors, instead of a generic rectangular tower.
+  group.add(box([0.11, 0.55, 0.13], [0.18, 0.94, 0.05], enamelDark, [0, 0, -0.06]))
+  group.add(box([0.50, 0.09, 0.13], [0.03, 1.18, 0.05], enamelDark, [0, 0, 0.06]))
+  group.add(box([0.16, 0.44, 0.10], [0.29, 0.67, 0.31], enamelDark))
+  group.add(box([0.08, 0.36, 0.018], [0.39, 0.72, 0.375], materials.black))
+
+  const addReel = (x: number, y: number, radius: number, rotation = 0) => {
+    const reel = new THREE.Group(); reel.position.set(x, y, 0.44); reel.rotation.z = rotation
+
+    const outerRim = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.034, 6, 20), reelMetal)
+    outerRim.castShadow = true; outerRim.receiveShadow = true; reel.add(outerRim)
+    const innerRim = new THREE.Mesh(new THREE.TorusGeometry(radius * 0.72, 0.018, 5, 18), enamelDark)
+    innerRim.castShadow = true; reel.add(innerRim)
+
+    // Five broad spokes are much closer to the stamped aluminium reels in the
+    // reference than the old solid discs, while still staying low-poly.
+    for (let i = 0; i < 5; i += 1) {
+      const angle = i * Math.PI * 2 / 5 + Math.PI / 10
+      const length = radius * 0.68
+      const center = radius * 0.45
+      reel.add(box(
+        [length, 0.060, 0.035],
+        [Math.cos(angle) * center, Math.sin(angle) * center, 0],
+        reelMetal,
+        [0, 0, angle],
+      ))
+    }
+    reel.add(cylinder(radius * 0.15, 0.12, [0, 0, 0], enamelDark, 10, [Math.PI / 2, 0, 0]))
+    reel.add(cylinder(radius * 0.06, 0.15, [0, 0, 0.015], rubber, 8, [Math.PI / 2, 0, 0]))
+    group.add(reel)
+  }
+
+  addReel(0.15, 1.18, 0.48, 0.08)
+  addReel(0.15, 0.35, 0.39, -0.16)
+
+  // Visible film path and guide rollers connect the two reels to the gate so
+  // the model reads as a functioning machine rather than two wheels on a box.
+  group.add(cylinder(0.064, 0.07, [0.37, 0.85, 0.43], materials.brass, 8, [Math.PI / 2, 0, 0]))
+  group.add(cylinder(0.055, 0.07, [0.37, 0.62, 0.43], materials.metalDark, 8, [Math.PI / 2, 0, 0]))
+  group.add(box([0.024, 0.29, 0.018], [0.40, 0.735, 0.47], rubber, [0, 0, -0.03]))
+
+  // Large focus/control knobs and a simple folding crank are period cues that
+  // remain legible in silhouette.
+  group.add(cylinder(0.075, 0.075, [-0.18, 0.73, 0.365], materials.brass, 9, [Math.PI / 2, 0, 0]))
+  group.add(cylinder(0.065, 0.075, [0.25, 0.73, 0.365], enamelDark, 9, [Math.PI / 2, 0, 0]))
+  group.add(cylinder(0.035, 0.16, [0.45, 0.28, 0.38], enamelDark, 8, [Math.PI / 2, 0, 0]))
+  group.add(box([0.20, 0.045, 0.045], [0.53, 0.30, 0.43], enamelDark, [0, 0, 0.35]))
+  group.add(cylinder(0.055, 0.09, [0.62, 0.335, 0.45], rubber, 8, [Math.PI / 2, 0, 0]))
+
   scene.add(group)
 }
 
