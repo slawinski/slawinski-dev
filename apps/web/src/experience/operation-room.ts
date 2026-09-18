@@ -674,32 +674,105 @@ const createPendant = (scene: THREE.Scene, position: [number, number, number], c
 
 const createWallFan = (scene: THREE.Scene) => {
   const group = new THREE.Group(); group.position.set(4.7, 4.3, 1.0); group.rotation.y = -Math.PI / 2
-  group.add(cylinder(0.06, 0.55, [0, 0, -0.3], materials.metalDark, 8, [Math.PI / 2, 0, 0]))
-  group.add(cylinder(0.15, 0.32, [0, 0, -0.18], materials.metalDark, 10, [Math.PI / 2, 0, 0]))
-  group.add(new THREE.Mesh(new THREE.TorusGeometry(0.52, 0.008, 6, 24), materials.metalDark))
-  const cageWireGeo = new THREE.TorusGeometry(0.515, 0.008, 4, 16, Math.PI)
-  const addCageSide = (rimZ: number, flip: boolean) => {
-    for (let i = 0; i < 8; i += 1) {
-      const pivot = new THREE.Group(); pivot.rotation.z = i * Math.PI / 8
-      const wire = new THREE.Mesh(cageWireGeo, materials.metalDark)
-      wire.scale.set(1, 0.5, 1)
-      wire.rotation.x = flip ? -Math.PI / 2 : Math.PI / 2
-      wire.position.z = rimZ
-      pivot.add(wire); group.add(pivot)
-    }
+  const fanMetal = makeMaterial(0x9ca19c, 0.74); fanMetal.flatShading = true
+  const fanDark = makeMaterial(0x343b3a, 0.84); fanDark.flatShading = true
+  const fanBladeMaterial = new THREE.MeshStandardMaterial({
+    color: 0xb1b2aa,
+    roughness: 0.76,
+    metalness: 0.08,
+    flatShading: true,
+    side: THREE.DoubleSide,
+  })
+
+  // Heavy circular wall plate, short mounting arm and cylindrical motor body.
+  // These make the fan read as a real wall-mounted appliance rather than a
+  // floating cage with a rod behind it.
+  group.add(cylinder(0.27, 0.09, [0, 0, -0.56], fanDark, 16, [Math.PI / 2, 0, 0]))
+  group.add(cylinder(0.075, 0.42, [0, 0, -0.31], fanDark, 10, [Math.PI / 2, 0, 0]))
+  group.add(cylinder(0.17, 0.25, [0, 0, -0.13], fanDark, 12, [Math.PI / 2, 0, 0]))
+  group.add(cylinder(0.135, 0.17, [0, 0, 0.07], fanMetal, 12, [Math.PI / 2, 0, 0]))
+
+  // A small fork/yoke below the motor suggests the adjustable tilt joint seen
+  // on period wall fans.
+  group.add(box([0.055, 0.31, 0.055], [-0.20, -0.10, -0.13], fanDark, [0, 0, -0.18]))
+  group.add(box([0.055, 0.31, 0.055], [0.20, -0.10, -0.13], fanDark, [0, 0, 0.18]))
+  group.add(cylinder(0.055, 0.46, [0, -0.24, -0.13], fanDark, 8, [0, 0, Math.PI / 2]))
+
+  // Deep wire cage: front and rear hoops, an inner stabilising ring, radial
+  // spokes and short bridge clips around the perimeter. This replaces the old
+  // overlapping half-tori that made the guard look tangled in silhouette.
+  const rearZ = 0.02
+  const frontZ = 0.22
+  for (const z of [rearZ, frontZ]) {
+    const outer = new THREE.Mesh(new THREE.TorusGeometry(0.58, 0.014, 5, 28), fanDark)
+    outer.position.z = z; outer.castShadow = true; group.add(outer)
+    const inner = new THREE.Mesh(new THREE.TorusGeometry(0.34, 0.010, 5, 24), fanDark)
+    inner.position.z = z; inner.castShadow = true; group.add(inner)
   }
-  addCageSide(0, false)
-  addCageSide(0, true)
-  group.add(cylinder(0.07, 0.025, [0, 0, 0.25], materials.metalDark, 10, [Math.PI / 2, 0, 0]))
-  const spinner = new THREE.Group(); group.add(spinner)
-  for (let i = 0; i < 5; i += 1) {
-    const pivot = new THREE.Group(); pivot.rotation.z = i * Math.PI * 2 / 5
-    const blade = box([0.15, 0.38, 0.02], [0, 0.28, 0.02], materials.metal)
-    blade.rotation.y = 0.5
+
+  const addRadialWire = (angle: number, z: number, innerRadius: number, outerRadius: number) => {
+    const length = outerRadius - innerRadius
+    const mid = innerRadius + length / 2
+    group.add(box(
+      [length, 0.018, 0.018],
+      [Math.cos(angle) * mid, Math.sin(angle) * mid, z],
+      fanDark,
+      [0, 0, angle],
+    ))
+  }
+  for (let i = 0; i < 12; i += 1) {
+    const angle = i * Math.PI * 2 / 12
+    addRadialWire(angle, frontZ, 0.14, 0.56)
+  }
+  for (let i = 0; i < 8; i += 1) {
+    const angle = i * Math.PI * 2 / 8 + Math.PI / 8
+    addRadialWire(angle, rearZ, 0.16, 0.56)
+    group.add(box(
+      [0.020, 0.020, frontZ - rearZ],
+      [Math.cos(angle) * 0.565, Math.sin(angle) * 0.565, (frontZ + rearZ) / 2],
+      fanDark,
+    ))
+  }
+
+  // Four broad stamped-metal blades. A simple faceted polygon is closer to the
+  // chunky rounded paddles in the reference than the previous five rectangles.
+  const bladeGeometry = new THREE.BufferGeometry()
+  bladeGeometry.setAttribute('position', new THREE.Float32BufferAttribute([
+    0.09, -0.035, 0.00,
+    0.18, -0.105, 0.01,
+    0.47, -0.145, -0.025,
+    0.53, 0.020, -0.055,
+    0.30, 0.185, -0.025,
+    0.13, 0.095, 0.00,
+  ], 3))
+  bladeGeometry.setIndex([0, 1, 2, 0, 2, 3, 0, 3, 4, 0, 4, 5])
+  bladeGeometry.computeVertexNormals()
+
+  const spinner = new THREE.Group(); spinner.position.z = 0.12; group.add(spinner)
+  for (let i = 0; i < 4; i += 1) {
+    const pivot = new THREE.Group(); pivot.rotation.z = i * Math.PI / 2 + 0.22
+    const blade = new THREE.Mesh(bladeGeometry, fanBladeMaterial)
+    blade.castShadow = true; blade.receiveShadow = true
     pivot.add(blade); spinner.add(pivot)
   }
-  group.add(cylinder(0.13, 0.1, [0, 0, 0.02], materials.metalDark, 12, [Math.PI / 2, 0, 0]))
-  group.add(cylinder(0.06, 0.06, [0, 0, 0.08], materials.metal, 8, [Math.PI / 2, 0, 0]))
+
+  // Layered hub/cap gives the centre the cast-metal depth visible in the shot.
+  group.add(cylinder(0.145, 0.10, [0, 0, 0.14], fanDark, 12, [Math.PI / 2, 0, 0]))
+  group.add(cylinder(0.095, 0.075, [0, 0, 0.215], fanMetal, 10, [Math.PI / 2, 0, 0]))
+  group.add(cylinder(0.040, 0.085, [0, 0, 0.255], fanDark, 8, [Math.PI / 2, 0, 0]))
+
+  // Hanging power cord loop below the mount, another strong cue from the
+  // supplied reference image.
+  const cordCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0.16, -0.13, -0.55),
+    new THREE.Vector3(0.23, -0.34, -0.55),
+    new THREE.Vector3(0.20, -0.62, -0.55),
+    new THREE.Vector3(0.03, -0.72, -0.55),
+    new THREE.Vector3(-0.08, -0.56, -0.55),
+  ])
+  const cord = new THREE.Mesh(new THREE.TubeGeometry(cordCurve, 10, 0.010, 5, false), materials.black)
+  cord.castShadow = true; group.add(cord)
+
   scene.add(group)
   return spinner
 }
