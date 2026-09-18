@@ -1016,19 +1016,23 @@ const createScene = (scene: THREE.Scene, camera: THREE.PerspectiveCamera) => {
   createPendant(scene, [-1.35, 5.0, -4.75], 0x5e8a32, 1.4, 5)
   const boardDraw = createHangingBoard(scene)
   const hotspots: Hotspot[] = [
-    createHotspot(scene, 'work', [8.55, 4.5, 0.28], [WORLD.map.x, WORLD.map.y, WORLD.map.z + 0.3]),
-    createHotspot(scene, 'writing', [1.8, 0.62, 2.2], [-1.2, 1.43, 2.2]),
-    createHotspot(scene, 'speaking', [3.8, 1.9, 1.5], [WORLD.radioDesk.x, 1.35, WORLD.radioDesk.z]),
-    createHotspot(scene, 'contact', [1.1, 1.6, 5.1], [-0.6, 1.9, 0]),
-    createHotspot(scene, 'about', [2.35, 2.5, 1.5], [-0.6, 2.4, 4.05]),
-  ]
-  const hoverTargets: HoverTarget[] = [
-    // Map, radio equipment, phone bank, projector, tray stack.
-    createHoverTarget(scene, 'map', 'WORK', [8.55, 4.5, 0.12], [WORLD.map.x, WORLD.map.y, WORLD.map.z + 0.18]),
-    createHoverTarget(scene, 'radio', 'CONTACT', [3.9, 1.45, 1.5], [WORLD.radioDesk.x, 1.55, WORLD.radioDesk.z]),
-    createHoverTarget(scene, 'projector', 'SPEAKING', [1.5, 1.25, 1.6], [-0.6, 2.45, 3.9]),
-    createHoverTarget(scene, 'trays', 'WRITING', [1.8, 0.8, 1.5], [-1.25, 1.65, -0.15]),
-  ]
+  // Navigation is intentionally disabled for now. These meshes only define
+  // hover/select coverage and the matching highlight volume.
+  createHotspot(scene, 'work', [8.55, 4.5, 0.28], [WORLD.map.x, WORLD.map.y, WORLD.map.z + 0.3]),
+  createHotspot(scene, 'contact', [3.9, 1.45, 1.5], [WORLD.radioDesk.x, 1.55, WORLD.radioDesk.z]),
+  createHotspot(scene, 'speaking', [1.5, 1.25, 1.6], [-0.6, 2.45, 3.9]),
+  createHotspot(scene, 'writing', [1.65, 0.75, 1.25], [-1.95, 1.65, -0.15]),
+  createHotspot(scene, 'about', [1.8, 4.85, 0.18], [2.75, 2.45, WORLD.backWallZ + 0.20]),
+]
+const hoverTargets: HoverTarget[] = [
+  // Map → WORK, Radio → CONTACT, Projector → SPEAKING,
+  // Trays → WRITING, Back door → ABOUT.
+  createHoverTarget(scene, 'map', 'WORK', [8.55, 4.5, 0.12], [WORLD.map.x, WORLD.map.y, WORLD.map.z + 0.18]),
+  createHoverTarget(scene, 'radio', 'CONTACT', [3.9, 1.45, 1.5], [WORLD.radioDesk.x, 1.55, WORLD.radioDesk.z]),
+  createHoverTarget(scene, 'projector', 'SPEAKING', [1.5, 1.25, 1.6], [-0.6, 2.45, 3.9]),
+  createHoverTarget(scene, 'trays', 'WRITING', [1.65, 0.75, 1.25], [-1.95, 1.65, -0.15]),
+  createHoverTarget(scene, 'back-door', 'ABOUT', [1.8, 4.85, 0.12], [2.75, 2.45, WORLD.backWallZ + 0.20]),
+]
   camera.position.set(-4.08, 4.47, 10.34); camera.lookAt(-2.15, 2.7, -4.75)
   return { hotspots, hoverTargets, boardDraw, fanSpinner, updateClock }
 }
@@ -1073,7 +1077,7 @@ export const mountOperationRoom = (root: HTMLElement) => {
   controls.minAzimuthAngle = -0.98
   controls.maxAzimuthAngle = 0.72
   controls.update()
-  let activeId: SectionId = 'work'; let lastTouchSelection: SectionId | null = null; let frame = 0; let disposed = false
+  let activeId: SectionId = 'work'; let frame = 0; let disposed = false
   let lastTime = performance.now()
   const FAN_SPEED = 4
   let downX = 0; let downY = 0; let dragged = false
@@ -1082,20 +1086,21 @@ export const mountOperationRoom = (root: HTMLElement) => {
   applyMotionPreference()
 
   const setActive = (id: SectionId) => {
-    if (id === activeId) return
-    activeId = id; boardDraw(SECTIONS[id].label); if (live) live.textContent = `${SECTIONS[id].label} selected`
-    hotspots.forEach((hotspot) => { hotspot.highlight.visible = hotspot.id === id })
-  }
-  const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.forEach((hotspot) => { hotspot.highlight.visible = hotspot.id === 'work' }) }
+  // Re-entering the same target must restore its cover after a pointer leave.
+  activeId = id; boardDraw(SECTIONS[id].label); if (live) live.textContent = `${SECTIONS[id].label} selected`
+  hotspots.forEach((hotspot) => { hotspot.highlight.visible = hotspot.id === id })
+}
+const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.forEach((hotspot) => { hotspot.highlight.visible = false }) }
   const resize = () => { const width = root.clientWidth; const height = root.clientHeight; renderer.setSize(width, height, false); camera.aspect = width / height; camera.fov = 54; camera.updateProjectionMatrix() }
   const updatePointer = (event: PointerEvent) => { const bounds = canvas.getBoundingClientRect(); pointer.x = ((event.clientX - bounds.left) / bounds.width) * 2 - 1; pointer.y = -((event.clientY - bounds.top) / bounds.height) * 2 + 1 }
   const pick = () => {
-    raycaster.setFromCamera(pointer, camera)
-    const intersections = raycaster.intersectObjects(hotspots.map((hotspot) => hotspot.hitbox), false)
-    const hit = intersections[0]?.object.userData.hotspot as SectionId | undefined
-    if (hit) { setActive(hit); canvas.style.cursor = 'pointer'; return hit }
-    canvas.style.cursor = 'default'; return null
-  }
+  raycaster.setFromCamera(pointer, camera)
+  const intersections = raycaster.intersectObjects(hotspots.map((hotspot) => hotspot.hitbox), false)
+  const hit = intersections[0]?.object.userData.hotspot as SectionId | undefined
+  if (hit) { setActive(hit); canvas.style.cursor = 'default'; return hit }
+  hotspots.forEach((hotspot) => { hotspot.highlight.visible = false })
+  canvas.style.cursor = 'default'; return null
+}
   const onPointerMove = (event: PointerEvent) => {
     if (dragged || (event.buttons & 1) === 1 || (event.buttons & 2) === 2) return
     if (event.pointerType === 'touch') return
@@ -1108,13 +1113,12 @@ export const mountOperationRoom = (root: HTMLElement) => {
     const hoveredTarget = hoverTargets.find((target) => target.mesh === hoverHit)
     if (hoveredTarget) {
       boardDraw(hoveredTarget.label)
-      canvas.style.cursor = 'pointer'
+      canvas.style.cursor = 'default'
     } else {
       boardDraw('WORK')
       canvas.style.cursor = 'default'
     }
   }
-  const navigate = (id: SectionId) => window.location.assign(SECTIONS[id].href)
   const resetView = () => {
     camera.position.copy(HOME_POSITION)
     controls.target.copy(HOME_TARGET)
@@ -1124,11 +1128,11 @@ export const mountOperationRoom = (root: HTMLElement) => {
     downX = event.clientX; downY = event.clientY; dragged = false
   }
   const onPointerUp = (event: PointerEvent) => {
-    if (Math.hypot(event.clientX - downX, event.clientY - downY) > DRAG_THRESHOLD_PX || dragged) return
-    updatePointer(event); const hit = pick(); if (!hit) return
-    if (event.pointerType === 'touch' && lastTouchSelection !== hit) { lastTouchSelection = hit; setActive(hit); return }
-    navigate(hit)
-  }
+  if (Math.hypot(event.clientX - downX, event.clientY - downY) > DRAG_THRESHOLD_PX || dragged) return
+  // Highlight/select only. Navigation is deliberately disabled for now.
+  updatePointer(event)
+  pick()
+}
   const onDragMove = (event: PointerEvent) => {
     if (Math.hypot(event.clientX - downX, event.clientY - downY) > DRAG_THRESHOLD_PX) dragged = true
   }
@@ -1147,11 +1151,10 @@ export const mountOperationRoom = (root: HTMLElement) => {
     controls.update()
   }
   const onKeyDown = (event: KeyboardEvent) => {
-    if (['ArrowLeft', 'ArrowRight', 'Enter', '+', '=', '-', '_', '0', 'r', 'R', 'w', 'W', 'a', 'A', 's', 'S', 'd', 'D'].includes(event.key)) event.preventDefault(); else return
+    if (['ArrowLeft', 'ArrowRight', '+', '=', '-', '_', '0', 'r', 'R', 'w', 'W', 'a', 'A', 's', 'S', 'd', 'D'].includes(event.key)) event.preventDefault(); else return
     const index = SECTION_ORDER.indexOf(activeId)
     if (event.key === 'ArrowLeft') setActive(SECTION_ORDER[(index - 1 + SECTION_ORDER.length) % SECTION_ORDER.length])
     if (event.key === 'ArrowRight') setActive(SECTION_ORDER[(index + 1) % SECTION_ORDER.length])
-    if (event.key === 'Enter') navigate(activeId)
   }
   const clampTarget = () => {
     controls.target.x = THREE.MathUtils.clamp(controls.target.x, TARGET_BOUNDS.minX, TARGET_BOUNDS.maxX)
