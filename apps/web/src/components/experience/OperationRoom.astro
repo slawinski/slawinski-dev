@@ -17,10 +17,14 @@
 <script>
   import { mountOperationRoom } from '@/experience/operation-room'
   import { createOperationRoomMusic } from '@/experience/operation-room-audio'
+  import { installOperationRoomWallDetails } from '@/experience/operation-room-wall-details'
 
   const root = document.querySelector<HTMLElement>('[data-operation-room]')
   if (root) {
+    const restoreWallDetailsHook = installOperationRoomWallDetails()
     const disposeRoom = mountOperationRoom(root)
+    restoreWallDetailsHook()
+
     const music = createOperationRoomMusic()
     const musicButton = root.querySelector<HTMLButtonElement>('[data-operation-room-music]')
 
