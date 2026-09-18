@@ -1,5 +1,4 @@
 from pathlib import Path
-import re
 
 path = Path('apps/web/src/experience/operation-room.ts')
 text = path.read_text()
@@ -11,9 +10,9 @@ text = text.replace(
 text = text.replace("  const DRAG_THRESHOLD_PX = 6\n", "")
 text = text.replace("  let downX = 0; let downY = 0; let dragged = false\n", "")
 
-text, count = re.subn(
-    r"  const pick = \(\) => \{.*?\n  \}\n  const onPointerMove = \(event: PointerEvent\) => \{.*?\n  \}\n  const resetView =",
-    """  const onPointerMove = (event: PointerEvent) => {
+start = text.index("  const pick = () => {")
+end = text.index("  const resetView =", start)
+hover_block = """  const onPointerMove = (event: PointerEvent) => {
     // Desktop interaction is hover-only: moving the pointer over a menu region
     // immediately updates both the cover highlight and the hanging board.
     if (event.pointerType === 'touch') return
@@ -37,31 +36,20 @@ text, count = re.subn(
     }
     canvas.style.cursor = 'default'
   }
-  const resetView =""",
-    text,
-    count=1,
-    flags=re.S,
-)
-if count != 1:
-    raise SystemExit(f'hover block replacement count: {count}')
+"""
+text = text[:start] + hover_block + text[end:]
 
-text, count = re.subn(
-    r"  const onPointerDown = \(event: PointerEvent\) => \{.*?\n  \}\n  const onPointerUp = \(event: PointerEvent\) => \{.*?\n  \}\n  const onDragMove = \(event: PointerEvent\) => \{.*?\n  \}\n",
-    "",
-    text,
-    count=1,
-    flags=re.S,
-)
-if count != 1:
-    raise SystemExit(f'pointer click/drag block replacement count: {count}')
+start = text.index("  const onPointerDown =")
+end = text.index("  const dolly =", start)
+text = text[:start] + text[end:]
 
 text = text.replace(
-    "  canvas.addEventListener('pointermove', onPointerMove); canvas.addEventListener('pointermove', onDragMove); canvas.addEventListener('pointerdown', onPointerDown); canvas.addEventListener('pointerup', onPointerUp); canvas.addEventListener('keydown', onKeyDown); canvas.addEventListener('webglcontextlost', onContextLost); resetButton?.addEventListener('click', onResetClick); copyCameraButton?.addEventListener('click', onCopyCameraClick)\n",
-    "  canvas.addEventListener('pointermove', onPointerMove); canvas.addEventListener('keydown', onKeyDown); canvas.addEventListener('webglcontextlost', onContextLost); resetButton?.addEventListener('click', onResetClick); copyCameraButton?.addEventListener('click', onCopyCameraClick)\n",
+    "canvas.addEventListener('pointermove', onPointerMove); canvas.addEventListener('pointermove', onDragMove); canvas.addEventListener('pointerdown', onPointerDown); canvas.addEventListener('pointerup', onPointerUp);",
+    "canvas.addEventListener('pointermove', onPointerMove);",
 )
 text = text.replace(
-    "    canvas.removeEventListener('pointermove', onPointerMove); canvas.removeEventListener('pointermove', onDragMove); canvas.removeEventListener('pointerdown', onPointerDown); canvas.removeEventListener('pointerup', onPointerUp); canvas.removeEventListener('keydown', onKeyDown); canvas.removeEventListener('webglcontextlost', onContextLost); resetButton?.removeEventListener('click', onResetClick); copyCameraButton?.removeEventListener('click', onCopyCameraClick)\n",
-    "    canvas.removeEventListener('pointermove', onPointerMove); canvas.removeEventListener('keydown', onKeyDown); canvas.removeEventListener('webglcontextlost', onContextLost); resetButton?.removeEventListener('click', onResetClick); copyCameraButton?.removeEventListener('click', onCopyCameraClick)\n",
+    "canvas.removeEventListener('pointermove', onPointerMove); canvas.removeEventListener('pointermove', onDragMove); canvas.removeEventListener('pointerdown', onPointerDown); canvas.removeEventListener('pointerup', onPointerUp);",
+    "canvas.removeEventListener('pointermove', onPointerMove);",
 )
 
 path.write_text(text)
