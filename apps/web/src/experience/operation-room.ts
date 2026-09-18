@@ -346,7 +346,7 @@ const createScene = (scene: THREE.Scene, camera: THREE.PerspectiveCamera) => {
     createHotspot(scene, 'contact', [5.2, 1.45, 2.0], [2.35, 1.42, -0.95]),
     createHotspot(scene, 'about', [2.35, 2.5, 2.0], [4.45, 2.0, 3.15]),
   ]
-  camera.position.set(9.8, 5.45, 12.8); camera.lookAt(-0.2, 2.45, -2.15)
+  camera.position.set(4.9, 4.95, 10.2); camera.lookAt(-2.15, 2.7, -4.75)
   return { hotspots, boardDraw }
 }
 
@@ -372,7 +372,7 @@ export const mountOperationRoom = (root: HTMLElement) => {
 
   const { hotspots, boardDraw } = createScene(scene, camera)
   const raycaster = new THREE.Raycaster(); const pointer = new THREE.Vector2(2, 2)
-  const baseCameraPosition = camera.position.clone(); const currentCameraPosition = camera.position.clone(); const targetCameraPosition = camera.position.clone(); const targetLookAt = new THREE.Vector3(-0.2, 2.45, -2.15)
+  const baseCameraPosition = camera.position.clone(); const currentCameraPosition = camera.position.clone(); const targetCameraPosition = camera.position.clone(); const targetLookAt = new THREE.Vector3(-2.15, 2.7, -4.75)
   let activeId: SectionId = 'work'; let lastTouchSelection: SectionId | null = null; let frame = 0; let disposed = false
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)'); const coarsePointer = window.matchMedia('(pointer: coarse)')
 
@@ -382,7 +382,7 @@ export const mountOperationRoom = (root: HTMLElement) => {
     hotspots.forEach((hotspot) => { hotspot.highlight.visible = hotspot.id === id })
   }
   const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.forEach((hotspot) => { hotspot.highlight.visible = hotspot.id === 'work' }) }
-  const resize = () => { const width = root.clientWidth; const height = root.clientHeight; renderer.setSize(width, height, false); camera.aspect = width / height; camera.fov = width / height < 0.9 ? 64 : 54; camera.updateProjectionMatrix() }
+  const resize = () => { const width = root.clientWidth; const height = root.clientHeight; renderer.setSize(width, height, false); camera.aspect = width / height; camera.fov = 54; camera.updateProjectionMatrix() }
   const updatePointer = (event: PointerEvent) => { const bounds = canvas.getBoundingClientRect(); pointer.x = ((event.clientX - bounds.left) / bounds.width) * 2 - 1; pointer.y = -((event.clientY - bounds.top) / bounds.height) * 2 + 1 }
   const pick = () => {
     raycaster.setFromCamera(pointer, camera)
@@ -394,7 +394,7 @@ export const mountOperationRoom = (root: HTMLElement) => {
   const onPointerMove = (event: PointerEvent) => {
     if (event.pointerType === 'touch') return
     updatePointer(event); pick()
-    if (!reducedMotion.matches && !coarsePointer.matches) targetCameraPosition.set(baseCameraPosition.x + THREE.MathUtils.clamp(pointer.x, -1, 1) * 0.18, baseCameraPosition.y + THREE.MathUtils.clamp(pointer.y, -1, 1) * 0.08, baseCameraPosition.z)
+    if (!reducedMotion.matches && !coarsePointer.matches) targetCameraPosition.copy(baseCameraPosition)
   }
   const navigate = (id: SectionId) => window.location.assign(SECTIONS[id].href)
   const onPointerDown = (event: PointerEvent) => {
