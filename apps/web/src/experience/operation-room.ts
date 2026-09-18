@@ -12,6 +12,13 @@ type Hotspot = {
   cameraOffset: THREE.Vector3
 }
 
+type HoverTarget = {
+  id: string
+  label: string
+  mesh: THREE.Mesh
+  material: THREE.MeshBasicMaterial
+}
+
 const SECTION_ORDER: SectionId[] = ['work', 'writing', 'speaking', 'about', 'contact']
 
 const SECTIONS: Record<SectionId, { label: string; href: string }> = {
@@ -975,6 +982,32 @@ const createHotspot = (scene: THREE.Scene, id: SectionId, size: [number, number,
   return { id, label: SECTIONS[id].label, href: SECTIONS[id].href, hitbox, highlight, cameraOffset: new THREE.Vector3() } satisfies Hotspot
 }
 
+const createHoverTarget = (
+  scene: THREE.Scene,
+  id: string,
+  label: string,
+  size: [number, number, number],
+  position: [number, number, number],
+  rotation: [number, number, number] = [0, 0, 0],
+): HoverTarget => {
+  const material = new THREE.MeshBasicMaterial({
+    color: 0xd8b15a,
+    transparent: true,
+    opacity: 0,
+    depthWrite: false,
+    depthTest: false,
+    blending: THREE.AdditiveBlending,
+  })
+  const mesh = box(size, position, material, rotation)
+  // Keep the mesh visible to Three.js raycasting. Highlighting is controlled
+  // through opacity; invisible objects are skipped by intersectObjects().
+  mesh.visible = true
+  mesh.userData.hoverTarget = id
+  mesh.renderOrder = 20
+  scene.add(mesh)
+  return { id, label, mesh, material }
+}
+
 const createScene = (scene: THREE.Scene, camera: THREE.PerspectiveCamera) => {
   const updateClock = createRoomShell(scene); createTable(scene); createRadioDesk(scene); createMapBoard(scene); createProjector(scene); createPaperCluster(scene); createFolders(scene); const fanSpinner = createWallFan(scene)
   createChair(scene, -4.65, 0.65, -1.07); createChair(scene, 2.5, -0.2, 1.91); createChair(scene, 2.5, 3.35, 1.31)
@@ -989,8 +1022,15 @@ const createScene = (scene: THREE.Scene, camera: THREE.PerspectiveCamera) => {
     createHotspot(scene, 'contact', [1.1, 1.6, 5.1], [-0.6, 1.9, 0]),
     createHotspot(scene, 'about', [2.35, 2.5, 1.5], [-0.6, 2.4, 4.05]),
   ]
+  const hoverTargets: HoverTarget[] = [
+    // Map, radio equipment, phone bank, projector, tray stack.
+    createHoverTarget(scene, 'map', 'WORK', [8.55, 4.5, 0.12], [WORLD.map.x, WORLD.map.y, WORLD.map.z + 0.18]),
+    createHoverTarget(scene, 'radio', 'CONTACT', [3.9, 1.45, 1.5], [WORLD.radioDesk.x, 1.55, WORLD.radioDesk.z]),
+    createHoverTarget(scene, 'projector', 'SPEAKING', [1.5, 1.25, 1.6], [-0.6, 2.45, 3.9]),
+    createHoverTarget(scene, 'trays', 'WRITING', [1.8, 0.8, 1.5], [-1.25, 1.65, -0.15]),
+  ]
   camera.position.set(-4.08, 4.47, 10.34); camera.lookAt(-2.15, 2.7, -4.75)
-  return { hotspots, boardDraw, fanSpinner, updateClock }
+  return { hotspots, hoverTargets, boardDraw, fanSpinner, updateClock }
 }
 
 export const mountOperationRoom = (root: HTMLElement) => {
@@ -1013,8 +1053,9 @@ export const mountOperationRoom = (root: HTMLElement) => {
   const warmFill = new THREE.DirectionalLight(0xffd599, 1.15); warmFill.position.set(-4, 7, 7); warmFill.castShadow = true; warmFill.shadow.mapSize.set(1024, 1024); scene.add(warmFill)
   const coolFill = new THREE.DirectionalLight(0xb8d0cb, 0.45); coolFill.position.set(7, 5, -1); scene.add(coolFill)
 
-  const { hotspots, boardDraw, fanSpinner, updateClock } = createScene(scene, camera)
+  const { hotspots, hoverTargets, boardDraw, fanSpinner, updateClock } = createScene(scene, camera)
   const raycaster = new THREE.Raycaster(); const pointer = new THREE.Vector2(2, 2)
+  const hoverRaycaster = new THREE.Raycaster()
   const HOME_POSITION = new THREE.Vector3(-5.08, 4.14, 8.58)
   const HOME_TARGET = new THREE.Vector3(-2.15, 2.7, -4.75)
   const TARGET_BOUNDS = { minX: -6, maxX: 4, minY: 0.8, maxY: 5.2, minZ: -5.8, maxZ: 4 }
@@ -1059,6 +1100,19 @@ export const mountOperationRoom = (root: HTMLElement) => {
     if (dragged || (event.buttons & 1) === 1 || (event.buttons & 2) === 2) return
     if (event.pointerType === 'touch') return
     updatePointer(event); pick()
+    hoverRaycaster.setFromCamera(pointer, camera)
+    const hoverHit = hoverRaycaster.intersectObjects(hoverTargets.map((target) => target.mesh), false)[0]?.object
+    hoverTargets.forEach((target) => {
+      target.material.opacity = target.mesh === hoverHit ? 0.18 : 0
+    })
+    const hoveredTarget = hoverTargets.find((target) => target.mesh === hoverHit)
+    if (hoveredTarget) {
+      boardDraw(hoveredTarget.label)
+      canvas.style.cursor = 'pointer'
+    } else {
+      boardDraw('WORK')
+      canvas.style.cursor = 'default'
+    }
   }
   const navigate = (id: SectionId) => window.location.assign(SECTIONS[id].href)
   const resetView = () => {

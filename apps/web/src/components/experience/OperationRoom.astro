@@ -20,8 +20,12 @@
   import { createOperationRoomMusic } from '@/experience/operation-room-audio'
   import { installOperationRoomWallDetails } from '@/experience/operation-room-wall-details'
 
-  const root = document.querySelector<HTMLElement>('[data-operation-room]')
-  if (root) {
+  let disposeCurrentRoom: (() => void) | undefined
+
+  const mount = () => {
+    const root = document.querySelector<HTMLElement>('[data-operation-room]')
+    if (!root || root.dataset.operationRoomMounted === 'true') return
+    root.dataset.operationRoomMounted = 'true'
     const restoreWallDetailsHook = installOperationRoomWallDetails()
     const disposeRoom = mountOperationRoom(root)
     restoreWallDetailsHook()
@@ -53,14 +57,24 @@
     window.addEventListener('keydown', onMusicKey)
 
     const dispose = () => {
+      if (root.dataset.operationRoomMounted !== 'true') return
+      delete root.dataset.operationRoomMounted
       musicButton?.removeEventListener('click', onMusicClick)
       window.removeEventListener('keydown', onMusicKey)
       music.dispose()
       disposeRoom()
     }
 
-    window.addEventListener('pagehide', dispose, { once: true })
+    disposeCurrentRoom = dispose
   }
+
+  // Astro view transitions preserve the document and replace only the page
+  // content. Re-mount the WebGL scene after returning home and dispose the old
+  // renderer before a route swap; otherwise the old canvas animation loop and
+  // listeners leave the new scene inert.
+  document.addEventListener('astro:before-swap', () => disposeCurrentRoom?.())
+  document.addEventListener('astro:page-load', mount)
+  mount()
 </script>
 
 <style>
