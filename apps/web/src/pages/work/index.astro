@@ -1,0 +1,17 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro'
+import ProjectCard from '@/components/content/ProjectCard.astro'
+---
+
+<BaseLayout title="Work — Piotr Sławiński" description="Selected software projects and case studies.">
+  <section class="page-intro">
+    <p class="eyebrow">CASE FILES / SELECTED WORK</p>
+    <h1>WORK</h1>
+    <p>Products, experiments and useful things that escaped localhost.</p>
+  </section>
+  <section class="card-grid" aria-label="Projects">
+    <ProjectCard title="TRIGGERNOTE" eyebrow="CASE FILE 01" description="personal range log" href="/work/triggernote" />
+    <ProjectCard title="EGGSPEDITION" eyebrow="CASE FILE 02" description="mobile-first PWA" href="/work/eggspedition" variant="paper" />
+    <ProjectCard title="SLAWINSKI.DEV" eyebrow="CASE FILE 03" description="portfolio rewrite" href="/work/slawinski-dev" variant="blue" />
+  </section>
+</BaseLayout>

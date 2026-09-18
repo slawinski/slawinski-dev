@@ -1,0 +1,35 @@
+---
+interface Props {
+  title?: string
+  description?: string
+}
+
+const {
+  title = 'Piotr Sławiński — Software Engineer',
+  description = 'Software engineering, projects, writing and talks by Piotr Sławiński.',
+} = Astro.props
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#28342f" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>{title}</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#experience-navigation">Skip the 3D scene</a>
+    <main><slot /></main>
+  </body>
+</html>
+
+<style is:global>
+  :root { color-scheme: dark; background: #1b211f; }
+  html, body { width: 100%; min-width: 320px; min-height: 100%; margin: 0; background: #1b211f; }
+  body { min-height: 100dvh; overflow: hidden; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+  .skip-link { position: fixed; z-index: 100; top: .75rem; left: .75rem; transform: translateY(-180%); padding: .65rem .8rem; color: #f6efcf; background: #101513; border: 1px solid #758f68; }
+  .skip-link:focus { transform: translateY(0); }
+</style>
