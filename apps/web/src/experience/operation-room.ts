@@ -46,7 +46,7 @@ const WORLD = {
   roomDepth: 13,
   wallHeight: 7,
   map: { x: -2.55, y: 3.42, z: -5.79, width: 8.4, height: 4.45 },
-  mainTable: { x: 1.4, y: 1.16, z: 1.15, width: 4.8, depth: 9.2 },
+  mainTable: { x: -0.6, y: 1.16, z: 1.15, width: 4.8, depth: 9.2 },
   radioDesk: { x: -5.9, y: 1.18, z: -2.25, width: 3.7, depth: 1.25 },
   board: { x: -5.25, y: 5.55, z: -1.4, width: 4.1, height: 0.78 },
 }
@@ -223,40 +223,61 @@ const createRoomShell = (scene: THREE.Scene) => {
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(WORLD.roomWidth, WORLD.roomDepth), materials.floor)
   floor.rotation.x = -Math.PI / 2; floor.position.set(0, WORLD.floorY, 0); floor.receiveShadow = true; scene.add(floor)
   scene.add(box([WORLD.roomWidth, WORLD.wallHeight, 0.18], [0, WORLD.wallHeight / 2, WORLD.backWallZ], materials.wall))
-  scene.add(box([0.18, WORLD.wallHeight, WORLD.roomDepth], [8.8, WORLD.wallHeight / 2, 0], materials.wallShadow))
-  scene.add(box([WORLD.roomWidth, 0.42, 0.18], [0, 1.05, WORLD.backWallZ + 0.12], materials.green))
+  scene.add(box([0.18, WORLD.wallHeight, WORLD.roomDepth], [-8.8, WORLD.wallHeight / 2, 0], materials.wallShadow))
+  scene.add(box([0.18, WORLD.wallHeight, WORLD.roomDepth], [6.8, WORLD.wallHeight / 2, 0], materials.wallShadow))
+  // Green trim is a low baseboard, not a raised wall panel. It wraps the
+  // back wall and both side walls at floor level.
+  const baseboardHeight = 0.42
+  const baseboardY = baseboardHeight / 2
+  const leftWallX = -8.8
+  const rightWallX = 6.8
+  const wallSpan = rightWallX - leftWallX
+  // Keep the back-wall baseboard clear of the black door as well.
+  const backDoorMinX = 2.75 - 1.7 / 2
+  const backDoorMaxX = 2.75 + 1.7 / 2
+  scene.add(box([backDoorMinX - leftWallX, baseboardHeight, 0.18], [(leftWallX + backDoorMinX) / 2, baseboardY, WORLD.backWallZ + 0.12], materials.green))
+  scene.add(box([rightWallX - backDoorMaxX, baseboardHeight, 0.18], [(backDoorMaxX + rightWallX) / 2, baseboardY, WORLD.backWallZ + 0.12], materials.green))
+  scene.add(box([0.18, baseboardHeight, WORLD.roomDepth], [leftWallX + 0.12, baseboardY, 0], materials.green))
+  // Leave the right-wall doorway clear: the brown door spans z -3.775..-2.125.
+  const doorMinZ = -2.95 - 1.65 / 2
+  const doorMaxZ = -2.95 + 1.65 / 2
+  const roomMinZ = -WORLD.roomDepth / 2
+  const roomMaxZ = WORLD.roomDepth / 2
+  const rightWallBaseboardX = rightWallX - 0.12
+  scene.add(box([0.18, baseboardHeight, doorMinZ - roomMinZ], [rightWallBaseboardX, baseboardY, (roomMinZ + doorMinZ) / 2], materials.green))
+  scene.add(box([0.18, baseboardHeight, roomMaxZ - doorMaxZ], [rightWallBaseboardX, baseboardY, (doorMaxZ + roomMaxZ) / 2], materials.green))
 
   const beamMaterial = makeMaterial(0xb5aa8e, 0.95)
   const beamSpecs: Array<[[number, number, number], [number, number, number], [number, number, number]]> = [
-    [[18, 0.58, 0.62], [0, 6.35, -1.9], [0, 0, 0]],
-    [[18, 0.58, 0.62], [0, 6.35, 1.0], [0, 0, 0]],
-    [[0.62, 6.3, 0.62], [5.3, 3.15, -1.9], [0, 0, 0]],
-    [[0.62, 6.3, 0.62], [5.3, 3.15, 1.0], [0, 0, 0]],
+    [[15.6, 0.58, 0.62], [-1.0, 6.35, -1.9], [0, 0, 0]],
+    [[15.6, 0.58, 0.62], [-1.0, 6.35, 2.2], [0, 0, 0]],
+    [[0.62, 6.3, 0.62], [3.3, 3.15, -1.9], [0, 0, 0]],
+    [[0.62, 6.3, 0.62], [3.3, 3.15, 2.2], [0, 0, 0]],
     [[0.62, 6.3, 0.62], [-8.83, 3.15, -1.9], [0, 0, 0]],
-    [[0.62, 6.3, 0.62], [-8.83, 3.15, 1.0], [0, 0, 0]],
+    [[0.62, 6.3, 0.62], [-8.83, 3.15, 2.2], [0, 0, 0]],
   ]
   for (const [size, position, rotation] of beamSpecs) scene.add(box(size, position, beamMaterial, rotation))
   // Surface-mounted planks: the front/back z offsets are the post half-depth
   // plus half the plank depth, so the planks sit against the timber faces
   // instead of passing through them. They continue above the beams into the
   // ceiling structure.
-  scene.add(strut([5.3, 4.7, -1.5], [1.06, 7.15, -1.5], beamMaterial))
-  scene.add(strut([5.3, 4.7, -2.3], [9.54, 7.15, -2.3], beamMaterial))
-  scene.add(strut([5.3, 4.7, 1.4], [1.06, 7.15, 1.4], beamMaterial))
-  scene.add(strut([5.3, 4.7, 0.6], [9.54, 7.15, 0.6], beamMaterial))
+  scene.add(strut([3.3, 4.7, -1.5], [-0.94, 7.15, -1.5], beamMaterial))
+  scene.add(strut([3.3, 4.7, -2.3], [7.54, 7.15, -2.3], beamMaterial))
+  scene.add(strut([3.3, 4.7, 2.6], [-0.94, 7.15, 2.6], beamMaterial))
+  scene.add(strut([3.3, 4.7, 1.8], [7.54, 7.15, 1.8], beamMaterial))
   scene.add(strut([-8.83, 4.7, -1.5], [-4.59, 7.15, -1.5], beamMaterial))
-  scene.add(strut([-8.83, 4.7, 1.4], [-4.59, 7.15, 1.4], beamMaterial))
+  scene.add(strut([-8.83, 4.7, 2.6], [-4.59, 7.15, 2.6], beamMaterial))
 
   scene.add(box([1.7, 4.9, 0.28], [2.75, 2.45, WORLD.backWallZ + 0.02], materials.black))
-  scene.add(box([0.26, 4.2, 1.65], [8.82, 2.1, -2.95], materials.wood))
-  for (let y = 0.55; y <= 3.5; y += 0.72) scene.add(box([0.03, 0.045, 1.48], [8.66, y, -2.95], materials.woodDark))
+  scene.add(box([0.26, 4.9, 1.65], [6.82, 2.45, -2.95], materials.wood))
+  for (let y = 0.55; y <= 3.5; y += 0.72) scene.add(box([0.03, 0.045, 1.48], [6.66, y, -2.95], materials.woodDark))
 
   // The clock is mounted on the visible face of the front strut. The strut
   // face is at z=-1.41; keep the clock's rear rim just in front of it so the
   // dial never intersects the plank after the support structure is thickened.
-  scene.add(cylinder(0.38, 0.10, [4.6, 5.28, -1.34], materials.black, 16, [Math.PI / 2, 0, 0]))
-  scene.add(cylinder(0.31, 0.025, [4.6, 5.28, -1.28], materials.paperLight, 16, [Math.PI / 2, 0, 0]))
-  const clockCenter: [number, number, number] = [4.6, 5.28, -1.26]
+  scene.add(cylinder(0.38, 0.10, [2.15, 5.28, -1.34], materials.black, 16, [Math.PI / 2, 0, 0]))
+  scene.add(cylinder(0.31, 0.025, [2.15, 5.28, -1.28], materials.paperLight, 16, [Math.PI / 2, 0, 0]))
+  const clockCenter: [number, number, number] = [2.15, 5.28, -1.26]
   const minuteHand = new THREE.Group(); minuteHand.position.set(...clockCenter)
   minuteHand.add(box([0.025, 0.22, 0.02], [0, 0.11, 0], materials.black))
   const hourHand = new THREE.Group(); hourHand.position.set(...clockCenter)
@@ -287,7 +308,7 @@ const createTable = (scene: THREE.Scene) => {
   scene.add(box([width, 0.18, depth], [x, y, z], materials.wood))
   scene.add(box([width - 0.42, 0.035, depth - 0.32], [x, y + 0.11, z], materials.felt))
   for (const lx of [x - width / 2 + 0.32, x + width / 2 - 0.32]) for (const lz of [z - depth / 2 + 0.42, z + depth / 2 - 0.42]) scene.add(box([0.28, 1.07, 0.28], [lx, 0.535, lz], materials.woodDark))
-  scene.add(box([1.2, 0.46, 9.2], [1.4, y + 0.31, z], materials.wood))
+  scene.add(box([1.2, 0.46, 9.2], [-0.6, y + 0.31, z], materials.wood))
 }
 
 const createChair = (scene: THREE.Scene, x: number, z: number, rotationY: number) => {
@@ -377,8 +398,12 @@ const createChair = (scene: THREE.Scene, x: number, z: number, rotationY: number
 }
 
 const createPhone = (scene: THREE.Scene, x: number, z: number, color: number, rotationY = 0) => {
-  const group = new THREE.Group(); group.position.set(x, 1.81, z); group.rotation.y = rotationY
+  // The scaled phone base is aligned to the brown beam's top (y=1.70), with
+  // only its underside touching the surface—no levitation or intersection.
+  const group = new THREE.Group(); group.position.set(x, 1.72, z); group.rotation.y = rotationY
+  group.scale.setScalar(0.72)
   const phoneMaterial = makeMaterial(color, 0.82)
+  phoneMaterial.side = THREE.DoubleSide
   phoneMaterial.flatShading = true
   const shadowColor = new THREE.Color(color).multiplyScalar(0.43).getHex()
   const shadowMaterial = makeMaterial(shadowColor, 0.92)
@@ -645,7 +670,7 @@ const createRadioDesk = (scene: THREE.Scene) => {
 }
 
 const createProjector = (scene: THREE.Scene) => {
-  const group = new THREE.Group(); group.position.set(1.4, 1.88, 3.9); group.rotation.y = -1.57
+  const group = new THREE.Group(); group.position.set(-0.6, 1.88, 3.9); group.rotation.y = -1.57
 
   // The projector is deliberately more detailed than the surrounding props,
   // because it doubles as the ABOUT hotspot. Keep the geometry chunky and
@@ -822,7 +847,7 @@ const createPendant = (scene: THREE.Scene, position: [number, number, number], c
 }
 
 const createWallFan = (scene: THREE.Scene) => {
-  const group = new THREE.Group(); group.position.set(4.7, 4.3, 1.0); group.rotation.y = -Math.PI / 2
+  const group = new THREE.Group(); group.position.set(2.25, 4.3, 2.2); group.rotation.y = -Math.PI / 2
   const fanMetal = makeMaterial(0x9ca19c, 0.74); fanMetal.flatShading = true
   const fanDark = makeMaterial(0x343b3a, 0.84); fanDark.flatShading = true
   const fanBladeMaterial = new THREE.MeshStandardMaterial({
@@ -836,8 +861,11 @@ const createWallFan = (scene: THREE.Scene) => {
   // Heavy circular wall plate, short mounting arm and cylindrical motor body.
   // These make the fan read as a real wall-mounted appliance rather than a
   // floating cage with a rod behind it.
-  group.add(cylinder(0.27, 0.09, [0, 0, -0.56], fanDark, 16, [Math.PI / 2, 0, 0]))
-  group.add(cylinder(0.075, 0.42, [0, 0, -0.31], fanDark, 10, [Math.PI / 2, 0, 0]))
+  // The post's near face is at world x=2.99. With this group's rotation and
+  // position, the plate's rear face lands exactly on that surface: touching,
+  // not buried in the post and not floating short of it.
+  group.add(cylinder(0.27, 0.09, [0, 0, -0.70], fanDark, 16, [Math.PI / 2, 0, 0]))
+  group.add(cylinder(0.075, 0.58, [0, 0, -0.415], fanDark, 10, [Math.PI / 2, 0, 0]))
   group.add(cylinder(0.17, 0.25, [0, 0, -0.13], fanDark, 12, [Math.PI / 2, 0, 0]))
   group.add(cylinder(0.135, 0.17, [0, 0, 0.07], fanMetal, 12, [Math.PI / 2, 0, 0]))
 
@@ -927,13 +955,13 @@ const createWallFan = (scene: THREE.Scene) => {
 }
 
 const createPaperCluster = (scene: THREE.Scene) => {
-  const papers = new THREE.Group(); papers.position.set(-0.25, 1.3, 2.35)
+  const papers = new THREE.Group(); papers.position.set(-1.85, 1.3, 2.35)
   papers.add(box([1.75, 0.025, 1.15], [0, 0, 0], materials.paperLight, [0, 0.08, 0]))
   papers.add(box([1.35, 0.028, 0.95], [0.2, 0.035, 0.13], materials.paper, [0, -0.05, 0])); scene.add(papers)
 }
 
 const createFolders = (scene: THREE.Scene) => {
-  const group = new THREE.Group(); group.position.set(-0.45, 1.42, -0.15)
+  const group = new THREE.Group(); group.position.set(-2.05, 1.42, -0.15)
   for (let i = 0; i < 4; i += 1) group.add(box([1.35, 0.12, 0.95], [0.06 * i, i * 0.13, -0.03 * i], i % 2 ? materials.green : materials.woodDark))
   scene.add(group)
 }
@@ -949,17 +977,17 @@ const createHotspot = (scene: THREE.Scene, id: SectionId, size: [number, number,
 
 const createScene = (scene: THREE.Scene, camera: THREE.PerspectiveCamera) => {
   const updateClock = createRoomShell(scene); createTable(scene); createRadioDesk(scene); createMapBoard(scene); createProjector(scene); createPaperCluster(scene); createFolders(scene); const fanSpinner = createWallFan(scene)
-  createChair(scene, -2.65, 2.15, -1.07); createChair(scene, 4.5, -0.2, 1.91); createChair(scene, 4.5, 2.2, 1.31)
-  createPhone(scene, 1.4, -2.25, 0x315b3c, 3.14); createPhone(scene, 1.4, -1.4, 0xd8ceb0, -1.57); createPhone(scene, 1.4, -0.55, PALETTE.red, 1.57); createPhone(scene, 1.4, 0.3, 0xd9d1b8, -1.57); createPhone(scene, 1.4, 1.15, 0x315b3c, 1.57)
-  createDeskLamp(scene, -0.75, -0.85, 0.9, -0.04); createDeskLamp(scene, 0.3, 0.6, 0.92, 0.03); createDeskLamp(scene, 0.15, -2.45, 0.82, 0.06)
+  createChair(scene, -4.65, 1.35, -1.07); createChair(scene, 2.5, -0.2, 1.91); createChair(scene, 2.5, 3.35, 1.31)
+  createPhone(scene, -0.6, -2.0, 0x315b3c, 0); createPhone(scene, -0.6, -1.0, 0xd8ceb0, 1.57); createPhone(scene, -0.6, 0, PALETTE.red, -1.57); createPhone(scene, -0.6, 1.0, 0xd9d1b8, 1.57); createPhone(scene, -0.6, 2.0, 0x315b3c, -1.57)
+  createDeskLamp(scene, -2.25, -1.15, 0.9, -0.04); createDeskLamp(scene, -2.25, 0.85, 0.92, 0.03); createDeskLamp(scene, 0.9, -3.0, 0.82, 0.06)
   createPendant(scene, [-1.35, 5.0, -4.75], 0x5e8a32, 1.4, 5)
   const boardDraw = createHangingBoard(scene)
   const hotspots: Hotspot[] = [
     createHotspot(scene, 'work', [8.55, 4.5, 0.28], [WORLD.map.x, WORLD.map.y, WORLD.map.z + 0.3]),
-    createHotspot(scene, 'writing', [2.0, 0.62, 2.2], [-0.2, 1.43, 2.2]),
+    createHotspot(scene, 'writing', [1.8, 0.62, 2.2], [-1.2, 1.43, 2.2]),
     createHotspot(scene, 'speaking', [3.8, 1.9, 1.5], [WORLD.radioDesk.x, 1.35, WORLD.radioDesk.z]),
-    createHotspot(scene, 'contact', [1.1, 1.6, 4.1], [1.4, 1.9, -0.55]),
-    createHotspot(scene, 'about', [2.35, 2.5, 1.5], [1.4, 2.4, 4.05]),
+    createHotspot(scene, 'contact', [1.1, 1.6, 5.1], [-0.6, 1.9, 0]),
+    createHotspot(scene, 'about', [2.35, 2.5, 1.5], [-0.6, 2.4, 4.05]),
   ]
   camera.position.set(-4.08, 4.47, 10.34); camera.lookAt(-2.15, 2.7, -4.75)
   return { hotspots, boardDraw, fanSpinner, updateClock }
