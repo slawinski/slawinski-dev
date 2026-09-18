@@ -416,12 +416,79 @@ const createRadioDesk = (scene: THREE.Scene) => {
   const { x, y, z, width, depth } = WORLD.radioDesk
   scene.add(box([width, 0.14, depth], [x, y, z], materials.wood))
   for (const lx of [x - width / 2 + 0.25, x + width / 2 - 0.25]) scene.add(box([0.24, y, 0.24], [lx, y / 2, z - depth * 0.25], materials.woodDark))
-  const radios: Array<[number, number, number]> = [[-6.75, 1.72, -2.45], [-5.85, 1.57, -2.35], [-5.05, 1.64, -2.35]]
-  radios.forEach(([rx, ry, rz], index) => {
-    scene.add(box([0.72, 0.58 + index * 0.05, 0.48], [rx, ry, rz], materials.metal))
-    scene.add(cylinder(0.11, 0.04, [rx - 0.18, ry, rz + 0.26], materials.black, 10, [Math.PI / 2, 0, 0]))
-    scene.add(cylinder(0.07, 0.04, [rx + 0.18, ry, rz + 0.26], materials.black, 10, [Math.PI / 2, 0, 0]))
-  })
+
+  // Proper 1940s communications bench based on the reference: a broad central
+  // receiver/transmitter, tall loudspeaker cabinet and two companion units.
+  const radioGroup = new THREE.Group(); radioGroup.position.set(x, y + 0.08, z - 0.03)
+  const radioMetal = makeMaterial(0x9da39d, 0.78); radioMetal.flatShading = true
+  const radioFace = makeMaterial(0xb7bbb2, 0.82); radioFace.flatShading = true
+  const radioTrim = makeMaterial(0x5b6462, 0.88); radioTrim.flatShading = true
+  const dialCream = makeMaterial(0xd9d2b8, 0.9)
+  const dialGlass = new THREE.MeshStandardMaterial({ color: 0x394442, roughness: 0.24, metalness: 0.08 })
+  const meterGlass = new THREE.MeshStandardMaterial({ color: 0xd4c8a3, roughness: 0.3, metalness: 0.02 })
+
+  const addKnob = (parent: THREE.Group, px: number, py: number, pz: number, radius: number, material: THREE.Material = materials.black) => {
+    parent.add(cylinder(radius, 0.065, [px, py, pz], material, 10, [Math.PI / 2, 0, 0]))
+    parent.add(cylinder(radius * 0.28, 0.072, [px, py, pz + 0.01], dialCream, 8, [Math.PI / 2, 0, 0]))
+  }
+  const addVentRow = (parent: THREE.Group, px: number, py: number, pz: number, count: number, spacing: number) => {
+    for (let i = 0; i < count; i += 1) parent.add(box([0.035, 0.055, 0.022], [px + (i - (count - 1) / 2) * spacing, py, pz], materials.black))
+  }
+
+  const main = new THREE.Group(); main.position.set(0, 0.34, 0)
+  main.add(box([1.58, 0.76, 0.62], [0, 0, 0], radioMetal))
+  main.add(box([1.50, 0.31, 0.04], [0, 0.17, 0.33], radioFace))
+  main.add(box([1.50, 0.33, 0.04], [0, -0.19, 0.33], radioFace))
+  main.add(box([1.52, 0.035, 0.055], [0, -0.005, 0.35], radioTrim))
+  main.add(box([0.42, 0.13, 0.032], [-0.12, 0.17, 0.365], dialGlass))
+  for (let i = 0; i < 5; i += 1) main.add(box([0.018, 0.085, 0.012], [-0.27 + i * 0.075, 0.17, 0.386], dialCream))
+  addKnob(main, -0.56, 0.16, 0.37, 0.11)
+  addKnob(main, 0.56, 0.16, 0.37, 0.11)
+  addKnob(main, -0.52, -0.20, 0.37, 0.075, radioTrim)
+  addKnob(main, 0.53, -0.20, 0.37, 0.075, radioTrim)
+  for (const row of [-0.12, -0.23]) for (let i = 0; i < 4; i += 1) main.add(cylinder(0.022, 0.035, [-0.18 + i * 0.12, row, 0.375], materials.black, 7, [Math.PI / 2, 0, 0]))
+  addVentRow(main, 0.31, 0.04, 0.37, 5, 0.07)
+  radioGroup.add(main)
+
+  // Tall speaker cabinet above the central chassis. The circular grille and
+  // horizontal bars are the strongest silhouette/detail cues in the reference.
+  const speaker = new THREE.Group(); speaker.position.set(0, 1.05, -0.04)
+  speaker.add(box([1.16, 0.86, 0.58], [0, 0, 0], radioFace))
+  speaker.add(box([1.10, 0.09, 0.60], [0, -0.39, 0], radioMetal))
+  speaker.add(cylinder(0.27, 0.035, [0.12, -0.10, 0.31], materials.black, 16, [Math.PI / 2, 0, 0]))
+  for (const sy of [-0.12, -0.04, 0.04, 0.12]) speaker.add(box([0.47, 0.025, 0.028], [0.12, -0.10 + sy, 0.335], radioTrim))
+  speaker.add(cylinder(0.032, 0.03, [-0.43, -0.30, 0.315], materials.black, 8, [Math.PI / 2, 0, 0]))
+  radioGroup.add(speaker)
+
+  const left = new THREE.Group(); left.position.set(-1.18, 0.18, 0.04)
+  left.add(box([0.82, 0.56, 0.56], [0, 0, 0], radioMetal))
+  left.add(box([0.76, 0.48, 0.04], [0, 0, 0.30], radioFace))
+  left.add(box([0.34, 0.20, 0.035], [-0.14, -0.11, 0.325], meterGlass))
+  left.add(box([0.29, 0.015, 0.012], [-0.14, -0.11, 0.348], materials.black, [0, 0, 0.08]))
+  addKnob(left, 0.24, -0.10, 0.33, 0.075)
+  addVentRow(left, 0.14, 0.11, 0.33, 4, 0.065)
+  left.add(box([0.34, 0.04, 0.025], [0.08, -0.23, 0.332], materials.green))
+  radioGroup.add(left)
+
+  const right = new THREE.Group(); right.position.set(1.18, 0.23, 0.02)
+  right.add(box([0.82, 0.62, 0.56], [0, 0, 0], radioMetal))
+  right.add(box([0.76, 0.54, 0.04], [0, 0, 0.30], radioFace))
+  addKnob(right, -0.22, 0.14, 0.33, 0.095)
+  addKnob(right, 0.23, 0.14, 0.33, 0.065, radioTrim)
+  right.add(cylinder(0.15, 0.055, [-0.18, -0.15, 0.33], materials.black, 12, [Math.PI / 2, 0, 0]))
+  right.add(cylinder(0.058, 0.064, [-0.18, -0.15, 0.345], dialCream, 10, [Math.PI / 2, 0, 0]))
+  right.add(box([0.31, 0.15, 0.035], [0.22, -0.14, 0.325], dialCream))
+  for (let i = 0; i < 3; i += 1) right.add(box([0.22, 0.014, 0.014], [0.22, -0.10 - i * 0.045, 0.347], radioTrim))
+  radioGroup.add(right)
+
+  // Small dark key/control box at the far left, visible in the supplied shot.
+  const key = new THREE.Group(); key.position.set(-1.72, 0.10, 0.08)
+  key.add(box([0.46, 0.20, 0.42], [0, 0, 0], materials.woodDark))
+  key.add(box([0.38, 0.05, 0.30], [0, 0.12, -0.02], materials.black, [-0.16, 0, 0]))
+  key.add(box([0.26, 0.035, 0.05], [0, 0.16, 0.04], materials.metalDark))
+  radioGroup.add(key)
+
+  scene.add(radioGroup)
 }
 
 const createProjector = (scene: THREE.Scene) => {
