@@ -11,9 +11,9 @@
 </section>
 
 <script>
-  import { mountFixedOperationRoom } from '@/experience/fixed-operation-room'
+  import { mountOperationRoom } from '@/experience/operation-room'
   const root = document.querySelector<HTMLElement>('[data-operation-room]')
-  if (root) { const dispose = mountFixedOperationRoom(root); window.addEventListener('pagehide', dispose, { once: true }) }
+  if (root) { const dispose = mountOperationRoom(root); window.addEventListener('pagehide', dispose, { once: true }) }
 </script>
 
 <style>
