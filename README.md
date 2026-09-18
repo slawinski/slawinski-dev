@@ -1,16 +1,20 @@
 # slawinski.dev
 
-Full rewrite of the personal site using **Astro + TypeScript + CSS Modules + Payload CMS**.
+Full rewrite of the personal site using **Astro + TypeScript + Three.js + Payload CMS**.
 
 The rewrite is being built alongside the legacy Gridsome source until content migration and parity checks are complete. The implementation source of truth lives in [`docs/rewrite`](./docs/rewrite/00_README.md).
 
 ## Architecture
 
 - `apps/web` — Astro static frontend
+  - `/` — low-poly Three.js operation-room navigation experience
+  - content routes — semantic Astro pages
 - `apps/cms` — Payload CMS / Next.js admin and content API
 - `packages/contracts` — frontend-safe content DTOs
 - `scripts/migration` — legacy Markdown / Hasura migration tools
 - `docs/rewrite` — product, UX and technical specifications
+
+The approved homepage reference and exact 3D rules are documented in [`22_OPERATION_ROOM_3D.md`](./docs/rewrite/22_OPERATION_ROOM_3D.md).
 
 ## Requirements
 
