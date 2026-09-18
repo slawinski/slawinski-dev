@@ -1,0 +1,101 @@
+name: Fix operation room hover behavior
+
+on:
+  push:
+    branches:
+      - 'rewrite/astro-payload'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-hover:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: rewrite/astro-payload
+          fetch-depth: 0
+
+      - name: Make hotspot selection hover-only
+        shell: bash
+        run: |
+          python <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path('apps/web/src/experience/operation-room.ts')
+          text = path.read_text()
+
+          text = text.replace(
+              "  const raycaster = new THREE.Raycaster(); const pointer = new THREE.Vector2(2, 2)\n  const hoverRaycaster = new THREE.Raycaster()\n",
+              "  const pointer = new THREE.Vector2(2, 2)\n  const hoverRaycaster = new THREE.Raycaster()\n",
+          )
+          text = text.replace("  const DRAG_THRESHOLD_PX = 6\n", "")
+          text = text.replace("  let downX = 0; let downY = 0; let dragged = false\n", "")
+
+          text, count = re.subn(
+              r"  const pick = \(\) => \{.*?\n  \}\n  const onPointerMove = \(event: PointerEvent\) => \{.*?\n  \}\n  const resetView =",
+              """  const onPointerMove = (event: PointerEvent) => {
+    // Desktop interaction is hover-only: moving the pointer over a menu region
+    // immediately updates both the cover highlight and the hanging board.
+    if (event.pointerType === 'touch') return
+    updatePointer(event)
+    hoverRaycaster.setFromCamera(pointer, camera)
+    const hoverHit = hoverRaycaster.intersectObjects(hoverTargets.map((target) => target.mesh), false)[0]?.object
+    const hoveredTarget = hoverTargets.find((target) => target.mesh === hoverHit)
+
+    hoverTargets.forEach((target) => {
+      target.material.opacity = target.mesh === hoverHit ? 0.18 : 0
+    })
+
+    if (hoveredTarget) {
+      const hoveredSection = SECTION_ORDER.find((id) => SECTIONS[id].label === hoveredTarget.label)
+      if (hoveredSection) setActive(hoveredSection)
+    } else {
+      activeId = 'work'
+      boardDraw('WORK')
+      hotspots.forEach((hotspot) => { hotspot.highlight.visible = false })
+      if (live) live.textContent = 'Work selected'
+    }
+    canvas.style.cursor = 'default'
+  }
+  const resetView =""",
+              text,
+              count=1,
+              flags=re.S,
+          )
+          if count != 1:
+              raise SystemExit(f'hover block replacement count: {count}')
+
+          text, count = re.subn(
+              r"  const onPointerDown = \(event: PointerEvent\) => \{.*?\n  \}\n  const onPointerUp = \(event: PointerEvent\) => \{.*?\n  \}\n  const onDragMove = \(event: PointerEvent\) => \{.*?\n  \}\n",
+              "",
+              text,
+              count=1,
+              flags=re.S,
+          )
+          if count != 1:
+              raise SystemExit(f'pointer click/drag block replacement count: {count}')
+
+          text = text.replace(
+              "  canvas.addEventListener('pointermove', onPointerMove); canvas.addEventListener('pointermove', onDragMove); canvas.addEventListener('pointerdown', onPointerDown); canvas.addEventListener('pointerup', onPointerUp); canvas.addEventListener('keydown', onKeyDown); canvas.addEventListener('webglcontextlost', onContextLost); resetButton?.addEventListener('click', onResetClick); copyCameraButton?.addEventListener('click', onCopyCameraClick)\n",
+              "  canvas.addEventListener('pointermove', onPointerMove); canvas.addEventListener('keydown', onKeyDown); canvas.addEventListener('webglcontextlost', onContextLost); resetButton?.addEventListener('click', onResetClick); copyCameraButton?.addEventListener('click', onCopyCameraClick)\n",
+          )
+          text = text.replace(
+              "    canvas.removeEventListener('pointermove', onPointerMove); canvas.removeEventListener('pointermove', onDragMove); canvas.removeEventListener('pointerdown', onPointerDown); canvas.removeEventListener('pointerup', onPointerUp); canvas.removeEventListener('keydown', onKeyDown); canvas.removeEventListener('webglcontextlost', onContextLost); resetButton?.removeEventListener('click', onResetClick); copyCameraButton?.removeEventListener('click', onCopyCameraClick)\n",
+              "    canvas.removeEventListener('pointermove', onPointerMove); canvas.removeEventListener('keydown', onKeyDown); canvas.removeEventListener('webglcontextlost', onContextLost); resetButton?.removeEventListener('click', onResetClick); copyCameraButton?.removeEventListener('click', onCopyCameraClick)\n",
+          )
+
+          path.write_text(text)
+          PY
+
+      - name: Commit hover fix
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/web/src/experience/operation-room.ts
+          git commit -m 'Make operation room hotspots hover-only'
+          git push origin HEAD:rewrite/astro-payload
