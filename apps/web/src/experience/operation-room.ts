@@ -301,12 +301,83 @@ const createChair = (scene: THREE.Scene, x: number, z: number, rotationY: number
 
 const createPhone = (scene: THREE.Scene, x: number, z: number, color: number, rotationY = 0) => {
   const group = new THREE.Group(); group.position.set(x, 1.81, z); group.rotation.y = rotationY
-  const phoneMaterial = makeMaterial(color, 0.82)
-  group.add(box([0.78, 0.22, 0.62], [0, 0, 0], phoneMaterial))
-  group.add(cylinder(0.19, 0.035, [0.12, 0.14, 0.08], materials.paperLight, 12, [Math.PI / 2, 0, 0]))
-  group.add(box([0.72, 0.12, 0.16], [0, 0.27, -0.16], phoneMaterial, [0.08, 0, 0]))
-  group.add(cylinder(0.12, 0.18, [-0.29, 0.27, -0.16], phoneMaterial, 8, [0, 0, Math.PI / 2]))
-  group.add(cylinder(0.12, 0.18, [0.29, 0.27, -0.16], phoneMaterial, 8, [0, 0, Math.PI / 2]))
+  const phoneMaterial = makeMaterial(color, 0.84)
+  phoneMaterial.flatShading = true
+  const shadowColor = new THREE.Color(color).multiplyScalar(0.48).getHex()
+  const shadowMaterial = makeMaterial(shadowColor, 0.9)
+  shadowMaterial.flatShading = true
+
+  // A tapered Bakelite shell makes the silhouette read as a period rotary
+  // telephone even at the room's normal camera distance. Eight vertices keep
+  // the body intentionally low-poly rather than turning it into a hero asset.
+  const lowerWidth = 0.82; const lowerDepth = 0.64
+  const upperWidth = 0.64; const upperDepth = 0.47; const bodyHeight = 0.34
+  const bodyGeometry = new THREE.BufferGeometry()
+  bodyGeometry.setAttribute('position', new THREE.Float32BufferAttribute([
+    -lowerWidth / 2, 0, -lowerDepth / 2,
+     lowerWidth / 2, 0, -lowerDepth / 2,
+     lowerWidth / 2, 0,  lowerDepth / 2,
+    -lowerWidth / 2, 0,  lowerDepth / 2,
+    -upperWidth / 2, bodyHeight, -upperDepth / 2,
+     upperWidth / 2, bodyHeight, -upperDepth / 2,
+     upperWidth / 2, bodyHeight,  upperDepth / 2,
+    -upperWidth / 2, bodyHeight,  upperDepth / 2,
+  ], 3))
+  bodyGeometry.setIndex([
+    0, 2, 1, 0, 3, 2,
+    4, 5, 6, 4, 6, 7,
+    0, 1, 5, 0, 5, 4,
+    1, 2, 6, 1, 6, 5,
+    2, 3, 7, 2, 7, 6,
+    3, 0, 4, 3, 4, 7,
+  ])
+  bodyGeometry.computeVertexNormals()
+  const body = new THREE.Mesh(bodyGeometry, phoneMaterial)
+  body.position.y = 0.08; body.castShadow = true; body.receiveShadow = true
+  group.add(box([0.88, 0.10, 0.68], [0, 0.03, 0], shadowMaterial))
+  group.add(body)
+
+  // Front rotary dial: cream backing, dark ring and ten obvious finger holes.
+  // The dial is deliberately a little oversized because it is the single
+  // strongest visual cue at the fixed menu-camera distance.
+  const dial = new THREE.Group(); dial.position.set(0, 0.245, 0.30); dial.rotation.x = -0.16
+  dial.add(cylinder(0.225, 0.035, [0, 0, 0], materials.paperLight, 16, [Math.PI / 2, 0, 0]))
+  const dialRing = new THREE.Mesh(new THREE.TorusGeometry(0.158, 0.025, 6, 18), materials.metalDark)
+  dialRing.position.z = 0.025; dialRing.castShadow = true; dial.add(dialRing)
+  for (let i = 0; i < 10; i += 1) {
+    const angle = -Math.PI * 0.15 + i * Math.PI * 2 / 10
+    const holeRadius = 0.118
+    dial.add(cylinder(
+      0.026,
+      0.018,
+      [Math.cos(angle) * holeRadius, Math.sin(angle) * holeRadius, 0.042],
+      materials.black,
+      7,
+      [Math.PI / 2, 0, 0],
+    ))
+  }
+  dial.add(cylinder(0.052, 0.024, [0, 0, 0.046], materials.paper, 10, [Math.PI / 2, 0, 0]))
+  dial.add(box([0.035, 0.075, 0.025], [0.18, -0.10, 0.055], materials.brass, [0, 0, -0.35]))
+  group.add(dial)
+
+  // Raised cradle shoulders keep the receiver from visually melting into the
+  // body. The handset itself is five coarse pieces: grip, two necks and two
+  // broad ear/mouth caps.
+  for (const side of [-1, 1]) {
+    group.add(box([0.075, 0.16, 0.10], [side * 0.25, 0.43, -0.09], shadowMaterial, [0, 0, side * -0.16]))
+  }
+  group.add(box([0.47, 0.10, 0.115], [0, 0.535, -0.07], phoneMaterial))
+  group.add(box([0.19, 0.105, 0.13], [-0.27, 0.515, -0.07], phoneMaterial, [0, 0, -0.20]))
+  group.add(box([0.19, 0.105, 0.13], [0.27, 0.515, -0.07], phoneMaterial, [0, 0, 0.20]))
+  group.add(cylinder(0.13, 0.13, [-0.39, 0.49, -0.07], phoneMaterial, 8, [0, 0, Math.PI / 2]))
+  group.add(cylinder(0.13, 0.13, [0.39, 0.49, -0.07], phoneMaterial, 8, [0, 0, Math.PI / 2]))
+  group.add(cylinder(0.088, 0.012, [-0.46, 0.49, -0.07], shadowMaterial, 8, [0, 0, Math.PI / 2]))
+  group.add(cylinder(0.088, 0.012, [0.46, 0.49, -0.07], shadowMaterial, 8, [0, 0, Math.PI / 2]))
+
+  // Small number-card window on the shoulder of the set. It is subtle from
+  // afar but prevents the top surface from reading as an empty coloured lump.
+  group.add(box([0.20, 0.012, 0.10], [0, 0.425, 0.01], materials.paperLight, [-0.10, 0, 0]))
+
   scene.add(group)
 }
 
