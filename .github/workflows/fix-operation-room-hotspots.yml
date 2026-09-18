@@ -1,0 +1,136 @@
+name: Fix operation room hotspots
+
+on:
+  push:
+    branches:
+      - 'rewrite/astro-payload'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-hotspots:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: rewrite/astro-payload
+          fetch-depth: 0
+
+      - name: Patch operation room hover areas
+        shell: bash
+        run: |
+          python <<'PY'
+          from pathlib import Path
+
+          path = Path('apps/web/src/experience/operation-room.ts')
+          text = path.read_text()
+
+          old_targets = """  const hotspots: Hotspot[] = [
+            createHotspot(scene, 'work', [8.55, 4.5, 0.28], [WORLD.map.x, WORLD.map.y, WORLD.map.z + 0.3]),
+            createHotspot(scene, 'writing', [1.8, 0.62, 2.2], [-1.2, 1.43, 2.2]),
+            createHotspot(scene, 'speaking', [3.8, 1.9, 1.5], [WORLD.radioDesk.x, 1.35, WORLD.radioDesk.z]),
+            createHotspot(scene, 'contact', [1.1, 1.6, 5.1], [-0.6, 1.9, 0]),
+            createHotspot(scene, 'about', [2.35, 2.5, 1.5], [-0.6, 2.4, 4.05]),
+          ]
+          const hoverTargets: HoverTarget[] = [
+            // Map, radio equipment, phone bank, projector, tray stack.
+            createHoverTarget(scene, 'map', 'WORK', [8.55, 4.5, 0.12], [WORLD.map.x, WORLD.map.y, WORLD.map.z + 0.18]),
+            createHoverTarget(scene, 'radio', 'CONTACT', [3.9, 1.45, 1.5], [WORLD.radioDesk.x, 1.55, WORLD.radioDesk.z]),
+            createHoverTarget(scene, 'projector', 'SPEAKING', [1.5, 1.25, 1.6], [-0.6, 2.45, 3.9]),
+            createHoverTarget(scene, 'trays', 'WRITING', [1.8, 0.8, 1.5], [-1.25, 1.65, -0.15]),
+          ]
+          """
+          new_targets = """  const hotspots: Hotspot[] = [
+            // Navigation is intentionally disabled for now. These meshes only define
+            // hover/select coverage and the matching highlight volume.
+            createHotspot(scene, 'work', [8.55, 4.5, 0.28], [WORLD.map.x, WORLD.map.y, WORLD.map.z + 0.3]),
+            createHotspot(scene, 'contact', [3.9, 1.45, 1.5], [WORLD.radioDesk.x, 1.55, WORLD.radioDesk.z]),
+            createHotspot(scene, 'speaking', [1.5, 1.25, 1.6], [-0.6, 2.45, 3.9]),
+            createHotspot(scene, 'writing', [1.65, 0.75, 1.25], [-1.95, 1.65, -0.15]),
+            createHotspot(scene, 'about', [1.8, 4.85, 0.18], [2.75, 2.45, WORLD.backWallZ + 0.20]),
+          ]
+          const hoverTargets: HoverTarget[] = [
+            // The five menu regions from the original operation-room composition.
+            createHoverTarget(scene, 'map', 'WORK', [8.55, 4.5, 0.12], [WORLD.map.x, WORLD.map.y, WORLD.map.z + 0.18]),
+            createHoverTarget(scene, 'radio', 'CONTACT', [3.9, 1.45, 1.5], [WORLD.radioDesk.x, 1.55, WORLD.radioDesk.z]),
+            createHoverTarget(scene, 'projector', 'SPEAKING', [1.5, 1.25, 1.6], [-0.6, 2.45, 3.9]),
+            createHoverTarget(scene, 'trays', 'WRITING', [1.65, 0.75, 1.25], [-1.95, 1.65, -0.15]),
+            createHoverTarget(scene, 'back-door', 'ABOUT', [1.8, 4.85, 0.12], [2.75, 2.45, WORLD.backWallZ + 0.20]),
+          ]
+          """
+          if old_targets not in text:
+              raise SystemExit('target block did not match')
+          text = text.replace(old_targets, new_targets)
+
+          old_active = """  const setActive = (id: SectionId) => {
+            if (id === activeId) return
+            activeId = id; boardDraw(SECTIONS[id].label); if (live) live.textContent = `${SECTIONS[id].label} selected`
+            hotspots.forEach((hotspot) => { hotspot.highlight.visible = hotspot.id === id })
+          }
+          const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.forEach((hotspot) => { hotspot.highlight.visible = hotspot.id === 'work' }) }
+          """
+          new_active = """  const setActive = (id: SectionId) => {
+            // Do not short-circuit here: when the pointer leaves an area we hide its
+            // cover, so re-entering the same area must make the highlight visible again.
+            activeId = id; boardDraw(SECTIONS[id].label); if (live) live.textContent = `${SECTIONS[id].label} selected`
+            hotspots.forEach((hotspot) => { hotspot.highlight.visible = hotspot.id === id })
+          }
+          const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.forEach((hotspot) => { hotspot.highlight.visible = false }) }
+          """
+          if old_active not in text:
+              raise SystemExit('active block did not match')
+          text = text.replace(old_active, new_active)
+
+          old_pick = """    if (hit) { setActive(hit); canvas.style.cursor = 'pointer'; return hit }
+            canvas.style.cursor = 'default'; return null
+          """
+          new_pick = """    if (hit) { setActive(hit); canvas.style.cursor = 'default'; return hit }
+            hotspots.forEach((hotspot) => { hotspot.highlight.visible = false })
+            canvas.style.cursor = 'default'; return null
+          """
+          if old_pick not in text:
+              raise SystemExit('pick block did not match')
+          text = text.replace(old_pick, new_pick)
+
+          text = text.replace("      canvas.style.cursor = 'pointer'\n", "      canvas.style.cursor = 'default'\n")
+          text = text.replace("  const navigate = (id: SectionId) => window.location.assign(SECTIONS[id].href)\n", "")
+
+          old_up = """  const onPointerUp = (event: PointerEvent) => {
+            if (Math.hypot(event.clientX - downX, event.clientY - downY) > DRAG_THRESHOLD_PX || dragged) return
+            updatePointer(event); const hit = pick(); if (!hit) return
+            if (event.pointerType === 'touch' && lastTouchSelection !== hit) { lastTouchSelection = hit; setActive(hit); return }
+            navigate(hit)
+          }
+          """
+          new_up = """  const onPointerUp = (event: PointerEvent) => {
+            if (Math.hypot(event.clientX - downX, event.clientY - downY) > DRAG_THRESHOLD_PX || dragged) return
+            // Selection/highlighting only for now. Deliberately do not navigate.
+            updatePointer(event)
+            pick()
+          }
+          """
+          if old_up not in text:
+              raise SystemExit('pointerup block did not match')
+          text = text.replace(old_up, new_up)
+
+          text = text.replace("  let activeId: SectionId = 'work'; let lastTouchSelection: SectionId | null = null; let frame = 0; let disposed = false\n", "  let activeId: SectionId = 'work'; let frame = 0; let disposed = false\n")
+          text = text.replace("['ArrowLeft', 'ArrowRight', 'Enter', '+', '=', '-', '_', '0', 'r', 'R', 'w', 'W', 'a', 'A', 's', 'S', 'd', 'D']", "['ArrowLeft', 'ArrowRight', '+', '=', '-', '_', '0', 'r', 'R', 'w', 'W', 'a', 'A', 's', 'S', 'd', 'D']")
+          text = text.replace("    if (event.key === 'Enter') navigate(activeId)\n", "")
+
+          path.write_text(text)
+          PY
+
+      - name: Commit hotspot changes
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/web/src/experience/operation-room.ts
+          if git diff --cached --quiet; then
+            echo 'No changes to commit'
+            exit 0
+          fi
+          git commit -m 'Fix operation room hover mappings'
+          git push origin HEAD:rewrite/astro-payload
