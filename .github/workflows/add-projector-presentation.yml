@@ -1,0 +1,31 @@
+name: Add projector presentation interaction
+
+on:
+  push:
+    branches:
+      - 'rewrite/astro-payload'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-projector-presentation:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: rewrite/astro-payload
+          fetch-depth: 0
+
+      - name: Patch projector presentation behavior
+        run: python scripts/add-projector-presentation.py
+
+      - name: Commit projector presentation behavior
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/web/src/experience/operation-room.ts
+          git commit -m 'Add interactive projector presentation mode'
+          git push origin HEAD:rewrite/astro-payload
