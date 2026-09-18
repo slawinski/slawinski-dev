@@ -54,7 +54,9 @@ hanging board height   0.78
 
 These values are anchors. Preserve approved screen-space composition rather than independently beautifying objects.
 
-## Camera
+## Camera — fixed, immutable menu view
+
+The camera reproduces the original menu behavior: it is a fixed observer, not a controllable part of the experience.
 
 ```text
 position  [9.8, 5.45, 12.8]
@@ -62,7 +64,18 @@ target    [-0.2, 2.45, -2.15]
 FOV       54deg
 ```
 
-No FPS/free orbit mode. Tiny pointer parallax is allowed.
+Rules:
+
+- position never changes after scene creation;
+- target never changes;
+- FOV never changes in response to pointer, selection, motion preferences or breakpoint;
+- no pointer parallax;
+- no orbit, pan, dolly, zoom, camera tween or hotspot focus animation;
+- selecting Work/Writing/Speaking/About/Contact changes only hotspot highlighting and the hanging-board label;
+- resizing may update the projection **aspect ratio only** so the same physical camera pose is preserved;
+- narrow screens therefore see a naturally narrower crop of the same room rather than a different camera composition.
+
+This fixed shot is an acceptance criterion. Do not add cinematic camera movement later without an explicit product decision.
 
 ## Geometry strategy
 
@@ -70,7 +83,7 @@ Initial implementation is procedural and low-poly: room shell/beam boxes, map pl
 
 ## Interaction
 
-Desktop: raycast on move, subtle hotspot highlight, board update, click opens route.
+Desktop: raycast on move, subtle hotspot highlight, board update, click opens route. **Hover never moves the camera.**
 
 Touch: first tap selects; second tap on same hotspot opens.
 
@@ -97,4 +110,4 @@ Low-poly is intentional; polygon count is not a quality metric.
 
 ## Non-goals
 
-Photorealism, PBR material libraries, free movement, floating HTML labels, a multi-row menu board, or rendering long-form content inside WebGL.
+Photorealism, PBR material libraries, free movement, camera parallax, camera animation, floating HTML labels, a multi-row menu board, or rendering long-form content inside WebGL.
