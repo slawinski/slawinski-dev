@@ -147,7 +147,7 @@ const createMapTexture = () =>
       context.beginPath(); context.moveTo(x, 0); context.lineTo(x, canvas.height); context.stroke()
     }
     for (let y = 0; y < canvas.height; y += 54) {
-      context.beginPath(); context.moveTo(0, y); context.lineTo(x, canvas.height); context.stroke()
+      context.beginPath(); context.moveTo(0, y); context.lineTo(canvas.width, y); context.stroke()
     }
 
     context.fillStyle = 'rgba(113, 83, 43, .45)'
