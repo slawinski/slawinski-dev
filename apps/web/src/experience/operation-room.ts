@@ -147,7 +147,7 @@ const createMapTexture = () =>
       context.beginPath(); context.moveTo(x, 0); context.lineTo(x, canvas.height); context.stroke()
     }
     for (let y = 0; y < canvas.height; y += 54) {
-      context.beginPath(); context.moveTo(0, y); context.lineTo(canvas.width, y); context.stroke()
+      context.beginPath(); context.moveTo(0, y); context.lineTo(0, y); context.stroke()
     }
 
     context.fillStyle = 'rgba(113, 83, 43, .45)'
@@ -741,11 +741,84 @@ const createProjector = (scene: THREE.Scene) => {
 
 const createPendant = (scene: THREE.Scene, position: [number, number, number], color: number, intensity: number, distance: number) => {
   const [x, y, z] = position
-  scene.add(cylinder(0.022, 2.0, [x, y + 1.0, z], materials.black, 6))
-  const shade = new THREE.Mesh(new THREE.ConeGeometry(0.35, 0.34, 8, 1, true), makeMaterial(color, 0.9))
-  shade.position.set(x, y, z); shade.rotation.x = Math.PI; scene.add(shade)
-  const light = new THREE.PointLight(0xffd38a, intensity, distance, 1.7)
-  light.position.set(x, y - 0.18, z); light.castShadow = true; light.shadow.mapSize.set(512, 512); scene.add(light)
+  const group = new THREE.Group(); group.position.set(x, y, z)
+  const cordMaterial = makeMaterial(0x171918, 0.9); cordMaterial.flatShading = true
+  const socketMaterial = makeMaterial(0x292d2a, 0.82); socketMaterial.flatShading = true
+  const shadeMaterial = new THREE.MeshStandardMaterial({
+    color,
+    roughness: 0.72,
+    metalness: 0.08,
+    flatShading: true,
+    side: THREE.DoubleSide,
+  })
+  const shadeInterior = new THREE.MeshStandardMaterial({
+    color: 0xe5dfc2,
+    roughness: 0.88,
+    metalness: 0,
+    emissive: 0xb88d4b,
+    emissiveIntensity: 0.18,
+    side: THREE.DoubleSide,
+  })
+  const bulbMaterial = new THREE.MeshStandardMaterial({
+    color: 0xffe2a1,
+    roughness: 0.35,
+    emissive: 0xffc86c,
+    emissiveIntensity: 0.75,
+  })
+
+  // Long black drop cable and compact Bakelite socket, matching the simple
+  // utilitarian pendant in the reference instead of a generic cone on a rod.
+  group.add(cylinder(0.016, 1.72, [0, 1.22, 0], cordMaterial, 8))
+  group.add(cylinder(0.050, 0.10, [0, 0.34, 0], socketMaterial, 10))
+  group.add(cylinder(0.075, 0.08, [0, 0.27, 0], socketMaterial, 10))
+  group.add(cylinder(0.105, 0.055, [0, 0.20, 0], socketMaterial, 12))
+
+  // Shallow enamel bell shade with a rounded shoulder and wide lower lip.
+  const shadeProfile = [
+    new THREE.Vector2(0.09, 0.19),
+    new THREE.Vector2(0.16, 0.16),
+    new THREE.Vector2(0.27, 0.10),
+    new THREE.Vector2(0.39, 0.00),
+    new THREE.Vector2(0.47, -0.11),
+    new THREE.Vector2(0.50, -0.15),
+  ]
+  const shade = new THREE.Mesh(new THREE.LatheGeometry(shadeProfile, 12), shadeMaterial)
+  shade.castShadow = true
+  shade.receiveShadow = true
+  group.add(shade)
+
+  // Pale enamel underside, rolled dark rim and exposed warm bulb are the main
+  // period cues visible from the room camera.
+  const interior = new THREE.Mesh(new THREE.CircleGeometry(0.44, 16), shadeInterior)
+  interior.position.y = -0.135
+  interior.rotation.x = -Math.PI / 2
+  group.add(interior)
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(0.495, 0.018, 6, 18), socketMaterial)
+  rim.position.y = -0.145
+  rim.rotation.x = Math.PI / 2
+  rim.castShadow = true
+  group.add(rim)
+  const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.075, 10, 8), bulbMaterial)
+  bulb.position.y = -0.09
+  bulb.scale.set(0.82, 1.12, 0.82)
+  group.add(bulb)
+
+  scene.add(group)
+
+  // The fixture in the reference throws a concentrated pool onto the map.
+  // A spotlight reproduces that better than the previous omnidirectional bulb.
+  const light = new THREE.SpotLight(0xffd38a, intensity * 1.35, distance, 0.70, 0.48, 1.7)
+  light.position.set(x, y - 0.10, z)
+  light.castShadow = true
+  light.shadow.mapSize.set(512, 512)
+  light.shadow.bias = -0.00025
+  light.target.position.set(x - 0.25, y - 3.0, z - 0.15)
+  scene.add(light, light.target)
+
+  // Low-power local fill keeps the bulb and pale underside visibly warm.
+  const bulbFill = new THREE.PointLight(0xffd89a, intensity * 0.16, 1.4, 2)
+  bulbFill.position.set(x, y - 0.08, z)
+  scene.add(bulbFill)
 }
 
 const createWallFan = (scene: THREE.Scene) => {
