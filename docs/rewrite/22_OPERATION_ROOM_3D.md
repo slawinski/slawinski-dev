@@ -58,10 +58,10 @@ These values are anchors. Preserve approved screen-space composition rather than
 
 The camera reproduces the original menu behavior: it is a fixed observer, not a controllable part of the experience.
 
-The observer stands broadly opposite the wall map and slightly to the **left of the projector**. The map should read close to front-on, while the projector remains in the right foreground of the frame.
+The observer stands left of centre, broadly opposite the wall map. The map should read close to front-on.
 
 ```text
-position  [4.9, 4.95, 10.2]
+position  [-4.08, 4.47, 10.34]
 target    [-2.15, 2.7, -4.75]
 FOV       54deg
 ```

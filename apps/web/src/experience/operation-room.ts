@@ -346,7 +346,7 @@ const createScene = (scene: THREE.Scene, camera: THREE.PerspectiveCamera) => {
     createHotspot(scene, 'contact', [5.2, 1.45, 2.0], [2.35, 1.42, -0.95]),
     createHotspot(scene, 'about', [2.35, 2.5, 2.0], [4.45, 2.0, 3.15]),
   ]
-  camera.position.set(4.9, 4.95, 10.2); camera.lookAt(-2.15, 2.7, -4.75)
+  camera.position.set(-4.08, 4.47, 10.34); camera.lookAt(-2.15, 2.7, -4.75)
   return { hotspots, boardDraw }
 }
 
