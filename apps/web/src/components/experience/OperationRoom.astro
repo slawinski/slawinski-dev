@@ -1,7 +1,7 @@
 <section class="operation-room" data-operation-room>
-  <canvas class="operation-room__canvas" data-operation-room-canvas tabindex="0" aria-label="Interactive 3D operations room. Use the left and right arrow keys to select a section and Enter to open it."></canvas>
+  <canvas class="operation-room__canvas" data-operation-room-canvas tabindex="0" aria-label="Interactive 3D operations room. The camera is fixed. Use the left and right arrow keys to select a section and Enter to open it."></canvas>
   <div class="operation-room__loading" data-operation-room-loading aria-hidden="true"><span>Preparing operations room…</span></div>
-  <div class="operation-room__help" aria-hidden="true"><span class="operation-room__dot"></span><span>Move to explore</span><span>•</span><span>Click to open</span></div>
+  <div class="operation-room__help" aria-hidden="true"><span class="operation-room__dot"></span><span>Point to select</span><span>•</span><span>Click to open</span></div>
   <p class="operation-room__live sr-only" data-operation-room-live aria-live="polite">Work selected</p>
   <nav id="experience-navigation" class="operation-room__fallback" aria-label="Portfolio sections" tabindex="-1">
     <p>3D navigation fallback</p>
@@ -11,9 +11,9 @@
 </section>
 
 <script>
-  import { mountOperationRoom } from '@/experience/operation-room'
+  import { mountFixedOperationRoom } from '@/experience/fixed-operation-room'
   const root = document.querySelector<HTMLElement>('[data-operation-room]')
-  if (root) { const dispose = mountOperationRoom(root); window.addEventListener('pagehide', dispose, { once: true }) }
+  if (root) { const dispose = mountFixedOperationRoom(root); window.addEventListener('pagehide', dispose, { once: true }) }
 </script>
 
 <style>
