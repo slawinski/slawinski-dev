@@ -712,9 +712,16 @@ const createProjector = (scene: THREE.Scene) => {
   group.add(cylinder(0.145, 0.34, [-0.68, 0.49, 0.01], materials.metalDark, 10, [0, 0, Math.PI / 2]))
   group.add(cylinder(0.16, 0.09, [-0.87, 0.49, 0.01], enamelDark, 10, [0, 0, Math.PI / 2]))
   group.add(cylinder(0.13, 0.17, [-0.99, 0.49, 0.01], materials.metal, 10, [0, 0, Math.PI / 2]))
+  const lensMaterial = new THREE.MeshStandardMaterial({
+    color: 0x17232b,
+    roughness: 0.18,
+    metalness: 0.18,
+    emissive: 0xffd58c,
+    emissiveIntensity: 0.08,
+  })
   const lensGlass = new THREE.Mesh(
     new THREE.CylinderGeometry(0.105, 0.105, 0.025, 12),
-    new THREE.MeshStandardMaterial({ color: 0x17232b, roughness: 0.18, metalness: 0.18, emissive: 0xe6b975, emissiveIntensity: 0.32 }),
+    lensMaterial,
   )
   lensGlass.position.set(-1.087, 0.49, 0.01); lensGlass.rotation.z = Math.PI / 2; lensGlass.castShadow = true; group.add(lensGlass)
 
@@ -725,6 +732,7 @@ const createProjector = (scene: THREE.Scene) => {
   group.add(box([0.16, 0.44, 0.10], [0.29, 0.67, 0.31], enamelDark))
   group.add(box([0.08, 0.36, 0.018], [0.39, 0.72, 0.375], materials.black))
 
+  const reels: THREE.Group[] = []
   const addReel = (x: number, y: number, radius: number, rotation = 0) => {
     const reel = new THREE.Group(); reel.position.set(x, y, 0.44); reel.rotation.z = rotation
 
@@ -748,6 +756,7 @@ const createProjector = (scene: THREE.Scene) => {
     }
     reel.add(cylinder(radius * 0.15, 0.12, [0, 0, 0], enamelDark, 10, [Math.PI / 2, 0, 0]))
     reel.add(cylinder(radius * 0.06, 0.15, [0, 0, 0.015], rubber, 8, [Math.PI / 2, 0, 0]))
+    reels.push(reel)
     group.add(reel)
   }
 
@@ -768,7 +777,70 @@ const createProjector = (scene: THREE.Scene) => {
   group.add(box([0.20, 0.045, 0.045], [0.53, 0.30, 0.43], enamelDark, [0, 0, 0.35]))
   group.add(cylinder(0.055, 0.09, [0.62, 0.335, 0.45], rubber, 8, [Math.PI / 2, 0, 0]))
 
+  // Projection light follows the physical lens direction. The projector group
+  // is rotated toward the map, so a local -X spotlight lands on the pull-down
+  // screen without hard-coding a second world-space aiming calculation.
+  const projectionLight = new THREE.SpotLight(0xffefbd, 0, 18, 0.22, 0.42, 1.25)
+  projectionLight.position.set(-1.08, 0.49, 0.01)
+  projectionLight.target.position.set(-8, 0.49, 0.01)
+  projectionLight.castShadow = true
+  projectionLight.shadow.mapSize.set(512, 512)
+  projectionLight.shadow.bias = -0.0003
+  group.add(projectionLight, projectionLight.target)
+
+  const lensFill = new THREE.PointLight(0xffd58c, 0, 1.8, 2)
+  lensFill.position.set(-1.08, 0.49, 0.01)
+  group.add(lensFill)
+
   scene.add(group)
+  return { reels, projectionLight, lensFill, lensMaterial }
+}
+
+const createProjectionScreen = (scene: THREE.Scene) => {
+  const width = WORLD.map.width + 0.42
+  const height = WORLD.map.height + 0.38
+  const topY = Math.min(WORLD.wallHeight - 0.55, WORLD.map.y + WORLD.map.height / 2 + 0.55)
+  const z = WORLD.map.z + 0.32
+  const group = new THREE.Group()
+  group.position.set(WORLD.map.x, topY, z)
+
+  const housingMaterial = makeMaterial(0x6f716b, 0.74); housingMaterial.flatShading = true
+  const screenMaterial = new THREE.MeshStandardMaterial({
+    color: 0xf0eee3,
+    roughness: 0.96,
+    metalness: 0,
+    side: THREE.DoubleSide,
+  })
+
+  // Permanent ceiling roller/cassette. The cloth itself is translated so its
+  // local origin sits at the top edge; scaling Y therefore unrolls it downward
+  // rather than expanding from the centre.
+  group.add(cylinder(0.13, width + 0.34, [0, 0, 0], housingMaterial, 12, [0, 0, Math.PI / 2]))
+  group.add(cylinder(0.17, 0.08, [-width / 2 - 0.17, 0, 0], materials.metalDark, 10, [0, 0, Math.PI / 2]))
+  group.add(cylinder(0.17, 0.08, [width / 2 + 0.17, 0, 0], materials.metalDark, 10, [0, 0, Math.PI / 2]))
+
+  const panelGeometry = new THREE.PlaneGeometry(width, height)
+  panelGeometry.translate(0, -height / 2, 0)
+  const panel = new THREE.Mesh(panelGeometry, screenMaterial)
+  panel.position.z = 0.035
+  panel.scale.y = 0.001
+  panel.castShadow = true
+  panel.receiveShadow = true
+  group.add(panel)
+
+  const bottomBar = box([width + 0.08, 0.075, 0.075], [0, -0.04, 0.055], housingMaterial)
+  bottomBar.visible = false
+  group.add(bottomBar)
+  scene.add(group)
+
+  const setProgress = (value: number) => {
+    const progress = THREE.MathUtils.clamp(value, 0, 1)
+    panel.scale.y = Math.max(progress, 0.001)
+    bottomBar.position.y = -height * progress
+    bottomBar.visible = progress > 0.015
+  }
+
+  return { setProgress }
 }
 
 const createPendant = (scene: THREE.Scene, position: [number, number, number], color: number, intensity: number, distance: number) => {
@@ -1009,7 +1081,7 @@ const createHoverTarget = (
 }
 
 const createScene = (scene: THREE.Scene, camera: THREE.PerspectiveCamera) => {
-  const updateClock = createRoomShell(scene); createTable(scene); createRadioDesk(scene); createMapBoard(scene); createProjector(scene); createPaperCluster(scene); createFolders(scene); const fanSpinner = createWallFan(scene)
+  const updateClock = createRoomShell(scene); createTable(scene); createRadioDesk(scene); createMapBoard(scene); const projector = createProjector(scene); const projectionScreen = createProjectionScreen(scene); createPaperCluster(scene); createFolders(scene); const fanSpinner = createWallFan(scene)
   createChair(scene, -4.65, 0.65, -1.07); createChair(scene, 2.5, -0.2, 1.91); createChair(scene, 2.5, 3.35, 1.31)
   createPhone(scene, -0.6, -2.0, 0x315b3c, 0); createPhone(scene, -0.6, -1.0, 0xd8ceb0, 1.57); createPhone(scene, -0.6, 0, PALETTE.red, -1.57); createPhone(scene, -0.6, 1.0, 0xd9d1b8, 1.57); createPhone(scene, -0.6, 2.0, 0x315b3c, -1.57)
   createDeskLamp(scene, -2.25, -1.15, 0.9, -0.04); createDeskLamp(scene, -2.25, 0.85, 0.92, 0.03); createDeskLamp(scene, 0.9, -3.0, 0.82, 0.06)
@@ -1034,7 +1106,7 @@ const hoverTargets: HoverTarget[] = [
   createHoverTarget(scene, 'back-door', 'ABOUT', [1.8, 4.85, 0.12], [2.75, 2.45, WORLD.backWallZ + 0.20]),
 ]
   camera.position.set(-4.08, 4.47, 10.34); camera.lookAt(-2.15, 2.7, -4.75)
-  return { hotspots, hoverTargets, boardDraw, fanSpinner, updateClock }
+  return { hotspots, hoverTargets, boardDraw, fanSpinner, updateClock, projector, projectionScreen }
 }
 
 export const mountOperationRoom = (root: HTMLElement) => {
@@ -1057,7 +1129,7 @@ export const mountOperationRoom = (root: HTMLElement) => {
   const warmFill = new THREE.DirectionalLight(0xffd599, 1.15); warmFill.position.set(-4, 7, 7); warmFill.castShadow = true; warmFill.shadow.mapSize.set(1024, 1024); scene.add(warmFill)
   const coolFill = new THREE.DirectionalLight(0xb8d0cb, 0.45); coolFill.position.set(7, 5, -1); scene.add(coolFill)
 
-  const { hotspots, hoverTargets, boardDraw, fanSpinner, updateClock } = createScene(scene, camera)
+  const { hotspots, hoverTargets, boardDraw, fanSpinner, updateClock, projector, projectionScreen } = createScene(scene, camera)
   const pointer = new THREE.Vector2(2, 2)
   const hoverRaycaster = new THREE.Raycaster()
   const HOME_POSITION = new THREE.Vector3(-5.08, 4.14, 8.58)
@@ -1080,6 +1152,8 @@ export const mountOperationRoom = (root: HTMLElement) => {
   controls.update()
   let activeId: SectionId = 'work'; let frame = 0; let disposed = false
   let lastTime = performance.now()
+  let projectorActive = false
+  let projectorScreenProgress = 0
   let viewMode: 'home' | 'transition' | 'map' = 'home'
   let cameraTransition: {
     startTime: number
@@ -1158,13 +1232,32 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
     }
     viewMode = 'transition'
   }
+  const setProjectorActive = (active: boolean) => {
+    projectorActive = active
+    if (reducedMotion.matches) {
+      projectorScreenProgress = active ? 1 : 0
+      projectionScreen.setProgress(projectorScreenProgress)
+      projector.projectionLight.intensity = active ? 7.5 : 0
+      projector.lensFill.intensity = active ? 1.6 : 0
+      projector.lensMaterial.emissiveIntensity = active ? 3.6 : 0.08
+    }
+  }
   const onPointerUp = (event: PointerEvent) => {
     if (viewMode !== 'home') return
     updatePointer(event)
     hoverRaycaster.setFromCamera(pointer, camera)
     const hit = hoverRaycaster.intersectObjects(hoverTargets.map((target) => target.mesh), false)[0]?.object
     const target = hoverTargets.find((candidate) => candidate.mesh === hit)
-    if (target?.id === 'map') startMapDolly()
+    if (!target) return
+
+    if (target.id === 'projector') {
+      setProjectorActive(true)
+      return
+    }
+
+    // Any other menu selection retracts the screen and powers the projector off.
+    setProjectorActive(false)
+    if (target.id === 'map') startMapDolly()
   }
   const onPointerMove = (event: PointerEvent) => {
     // Desktop interaction is hover-only: moving the pointer over a menu region
@@ -1193,6 +1286,7 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
   const resetView = () => {
     cameraTransition = null
     viewMode = 'home'
+    setProjectorActive(false)
     camera.position.copy(HOME_POSITION)
     cameraTarget.copy(HOME_TARGET)
     controls.target.copy(HOME_TARGET)
@@ -1231,6 +1325,39 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
     lastTime = now
     if (!reducedMotion.matches) fanSpinner.rotation.z -= dt * FAN_SPEED
     updateClock()
+
+    const projectorTarget = projectorActive ? 1 : 0
+    if (reducedMotion.matches) {
+      projectorScreenProgress = projectorTarget
+    } else {
+      const response = projectorActive ? 4.3 : 5.6
+      projectorScreenProgress = THREE.MathUtils.damp(projectorScreenProgress, projectorTarget, response, dt)
+      if (Math.abs(projectorScreenProgress - projectorTarget) < 0.001) projectorScreenProgress = projectorTarget
+    }
+    projectionScreen.setProgress(projectorScreenProgress)
+
+    projector.projectionLight.intensity = THREE.MathUtils.damp(
+      projector.projectionLight.intensity,
+      projectorActive ? 7.5 : 0,
+      projectorActive ? 8 : 12,
+      dt,
+    )
+    projector.lensFill.intensity = THREE.MathUtils.damp(
+      projector.lensFill.intensity,
+      projectorActive ? 1.6 : 0,
+      projectorActive ? 9 : 13,
+      dt,
+    )
+    projector.lensMaterial.emissiveIntensity = THREE.MathUtils.damp(
+      projector.lensMaterial.emissiveIntensity,
+      projectorActive ? 3.6 : 0.08,
+      projectorActive ? 9 : 12,
+      dt,
+    )
+    if (projectorActive && !reducedMotion.matches) {
+      projector.reels[0].rotation.z -= dt * 4.5
+      projector.reels[1].rotation.z += dt * 3.9
+    }
 
     if (cameraTransition) {
       const elapsed = now - cameraTransition.startTime
