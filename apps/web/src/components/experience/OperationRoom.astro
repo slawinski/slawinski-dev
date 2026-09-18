@@ -5,6 +5,7 @@
   <div class="operation-room__controls">
     <button class="operation-room__control" type="button" data-operation-room-music aria-pressed="false">Music: off</button>
     <button class="operation-room__control" type="button" data-operation-room-reset>Reset view</button>
+    <button class="operation-room__control" type="button" data-operation-room-copy-camera>Copy camera</button>
   </div>
   <p class="operation-room__live sr-only" data-operation-room-live aria-live="polite">Work selected</p>
   <nav id="experience-navigation" class="operation-room__fallback" aria-label="Portfolio sections" tabindex="-1">
@@ -73,6 +74,7 @@
   .operation-room__control { padding: .45rem .7rem; color: #f3edcf; background: rgb(14 20 18 / .6); border: 1px solid #718461; font: inherit; font-size: .68rem; letter-spacing: .035em; text-transform: uppercase; cursor: pointer; }
   .operation-room__control:hover, .operation-room__control:focus-visible { outline: none; background: #36572f; border-color: #9cb97d; }
   .operation-room__control[aria-pressed='true'] { color: #eef3cf; background: #36572f; border-color: #9cb97d; box-shadow: inset 0 0 0 1px rgb(156 185 125 / .18); }
+  .operation-room__camera-readout { position: absolute; left: 1rem; top: .75rem; max-width: calc(100vw - 2rem); padding: .35rem .55rem; color: rgb(240 235 208 / .88); background: rgb(14 20 18 / .68); border: 1px solid rgb(113 132 97 / .65); font: .68rem ui-monospace, SFMono-Regular, Menlo, monospace; white-space: nowrap; pointer-events: none; }
   .operation-room__fallback { position: fixed; z-index: 20; left: 50%; bottom: 1rem; display: flex; gap: .25rem; align-items: center; max-width: calc(100vw - 2rem); padding: .4rem; transform: translate(-50%, calc(100% + 3rem)); color: #f3edcf; background: rgb(13 17 15 / .96); border: 1px solid #718461; box-shadow: 0 .5rem 2rem rgb(0 0 0 / .32); transition: transform 140ms ease; }
   .operation-room__fallback:focus-within, .operation-room__fallback:target, .operation-room[data-webgl='failed'] .operation-room__fallback { transform: translate(-50%, 0); }
   .operation-room__fallback p { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }

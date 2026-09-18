@@ -60,43 +60,35 @@ const createWallDetails = () => {
   const pinRed = material(0x873b2b, 0.8)
   const pinGreen = material(0x365c3c, 0.8)
 
-  // Brown utility/steam pipe on the right wall. The room interior ends at
-  // x=6.8, so the pipe is held just inside the wall rather than buried in it.
-  const pipeX = 6.55
-  const pipeZ = 1.15
-  group.add(cylinder(0.09, 4.75, [pipeX, 3.00, pipeZ], pipeBrown, 10))
-  group.add(cylinder(0.13, 0.07, [pipeX, 0.68, pipeZ], pipeDark, 10))
-  group.add(cylinder(0.13, 0.07, [pipeX, 2.10, pipeZ], pipeDark, 10))
-  group.add(cylinder(0.13, 0.07, [pipeX, 4.35, pipeZ], pipeDark, 10))
-  group.add(cylinder(0.13, 0.07, [pipeX, 5.34, pipeZ], pipeDark, 10))
-
-  // Broad lower shoe/flange and a subtle collar keep the bottom from reading
-  // as a pipe simply disappearing into the floor.
-  const boot = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.28, 0.24, 10), pipeBrown)
-  boot.position.set(pipeX, 0.42, pipeZ)
-  boot.castShadow = true
-  boot.receiveShadow = true
-  group.add(boot)
-  group.add(cylinder(0.24, 0.055, [pipeX, 0.295, pipeZ], pipeDark, 10))
-
-  // Top elbow and short horizontal run toward the back wall.
-  group.add(new THREE.Mesh(new THREE.SphereGeometry(0.13, 10, 7), pipeBrown))
-  const elbow = group.children[group.children.length - 1] as THREE.Mesh
-  elbow.position.set(pipeX, 5.42, pipeZ)
-  elbow.castShadow = true
-  group.add(cylinder(0.09, 1.28, [pipeX, 5.42, 0.55], pipeBrown, 10, [Math.PI / 2, 0, 0]))
-  group.add(cylinder(0.125, 0.06, [pipeX, 5.42, -0.08], pipeDark, 10, [Math.PI / 2, 0, 0]))
+  // Brown utility pipe follows the foreground post straight up. It is mounted
+  // just outside the post face and has no elbow or side run.
+  // Keep the pipe clear of the wall/post. It hangs in the room from brackets
+  // attached to the camera-facing support structure.
+  const pipeX = 3.3
+  // Camera is on the positive-Z side of the room, so the pipe sits on the
+  // post's front face rather than disappearing behind it.
+  const pipeZ = 2.95
+  // Finish above the nearby chair's backrest (top ≈ 1.62), leaving a small
+  // visible clearance beneath the flared termination.
+  const pipeBottom = 2.75
+  const pipeTop = 7.25
+  group.add(cylinder(0.09, pipeTop - pipeBottom, [pipeX, (pipeTop + pipeBottom) / 2, pipeZ], pipeBrown, 10))
+  group.add(cylinder(0.14, 0.24, [pipeX, pipeBottom - 0.12, pipeZ], pipeBrown, 10))
+  group.add(cylinder(0.11, 0.08, [pipeX, pipeBottom - 0.27, pipeZ], pipeDark, 10))
+  group.add(cylinder(0.13, 0.07, [pipeX, 4.60, pipeZ], pipeDark, 10))
+  group.add(cylinder(0.13, 0.07, [pipeX, 6.20, pipeZ], pipeDark, 10))
 
   // Three wall straps match the strong horizontal dark marks in the reference.
-  for (const y of [1.55, 3.18, 4.82]) {
-    group.add(box([0.22, 0.075, 0.38], [6.66, y, pipeZ], pipeDark))
-    group.add(box([0.035, 0.13, 0.50], [6.535, y, pipeZ], pipeHighlight))
+  for (const y of [3.43, 5.07]) {
+    // Each bracket spans the gap from the post's front face (z=2.51) to the
+    // pipe, with a collar at the pipe so the suspension is legible.
+    group.add(box([0.16, 0.075, pipeZ - 2.51], [pipeX, y, (2.51 + pipeZ) / 2], pipeDark))
   }
 
   // Cork/message board attached to the front face of the timber post below the
   // fan. The post's visible face is around x=2.99.
   const boardX = 2.965
-  const boardY = 1.92
+  const boardY = 3.25
   const boardZ = 2.20
   group.add(box([0.075, 1.18, 0.88], [boardX, boardY, boardZ], boardWood))
   group.add(box([0.025, 1.03, 0.73], [boardX - 0.052, boardY, boardZ], cork))
@@ -107,45 +99,6 @@ const createWallDetails = () => {
   group.add(box([0.016, 0.26, 0.25], [boardX - 0.073, boardY - 0.28, boardZ - 0.12], paper, [0.02, 0, -0.02]))
   group.add(cylinder(0.025, 0.018, [boardX - 0.086, boardY + 0.39, boardZ - 0.18], pinRed, 8, [0, 0, Math.PI / 2]))
   group.add(cylinder(0.025, 0.018, [boardX - 0.086, boardY + 0.23, boardZ + 0.18], pinGreen, 8, [0, 0, Math.PI / 2]))
-
-  // Row of simple black coat hooks on the post above the board.
-  const hookYs = [2.72, 2.93]
-  const hookZs = [1.92, 2.24, 2.52]
-  hookYs.forEach((y, row) => {
-    hookZs.forEach((z, index) => {
-      if (row === 1 && index === 1) return
-      group.add(cylinder(0.025, 0.22, [2.86, y, z], hookMetal, 7, [0, 0, Math.PI / 2]))
-      group.add(cylinder(0.025, 0.14, [2.75, y + 0.055, z], hookMetal, 7, [0, 0, 0.35]))
-      group.add(cylinder(0.035, 0.035, [2.69, y + 0.12, z], hookMetal, 7))
-    })
-  })
-
-  // Two empty wire coat hangers suspended from the lower hooks. They are coarse
-  // enough to survive the fixed camera distance, but still read as wire forms.
-  const addHanger = (y: number, z: number, tilt: number) => {
-    const hanger = new THREE.Group()
-    hanger.position.set(2.68, y, z)
-    hanger.rotation.x = tilt
-    hanger.add(tube([
-      [0, 0.16, 0],
-      [-0.02, 0.08, 0],
-      [0.00, 0.00, 0],
-      [0.00, -0.07, 0],
-    ], 0.012, hookMetal))
-    hanger.add(tube([
-      [0.00, -0.07, 0],
-      [-0.02, -0.13, -0.02],
-      [0.00, -0.18, -0.10],
-      [0.00, -0.27, -0.28],
-      [0.00, -0.34, 0],
-      [0.00, -0.27, 0.28],
-      [0.00, -0.18, 0.10],
-      [0.00, -0.07, 0],
-    ], 0.012, hookMetal))
-    group.add(hanger)
-  }
-  addHanger(2.67, 1.92, -0.08)
-  addHanger(2.67, 2.52, 0.06)
 
   return group
 }

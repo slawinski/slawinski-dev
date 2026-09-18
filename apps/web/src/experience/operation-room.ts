@@ -44,7 +44,7 @@ const WORLD = {
   backWallZ: -6.1,
   roomWidth: 18,
   roomDepth: 13,
-  wallHeight: 7,
+  wallHeight: 7.25,
   map: { x: -2.55, y: 3.42, z: -5.79, width: 8.4, height: 4.45 },
   mainTable: { x: -0.6, y: 1.16, z: 1.15, width: 4.8, depth: 9.2 },
   radioDesk: { x: -5.9, y: 1.18, z: -2.25, width: 3.7, depth: 1.25 },
@@ -249,24 +249,24 @@ const createRoomShell = (scene: THREE.Scene) => {
 
   const beamMaterial = makeMaterial(0xb5aa8e, 0.95)
   const beamSpecs: Array<[[number, number, number], [number, number, number], [number, number, number]]> = [
-    [[15.6, 0.58, 0.62], [-1.0, 6.35, -1.9], [0, 0, 0]],
-    [[15.6, 0.58, 0.62], [-1.0, 6.35, 2.2], [0, 0, 0]],
-    [[0.62, 6.3, 0.62], [3.3, 3.15, -1.9], [0, 0, 0]],
-    [[0.62, 6.3, 0.62], [3.3, 3.15, 2.2], [0, 0, 0]],
-    [[0.62, 6.3, 0.62], [-8.83, 3.15, -1.9], [0, 0, 0]],
-    [[0.62, 6.3, 0.62], [-8.83, 3.15, 2.2], [0, 0, 0]],
+    [[15.6, 0.58, 0.62], [-1.0, 6.60, -1.9], [0, 0, 0]],
+    [[15.6, 0.58, 0.62], [-1.0, 6.60, 2.2], [0, 0, 0]],
+    [[0.62, 6.55, 0.62], [3.3, 3.275, -1.9], [0, 0, 0]],
+    [[0.62, 6.55, 0.62], [3.3, 3.275, 2.2], [0, 0, 0]],
+    [[0.62, 6.55, 0.62], [-8.83, 3.275, -1.9], [0, 0, 0]],
+    [[0.62, 6.55, 0.62], [-8.83, 3.275, 2.2], [0, 0, 0]],
   ]
   for (const [size, position, rotation] of beamSpecs) scene.add(box(size, position, beamMaterial, rotation))
   // Surface-mounted planks: the front/back z offsets are the post half-depth
   // plus half the plank depth, so the planks sit against the timber faces
   // instead of passing through them. They continue above the beams into the
   // ceiling structure.
-  scene.add(strut([3.3, 4.7, -1.5], [-0.94, 7.15, -1.5], beamMaterial))
-  scene.add(strut([3.3, 4.7, -2.3], [7.54, 7.15, -2.3], beamMaterial))
-  scene.add(strut([3.3, 4.7, 2.6], [-0.94, 7.15, 2.6], beamMaterial))
-  scene.add(strut([3.3, 4.7, 1.8], [7.54, 7.15, 1.8], beamMaterial))
-  scene.add(strut([-8.83, 4.7, -1.5], [-4.59, 7.15, -1.5], beamMaterial))
-  scene.add(strut([-8.83, 4.7, 2.6], [-4.59, 7.15, 2.6], beamMaterial))
+  scene.add(strut([3.3, 4.95, -1.5], [-0.94, 7.4, -1.5], beamMaterial))
+  scene.add(strut([3.3, 4.95, -2.3], [7.54, 7.4, -2.3], beamMaterial))
+  scene.add(strut([3.3, 4.95, 2.6], [-0.94, 7.4, 2.6], beamMaterial))
+  scene.add(strut([3.3, 4.95, 1.8], [7.54, 7.4, 1.8], beamMaterial))
+  scene.add(strut([-8.83, 4.95, -1.5], [-4.59, 7.4, -1.5], beamMaterial))
+  scene.add(strut([-8.83, 4.95, 2.6], [-4.59, 7.4, 2.6], beamMaterial))
 
   scene.add(box([1.7, 4.9, 0.28], [2.75, 2.45, WORLD.backWallZ + 0.02], materials.black))
   scene.add(box([0.26, 4.9, 1.65], [6.82, 2.45, -2.95], materials.wood))
@@ -275,9 +275,9 @@ const createRoomShell = (scene: THREE.Scene) => {
   // The clock is mounted on the visible face of the front strut. The strut
   // face is at z=-1.41; keep the clock's rear rim just in front of it so the
   // dial never intersects the plank after the support structure is thickened.
-  scene.add(cylinder(0.38, 0.10, [2.15, 5.28, -1.34], materials.black, 16, [Math.PI / 2, 0, 0]))
-  scene.add(cylinder(0.31, 0.025, [2.15, 5.28, -1.28], materials.paperLight, 16, [Math.PI / 2, 0, 0]))
-  const clockCenter: [number, number, number] = [2.15, 5.28, -1.26]
+  scene.add(cylinder(0.38, 0.10, [2.15, 5.53, -1.34], materials.black, 16, [Math.PI / 2, 0, 0]))
+  scene.add(cylinder(0.31, 0.025, [2.15, 5.53, -1.28], materials.paperLight, 16, [Math.PI / 2, 0, 0]))
+  const clockCenter: [number, number, number] = [2.15, 5.53, -1.26]
   const minuteHand = new THREE.Group(); minuteHand.position.set(...clockCenter)
   minuteHand.add(box([0.025, 0.22, 0.02], [0, 0.11, 0], materials.black))
   const hourHand = new THREE.Group(); hourHand.position.set(...clockCenter)
@@ -847,7 +847,7 @@ const createPendant = (scene: THREE.Scene, position: [number, number, number], c
 }
 
 const createWallFan = (scene: THREE.Scene) => {
-  const group = new THREE.Group(); group.position.set(2.25, 4.3, 2.2); group.rotation.y = -Math.PI / 2
+  const group = new THREE.Group(); group.position.set(2.25, 4.55, 2.2); group.rotation.y = -Math.PI / 2
   const fanMetal = makeMaterial(0x9ca19c, 0.74); fanMetal.flatShading = true
   const fanDark = makeMaterial(0x343b3a, 0.84); fanDark.flatShading = true
   const fanBladeMaterial = new THREE.MeshStandardMaterial({
@@ -977,7 +977,7 @@ const createHotspot = (scene: THREE.Scene, id: SectionId, size: [number, number,
 
 const createScene = (scene: THREE.Scene, camera: THREE.PerspectiveCamera) => {
   const updateClock = createRoomShell(scene); createTable(scene); createRadioDesk(scene); createMapBoard(scene); createProjector(scene); createPaperCluster(scene); createFolders(scene); const fanSpinner = createWallFan(scene)
-  createChair(scene, -4.65, 1.35, -1.07); createChair(scene, 2.5, -0.2, 1.91); createChair(scene, 2.5, 3.35, 1.31)
+  createChair(scene, -4.65, 0.65, -1.07); createChair(scene, 2.5, -0.2, 1.91); createChair(scene, 2.5, 3.35, 1.31)
   createPhone(scene, -0.6, -2.0, 0x315b3c, 0); createPhone(scene, -0.6, -1.0, 0xd8ceb0, 1.57); createPhone(scene, -0.6, 0, PALETTE.red, -1.57); createPhone(scene, -0.6, 1.0, 0xd9d1b8, 1.57); createPhone(scene, -0.6, 2.0, 0x315b3c, -1.57)
   createDeskLamp(scene, -2.25, -1.15, 0.9, -0.04); createDeskLamp(scene, -2.25, 0.85, 0.92, 0.03); createDeskLamp(scene, 0.9, -3.0, 0.82, 0.06)
   createPendant(scene, [-1.35, 5.0, -4.75], 0x5e8a32, 1.4, 5)
@@ -1015,12 +1015,14 @@ export const mountOperationRoom = (root: HTMLElement) => {
 
   const { hotspots, boardDraw, fanSpinner, updateClock } = createScene(scene, camera)
   const raycaster = new THREE.Raycaster(); const pointer = new THREE.Vector2(2, 2)
-  const HOME_POSITION = new THREE.Vector3(-4.08, 4.47, 10.34)
+  const HOME_POSITION = new THREE.Vector3(-5.08, 4.14, 8.58)
   const HOME_TARGET = new THREE.Vector3(-2.15, 2.7, -4.75)
   const TARGET_BOUNDS = { minX: -6, maxX: 4, minY: 0.8, maxY: 5.2, minZ: -5.8, maxZ: 4 }
   const DRAG_THRESHOLD_PX = 6
   const controls = new OrbitControls(camera, canvas)
   controls.target.copy(HOME_TARGET)
+  camera.position.copy(HOME_POSITION)
+  controls.enabled = false
   controls.enableDamping = true
   controls.dampingFactor = 0.08
   controls.minDistance = 5
@@ -1096,13 +1098,6 @@ export const mountOperationRoom = (root: HTMLElement) => {
     if (event.key === 'ArrowLeft') setActive(SECTION_ORDER[(index - 1 + SECTION_ORDER.length) % SECTION_ORDER.length])
     if (event.key === 'ArrowRight') setActive(SECTION_ORDER[(index + 1) % SECTION_ORDER.length])
     if (event.key === 'Enter') navigate(activeId)
-    if (event.key === '+' || event.key === '=') dolly(-1)
-    if (event.key === '-' || event.key === '_') dolly(1)
-    if (event.key === '0' || event.key === 'r' || event.key === 'R') resetView()
-    if (event.key === 'w' || event.key === 'W') panTarget(0, -0.6)
-    if (event.key === 's' || event.key === 'S') panTarget(0, 0.6)
-    if (event.key === 'a' || event.key === 'A') panTarget(-0.6, 0)
-    if (event.key === 'd' || event.key === 'D') panTarget(0.6, 0)
   }
   const clampTarget = () => {
     controls.target.x = THREE.MathUtils.clamp(controls.target.x, TARGET_BOUNDS.minX, TARGET_BOUNDS.maxX)
@@ -1116,23 +1111,71 @@ export const mountOperationRoom = (root: HTMLElement) => {
     lastTime = now
     if (!reducedMotion.matches) fanSpinner.rotation.z -= dt * FAN_SPEED
     updateClock()
-    clampTarget()
-    controls.update()
+    camera.lookAt(HOME_TARGET)
     renderer.render(scene, camera); frame = requestAnimationFrame(render)
   }
   const onContextLost = (event: Event) => { event.preventDefault(); root.dataset.webgl = 'failed' }
   const resetButton = root.querySelector<HTMLElement>('[data-operation-room-reset]')
   const onResetClick = () => resetView()
+  const copyCameraButton = root.querySelector<HTMLButtonElement>('[data-operation-room-copy-camera]')
+  const cameraReadout = document.createElement('code')
+  cameraReadout.className = 'operation-room__camera-readout'
+  root.appendChild(cameraReadout)
+  const cameraText = () => {
+    const p = camera.position; const t = controls.target
+    return `position [${p.x.toFixed(2)}, ${p.y.toFixed(2)}, ${p.z.toFixed(2)}] target [${t.x.toFixed(2)}, ${t.y.toFixed(2)}, ${t.z.toFixed(2)}]`
+  }
+  const updateCameraReadout = () => { cameraReadout.textContent = cameraText() }
+  const onCopyCameraClick = async () => {
+    const value = cameraText()
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(value)
+      } else {
+        throw new Error('Clipboard API unavailable')
+      }
+      if (copyCameraButton) {
+        const label = copyCameraButton.textContent
+        copyCameraButton.textContent = 'Copied'
+        window.setTimeout(() => { copyCameraButton.textContent = label }, 1400)
+      }
+    } catch {
+      // Clipboard API is unavailable on non-secure/local contexts. Fall back
+      // to a temporary textarea so the user can still copy the exact values.
+      const textarea = document.createElement('textarea')
+      textarea.value = value
+      textarea.setAttribute('readonly', '')
+      textarea.style.position = 'fixed'
+      textarea.style.opacity = '0'
+      document.body.appendChild(textarea)
+      textarea.select()
+      const selected = document.execCommand('copy')
+      textarea.remove()
+      if (copyCameraButton) {
+        const label = copyCameraButton.textContent
+        copyCameraButton.textContent = selected ? 'Copied' : 'Select readout'
+        if (!selected) {
+          cameraReadout.style.pointerEvents = 'auto'
+          cameraReadout.style.userSelect = 'text'
+          cameraReadout.title = 'Select these values and copy them manually'
+        }
+        window.setTimeout(() => { copyCameraButton.textContent = label }, 1800)
+      }
+    }
+  }
 
-  resize(); selectDefault(); loading?.setAttribute('data-ready', 'true')
-  canvas.addEventListener('pointermove', onPointerMove); canvas.addEventListener('pointermove', onDragMove); canvas.addEventListener('pointerdown', onPointerDown); canvas.addEventListener('pointerup', onPointerUp); canvas.addEventListener('keydown', onKeyDown); canvas.addEventListener('webglcontextlost', onContextLost); resetButton?.addEventListener('click', onResetClick)
+  resize(); selectDefault(); updateCameraReadout(); loading?.setAttribute('data-ready', 'true')
+  controls.addEventListener('change', updateCameraReadout)
+  canvas.addEventListener('pointermove', onPointerMove); canvas.addEventListener('pointermove', onDragMove); canvas.addEventListener('pointerdown', onPointerDown); canvas.addEventListener('pointerup', onPointerUp); canvas.addEventListener('keydown', onKeyDown); canvas.addEventListener('webglcontextlost', onContextLost); resetButton?.addEventListener('click', onResetClick); copyCameraButton?.addEventListener('click', onCopyCameraClick)
   if (typeof reducedMotion.addEventListener === 'function') reducedMotion.addEventListener('change', applyMotionPreference)
   window.addEventListener('resize', resize)
   frame = requestAnimationFrame(render)
 
   return () => {
     disposed = true; cancelAnimationFrame(frame)
-    canvas.removeEventListener('pointermove', onPointerMove); canvas.removeEventListener('pointermove', onDragMove); canvas.removeEventListener('pointerdown', onPointerDown); canvas.removeEventListener('pointerup', onPointerUp); canvas.removeEventListener('keydown', onKeyDown); canvas.removeEventListener('webglcontextlost', onContextLost); resetButton?.removeEventListener('click', onResetClick)
+    controls.removeEventListener('change', updateCameraReadout)
+    cameraReadout.remove()
+    canvas.removeEventListener('pointermove', onPointerMove); canvas.removeEventListener('pointermove', onDragMove); canvas.removeEventListener('pointerdown', onPointerDown); canvas.removeEventListener('pointerup', onPointerUp); canvas.removeEventListener('keydown', onKeyDown); canvas.removeEventListener('webglcontextlost', onContextLost); resetButton?.removeEventListener('click', onResetClick); copyCameraButton?.removeEventListener('click', onCopyCameraClick)
     if (typeof reducedMotion.removeEventListener === 'function') reducedMotion.removeEventListener('change', applyMotionPreference)
     window.removeEventListener('resize', resize); controls.dispose(); renderer.dispose()
     scene.traverse((object) => {
