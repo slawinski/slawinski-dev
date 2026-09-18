@@ -481,12 +481,88 @@ const createPhone = (scene: THREE.Scene, x: number, z: number, color: number, ro
   scene.add(group)
 }
 
-const createDeskLamp = (scene: THREE.Scene, x: number, z: number, scale = 1) => {
-  const group = new THREE.Group(); group.position.set(x, 0.3, z)
-  group.add(cylinder(0.25 * scale, 0.07 * scale, [0, 1.02, 0], materials.brass, 12))
-  group.add(cylinder(0.035 * scale, 0.7 * scale, [0, 1.4, 0], materials.brass, 8))
-  const shade = new THREE.Mesh(new THREE.ConeGeometry(0.36 * scale, 0.3 * scale, 8, 1, true), materials.green)
-  shade.position.set(0, 1.77, 0); shade.rotation.x = Math.PI; shade.castShadow = true; group.add(shade); scene.add(group)
+const createDeskLamp = (scene: THREE.Scene, x: number, z: number, scale = 1, rotationY = 0) => {
+  const group = new THREE.Group(); group.position.set(x, 0.3, z); group.rotation.y = rotationY
+  const brass = new THREE.MeshStandardMaterial({ color: 0xa87925, roughness: 0.5, metalness: 0.42, flatShading: true })
+  const brassDark = new THREE.MeshStandardMaterial({ color: 0x6f4f1d, roughness: 0.62, metalness: 0.34, flatShading: true })
+  const shadeGreen = new THREE.MeshStandardMaterial({ color: 0x1f4e3d, roughness: 0.72, metalness: 0.02, flatShading: true })
+  const warmUnderside = new THREE.MeshStandardMaterial({
+    color: 0xd8c992,
+    roughness: 0.86,
+    metalness: 0,
+    emissive: 0xb08a48,
+    emissiveIntensity: 0.22,
+    side: THREE.DoubleSide,
+  })
+
+  // Stepped brass base, matching the heavy circular foot of the reference lamps.
+  group.add(cylinder(0.285 * scale, 0.055 * scale, [0, 1.00, 0], brassDark, 14))
+  group.add(cylinder(0.225 * scale, 0.070 * scale, [0, 1.055, 0], brass, 14))
+  group.add(cylinder(0.145 * scale, 0.070 * scale, [0, 1.115, 0], brassDark, 12))
+  group.add(cylinder(0.065 * scale, 0.055 * scale, [0, 1.175, 0], brass, 10))
+
+  // Slender upright and curved neck. The tiny collar below the bend helps the
+  // lamp read as a period banker's lamp rather than a generic pole with a shade.
+  group.add(cylinder(0.026 * scale, 0.48 * scale, [0, 1.42, 0], brass, 10))
+  group.add(cylinder(0.052 * scale, 0.055 * scale, [0, 1.64, 0], brassDark, 10))
+  const neckCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0, 1.64, 0),
+    new THREE.Vector3(0, 1.70, 0.015),
+    new THREE.Vector3(0, 1.73, 0.075),
+    new THREE.Vector3(0, 1.74, 0.13),
+  ])
+  const neck = new THREE.Mesh(new THREE.TubeGeometry(neckCurve, 8, 0.024 * scale, 7, false), brass)
+  neck.castShadow = true; neck.receiveShadow = true; group.add(neck)
+
+  // Long faceted green glass shade. Its tapered prism silhouette is the main
+  // visual cue in the supplied shot and replaces the previous cone shade.
+  const halfBottomW = 0.43 * scale
+  const halfBottomD = 0.19 * scale
+  const halfTopW = 0.34 * scale
+  const halfTopD = 0.125 * scale
+  const shadeBottomY = 1.70
+  const shadeTopY = 1.86
+  const shadeZ = 0.13
+  const shadeGeometry = new THREE.BufferGeometry()
+  shadeGeometry.setAttribute('position', new THREE.Float32BufferAttribute([
+    -halfBottomW, shadeBottomY, shadeZ - halfBottomD,
+     halfBottomW, shadeBottomY, shadeZ - halfBottomD,
+     halfBottomW, shadeBottomY, shadeZ + halfBottomD,
+    -halfBottomW, shadeBottomY, shadeZ + halfBottomD,
+    -halfTopW, shadeTopY, shadeZ - halfTopD,
+     halfTopW, shadeTopY, shadeZ - halfTopD,
+     halfTopW, shadeTopY, shadeZ + halfTopD,
+    -halfTopW, shadeTopY, shadeZ + halfTopD,
+  ], 3))
+  shadeGeometry.setIndex([
+    0, 1, 5, 0, 5, 4,
+    1, 2, 6, 1, 6, 5,
+    2, 3, 7, 2, 7, 6,
+    3, 0, 4, 3, 4, 7,
+    4, 5, 6, 4, 6, 7,
+  ])
+  shadeGeometry.computeVertexNormals()
+  const shade = new THREE.Mesh(shadeGeometry, shadeGreen)
+  shade.castShadow = true; shade.receiveShadow = true; group.add(shade)
+
+  const underside = new THREE.Mesh(new THREE.PlaneGeometry(0.76 * scale, 0.30 * scale), warmUnderside)
+  underside.position.set(0, shadeBottomY + 0.006, shadeZ)
+  underside.rotation.x = -Math.PI / 2
+  group.add(underside)
+
+  // Brass trim along the lower edge and small end caps make the green shade
+  // look like glass held in a metal frame, as in classic 1930s/40s desk lamps.
+  group.add(box([0.88 * scale, 0.025 * scale, 0.025 * scale], [0, shadeBottomY - 0.005, shadeZ + halfBottomD], brass))
+  group.add(box([0.88 * scale, 0.025 * scale, 0.025 * scale], [0, shadeBottomY - 0.005, shadeZ - halfBottomD], brassDark))
+  group.add(box([0.025 * scale, 0.025 * scale, 0.38 * scale], [-halfBottomW, shadeBottomY - 0.005, shadeZ], brassDark))
+  group.add(box([0.025 * scale, 0.025 * scale, 0.38 * scale], [halfBottomW, shadeBottomY - 0.005, shadeZ], brassDark))
+
+  // Small pull-chain detail hanging from one end of the shade.
+  const chainX = 0.34 * scale
+  group.add(cylinder(0.009 * scale, 0.18 * scale, [chainX, 1.60, shadeZ + 0.10], brassDark, 6))
+  group.add(cylinder(0.026 * scale, 0.035 * scale, [chainX, 1.50, shadeZ + 0.10], brass, 8))
+
+  scene.add(group)
 }
 
 const createRadioDesk = (scene: THREE.Scene) => {
@@ -802,7 +878,7 @@ const createScene = (scene: THREE.Scene, camera: THREE.PerspectiveCamera) => {
   const updateClock = createRoomShell(scene); createTable(scene); createRadioDesk(scene); createMapBoard(scene); createProjector(scene); createPaperCluster(scene); createFolders(scene); const fanSpinner = createWallFan(scene)
   createChair(scene, -2.65, 2.15, -1.07); createChair(scene, 4.5, -0.2, 1.91); createChair(scene, 4.5, 2.2, 1.31)
   createPhone(scene, 1.4, -2.25, 0x315b3c, 3.14); createPhone(scene, 1.4, -1.4, 0xd8ceb0, -1.57); createPhone(scene, 1.4, -0.55, PALETTE.red, 1.57); createPhone(scene, 1.4, 0.3, 0xd9d1b8, -1.57); createPhone(scene, 1.4, 1.15, 0x315b3c, 1.57)
-  createDeskLamp(scene, -0.75, -0.85, 0.9); createDeskLamp(scene, 0.3, 0.6, 0.92)
+  createDeskLamp(scene, -0.75, -0.85, 0.9, -0.04); createDeskLamp(scene, 0.3, 0.6, 0.92, 0.03); createDeskLamp(scene, 0.15, -2.45, 0.82, 0.06)
   createPendant(scene, [-1.35, 5.0, -4.75], 0x5e8a32, 1.4, 5)
   const boardDraw = createHangingBoard(scene)
   const hotspots: Hotspot[] = [
