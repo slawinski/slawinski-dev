@@ -23,26 +23,12 @@ jobs:
         run: |
           python <<'PY'
           from pathlib import Path
+          import re
 
           path = Path('apps/web/src/experience/operation-room.ts')
           text = path.read_text()
 
-          old_targets = """  const hotspots: Hotspot[] = [
-            createHotspot(scene, 'work', [8.55, 4.5, 0.28], [WORLD.map.x, WORLD.map.y, WORLD.map.z + 0.3]),
-            createHotspot(scene, 'writing', [1.8, 0.62, 2.2], [-1.2, 1.43, 2.2]),
-            createHotspot(scene, 'speaking', [3.8, 1.9, 1.5], [WORLD.radioDesk.x, 1.35, WORLD.radioDesk.z]),
-            createHotspot(scene, 'contact', [1.1, 1.6, 5.1], [-0.6, 1.9, 0]),
-            createHotspot(scene, 'about', [2.35, 2.5, 1.5], [-0.6, 2.4, 4.05]),
-          ]
-          const hoverTargets: HoverTarget[] = [
-            // Map, radio equipment, phone bank, projector, tray stack.
-            createHoverTarget(scene, 'map', 'WORK', [8.55, 4.5, 0.12], [WORLD.map.x, WORLD.map.y, WORLD.map.z + 0.18]),
-            createHoverTarget(scene, 'radio', 'CONTACT', [3.9, 1.45, 1.5], [WORLD.radioDesk.x, 1.55, WORLD.radioDesk.z]),
-            createHoverTarget(scene, 'projector', 'SPEAKING', [1.5, 1.25, 1.6], [-0.6, 2.45, 3.9]),
-            createHoverTarget(scene, 'trays', 'WRITING', [1.8, 0.8, 1.5], [-1.25, 1.65, -0.15]),
-          ]
-          """
-          new_targets = """  const hotspots: Hotspot[] = [
+          targets = """  const hotspots: Hotspot[] = [
             // Navigation is intentionally disabled for now. These meshes only define
             // hover/select coverage and the matching highlight volume.
             createHotspot(scene, 'work', [8.55, 4.5, 0.28], [WORLD.map.x, WORLD.map.y, WORLD.map.z + 0.3]),
@@ -52,7 +38,8 @@ jobs:
             createHotspot(scene, 'about', [1.8, 4.85, 0.18], [2.75, 2.45, WORLD.backWallZ + 0.20]),
           ]
           const hoverTargets: HoverTarget[] = [
-            // The five menu regions from the original operation-room composition.
+            // Map → WORK, Radio → CONTACT, Projector → SPEAKING,
+            // Trays → WRITING, Back door → ABOUT.
             createHoverTarget(scene, 'map', 'WORK', [8.55, 4.5, 0.12], [WORLD.map.x, WORLD.map.y, WORLD.map.z + 0.18]),
             createHoverTarget(scene, 'radio', 'CONTACT', [3.9, 1.45, 1.5], [WORLD.radioDesk.x, 1.55, WORLD.radioDesk.z]),
             createHoverTarget(scene, 'projector', 'SPEAKING', [1.5, 1.25, 1.6], [-0.6, 2.45, 3.9]),
@@ -60,64 +47,68 @@ jobs:
             createHoverTarget(scene, 'back-door', 'ABOUT', [1.8, 4.85, 0.12], [2.75, 2.45, WORLD.backWallZ + 0.20]),
           ]
           """
-          if old_targets not in text:
-              raise SystemExit('target block did not match')
-          text = text.replace(old_targets, new_targets)
+          text, count = re.subn(
+              r"  const hotspots: Hotspot\[\] = \[.*?\n  \]\n  const hoverTargets: HoverTarget\[\] = \[.*?\n  \]\n",
+              targets,
+              text,
+              count=1,
+              flags=re.S,
+          )
+          if count != 1:
+              raise SystemExit(f'target replacement count: {count}')
 
-          old_active = """  const setActive = (id: SectionId) => {
-            if (id === activeId) return
-            activeId = id; boardDraw(SECTIONS[id].label); if (live) live.textContent = `${SECTIONS[id].label} selected`
-            hotspots.forEach((hotspot) => { hotspot.highlight.visible = hotspot.id === id })
-          }
-          const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.forEach((hotspot) => { hotspot.highlight.visible = hotspot.id === 'work' }) }
-          """
-          new_active = """  const setActive = (id: SectionId) => {
-            // Do not short-circuit here: when the pointer leaves an area we hide its
-            // cover, so re-entering the same area must make the highlight visible again.
+          active = """  const setActive = (id: SectionId) => {
+            // Re-entering the same target must restore its cover after a pointer leave.
             activeId = id; boardDraw(SECTIONS[id].label); if (live) live.textContent = `${SECTIONS[id].label} selected`
             hotspots.forEach((hotspot) => { hotspot.highlight.visible = hotspot.id === id })
           }
           const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.forEach((hotspot) => { hotspot.highlight.visible = false }) }
           """
-          if old_active not in text:
-              raise SystemExit('active block did not match')
-          text = text.replace(old_active, new_active)
+          text, count = re.subn(
+              r"  const setActive = \(id: SectionId\) => \{.*?\n  \}\n  const selectDefault = .*?\n",
+              active,
+              text,
+              count=1,
+              flags=re.S,
+          )
+          if count != 1:
+              raise SystemExit(f'active replacement count: {count}')
 
-          old_pick = """    if (hit) { setActive(hit); canvas.style.cursor = 'pointer'; return hit }
-            canvas.style.cursor = 'default'; return null
-          """
-          new_pick = """    if (hit) { setActive(hit); canvas.style.cursor = 'default'; return hit }
+          pick = """  const pick = () => {
+            raycaster.setFromCamera(pointer, camera)
+            const intersections = raycaster.intersectObjects(hotspots.map((hotspot) => hotspot.hitbox), false)
+            const hit = intersections[0]?.object.userData.hotspot as SectionId | undefined
+            if (hit) { setActive(hit); canvas.style.cursor = 'default'; return hit }
             hotspots.forEach((hotspot) => { hotspot.highlight.visible = false })
             canvas.style.cursor = 'default'; return null
-          """
-          if old_pick not in text:
-              raise SystemExit('pick block did not match')
-          text = text.replace(old_pick, new_pick)
-
-          text = text.replace("      canvas.style.cursor = 'pointer'\n", "      canvas.style.cursor = 'default'\n")
-          text = text.replace("  const navigate = (id: SectionId) => window.location.assign(SECTIONS[id].href)\n", "")
-
-          old_up = """  const onPointerUp = (event: PointerEvent) => {
-            if (Math.hypot(event.clientX - downX, event.clientY - downY) > DRAG_THRESHOLD_PX || dragged) return
-            updatePointer(event); const hit = pick(); if (!hit) return
-            if (event.pointerType === 'touch' && lastTouchSelection !== hit) { lastTouchSelection = hit; setActive(hit); return }
-            navigate(hit)
           }
           """
-          new_up = """  const onPointerUp = (event: PointerEvent) => {
+          text, count = re.subn(r"  const pick = \(\) => \{.*?\n  \}\n", pick, text, count=1, flags=re.S)
+          if count != 1:
+              raise SystemExit(f'pick replacement count: {count}')
+
+          pointer_up = """  const onPointerUp = (event: PointerEvent) => {
             if (Math.hypot(event.clientX - downX, event.clientY - downY) > DRAG_THRESHOLD_PX || dragged) return
-            // Selection/highlighting only for now. Deliberately do not navigate.
+            // Highlight/select only. Navigation is deliberately disabled for now.
             updatePointer(event)
             pick()
           }
           """
-          if old_up not in text:
-              raise SystemExit('pointerup block did not match')
-          text = text.replace(old_up, new_up)
+          text, count = re.subn(
+              r"  const onPointerUp = \(event: PointerEvent\) => \{.*?\n  \}\n",
+              pointer_up,
+              text,
+              count=1,
+              flags=re.S,
+          )
+          if count != 1:
+              raise SystemExit(f'pointer-up replacement count: {count}')
 
+          text = text.replace("  const navigate = (id: SectionId) => window.location.assign(SECTIONS[id].href)\n", "")
           text = text.replace("  let activeId: SectionId = 'work'; let lastTouchSelection: SectionId | null = null; let frame = 0; let disposed = false\n", "  let activeId: SectionId = 'work'; let frame = 0; let disposed = false\n")
           text = text.replace("['ArrowLeft', 'ArrowRight', 'Enter', '+', '=', '-', '_', '0', 'r', 'R', 'w', 'W', 'a', 'A', 's', 'S', 'd', 'D']", "['ArrowLeft', 'ArrowRight', '+', '=', '-', '_', '0', 'r', 'R', 'w', 'W', 'a', 'A', 's', 'S', 'd', 'D']")
           text = text.replace("    if (event.key === 'Enter') navigate(activeId)\n", "")
+          text = text.replace("      canvas.style.cursor = 'pointer'\n", "      canvas.style.cursor = 'default'\n")
 
           path.write_text(text)
           PY
