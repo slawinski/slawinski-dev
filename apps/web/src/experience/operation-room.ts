@@ -292,10 +292,87 @@ const createTable = (scene: THREE.Scene) => {
 
 const createChair = (scene: THREE.Scene, x: number, z: number, rotationY: number) => {
   const group = new THREE.Group(); group.position.set(x, 0, z); group.rotation.y = rotationY
-  group.add(box([1.25, 0.16, 1.25], [0, 0.72, 0], materials.wood))
-  for (const sx of [-0.48, 0.48]) for (const sz of [-0.48, 0.48]) group.add(box([0.13, 0.72, 0.13], [sx, 0.36, sz], materials.woodDark))
-  group.add(box([1.25, 0.12, 0.14], [0, 1.42, 0.55], materials.woodDark))
-  for (const sx of [-0.5, 0, 0.5]) group.add(box([0.1, 0.74, 0.1], [sx, 1.08, 0.53], materials.woodDark))
+  const chairWood = makeMaterial(0x77471f, 0.76); chairWood.flatShading = true
+  const chairWoodDark = makeMaterial(0x4e2d18, 0.82); chairWoodDark.flatShading = true
+  const cushion = makeMaterial(0x8b7a60, 0.96); cushion.flatShading = true
+
+  // Period office armchair based on the reference: slim splayed legs, a curved
+  // horseshoe arm/back rail, vertical back spindles and a separate seat cushion.
+  // Tube and cylinder geometry keep the silhouette rounded while staying low-poly.
+  const addRail = (
+    from: [number, number, number],
+    to: [number, number, number],
+    radius: number,
+    material: THREE.Material,
+    bottomScale = 1,
+  ) => {
+    const a = new THREE.Vector3(...from)
+    const b = new THREE.Vector3(...to)
+    const direction = b.clone().sub(a)
+    const mesh = new THREE.Mesh(
+      new THREE.CylinderGeometry(radius * 0.82, radius * bottomScale, direction.length(), 7),
+      material,
+    )
+    mesh.position.copy(a).add(b).multiplyScalar(0.5)
+    mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.normalize())
+    mesh.castShadow = true; mesh.receiveShadow = true; group.add(mesh)
+  }
+  const addBentRail = (points: Array<[number, number, number]>, radius: number, material: THREE.Material) => {
+    const curve = new THREE.CatmullRomCurve3(points.map((point) => new THREE.Vector3(...point)))
+    const mesh = new THREE.Mesh(new THREE.TubeGeometry(curve, 10, radius, 6, false), material)
+    mesh.castShadow = true; mesh.receiveShadow = true; group.add(mesh)
+  }
+
+  // Seat frame and muted leather/fabric cushion. The cushion is inset slightly,
+  // avoiding the slab-like seat used by the previous chair model.
+  group.add(box([1.10, 0.12, 1.02], [0, 0.73, 0], chairWoodDark))
+  group.add(box([0.98, 0.13, 0.89], [0, 0.83, -0.02], cushion, [-0.025, 0, 0]))
+  group.add(box([0.91, 0.025, 0.80], [0, 0.905, -0.035], makeMaterial(0x9a896d, 0.94), [-0.025, 0, 0]))
+
+  // Four slender legs splay outward as in the reference instead of dropping
+  // vertically from the seat corners.
+  addRail([-0.43, 0.75, -0.39], [-0.56, 0.05, -0.54], 0.075, chairWoodDark, 1.15)
+  addRail([0.43, 0.75, -0.39], [0.56, 0.05, -0.54], 0.075, chairWoodDark, 1.15)
+  addRail([-0.43, 0.75, 0.39], [-0.55, 0.05, 0.53], 0.075, chairWoodDark, 1.15)
+  addRail([0.43, 0.75, 0.39], [0.55, 0.05, 0.53], 0.075, chairWoodDark, 1.15)
+
+  // Side/front stretchers and the crossed lower braces give the chair the
+  // characteristic light but braced wartime-office construction.
+  addRail([-0.52, 0.29, -0.49], [0.52, 0.29, -0.49], 0.034, chairWoodDark)
+  addRail([-0.52, 0.29, 0.49], [0.52, 0.29, 0.49], 0.034, chairWoodDark)
+  addRail([-0.53, 0.31, -0.48], [-0.53, 0.31, 0.48], 0.034, chairWoodDark)
+  addRail([0.53, 0.31, -0.48], [0.53, 0.31, 0.48], 0.034, chairWoodDark)
+  addRail([-0.50, 0.27, -0.42], [0.50, 0.27, 0.42], 0.028, chairWoodDark)
+  addRail([0.50, 0.265, -0.42], [-0.50, 0.265, 0.42], 0.028, chairWoodDark)
+
+  // Rear uprights rise continuously from the rear legs into the back. Front
+  // arm supports are slimmer and stop below the curved arm rail.
+  addRail([-0.44, 0.74, 0.39], [-0.51, 1.54, 0.50], 0.060, chairWoodDark, 1.08)
+  addRail([0.44, 0.74, 0.39], [0.51, 1.54, 0.50], 0.060, chairWoodDark, 1.08)
+  addRail([-0.45, 0.75, -0.37], [-0.52, 1.18, -0.39], 0.052, chairWood, 1.05)
+  addRail([0.45, 0.75, -0.37], [0.52, 1.18, -0.39], 0.052, chairWood, 1.05)
+
+  // Curved arms sweep from the back around to the front supports. This is the
+  // most important visual change from the old rectangular-chair silhouette.
+  addBentRail([
+    [-0.50, 1.47, 0.49], [-0.58, 1.39, 0.27], [-0.59, 1.30, 0.02], [-0.56, 1.22, -0.22], [-0.52, 1.18, -0.39],
+  ], 0.058, chairWood)
+  addBentRail([
+    [0.50, 1.47, 0.49], [0.58, 1.39, 0.27], [0.59, 1.30, 0.02], [0.56, 1.22, -0.22], [0.52, 1.18, -0.39],
+  ], 0.058, chairWood)
+
+  // Arched crest rail across the back.
+  addBentRail([
+    [-0.51, 1.52, 0.50], [-0.31, 1.62, 0.54], [0, 1.66, 0.56], [0.31, 1.62, 0.54], [0.51, 1.52, 0.50],
+  ], 0.062, chairWood)
+
+  // Five thin back spindles fan gently toward the crest rail.
+  const spindleXs = [-0.34, -0.17, 0, 0.17, 0.34]
+  spindleXs.forEach((sx, index) => {
+    const crown = 1.50 + (1 - Math.abs(index - 2) / 2) * 0.08
+    addRail([sx * 0.82, 0.88, 0.43], [sx, crown, 0.535], 0.026, chairWoodDark)
+  })
+
   scene.add(group)
 }
 
