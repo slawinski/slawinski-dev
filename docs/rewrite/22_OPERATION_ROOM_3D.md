@@ -44,9 +44,9 @@ room depth           13.0
 wall height           7.0
 map width              8.4
 map height             4.45
-main table width       6.2
+main table width           4.8
 main table depth       9.2
-main tabletop Y        0.86
+main tabletop Y        1.16
 radio desk width       3.7
 hanging board width    4.1
 hanging board height   0.78
@@ -54,30 +54,32 @@ hanging board height   0.78
 
 These values are anchors. Preserve approved screen-space composition rather than independently beautifying objects.
 
-## Camera — fixed, immutable menu view
+## Camera — free orbit around the saved view
 
-The camera reproduces the original menu behavior: it is a fixed observer, not a controllable part of the experience.
-
-The observer stands left of centre, broadly opposite the wall map. The map should read close to front-on.
+The default shot is the approved saved view: the observer stands left of
+centre, broadly opposite the wall map.
 
 ```text
-position  [-4.08, 4.47, 10.34]
-target    [-2.15, 2.7, -4.75]
-FOV       54deg
+home position  [-4.08, 4.47, 10.34]
+home target    [-2.15, 2.7, -4.75]
+FOV            54deg
 ```
 
-Rules:
+The camera is free to move (explicit product decision overriding the
+earlier fixed-camera rule):
 
-- position never changes after scene creation;
-- target never changes;
-- FOV never changes in response to pointer, selection, motion preferences or breakpoint;
-- no pointer parallax;
-- no orbit, pan, dolly, zoom, camera tween or hotspot focus animation;
-- selecting Work/Writing/Speaking/About/Contact changes only hotspot highlighting and the hanging-board label;
-- resizing may update the projection **aspect ratio only** so the same physical camera pose is preserved;
-- narrow screens therefore see a naturally narrower crop of the same room rather than a different camera composition.
-
-This fixed shot is an acceptance criterion. Do not add cinematic camera movement later without an explicit product decision.
+- drag orbits, wheel / pinch dollies, right-drag / two-finger drag pans;
+- distance clamped to 5–22, polar angle to 0.5–1.53 rad, azimuth to
+  −0.98–0.72 rad, pan target clamped to the room volume — the camera can
+  never leave the room or go under the floor;
+- FOV never changes; resizing updates the projection **aspect ratio only**;
+- selecting Work/Writing/Speaking/About/Contact changes only hotspot
+  highlighting and the hanging-board label — never the camera;
+- click vs drag is distinguished by a 6px threshold so orbiting never
+  opens a route by accident;
+- `Reset view` button and the `0` / `R` key restore the saved home shot;
+- `prefers-reduced-motion` disables damping (camera jumps instead of
+  gliding).
 
 ## Geometry strategy
 
@@ -85,11 +87,11 @@ Initial implementation is procedural and low-poly: room shell/beam boxes, map pl
 
 ## Interaction
 
-Desktop: raycast on move, subtle hotspot highlight, board update, click opens route. **Hover never moves the camera.**
+Desktop: drag to orbit, wheel to zoom, right-drag to pan; raycast on move highlights hotspots and updates the board; click (no drag) opens the route. **Hover never moves the camera.**
 
-Touch: first tap selects; second tap on same hotspot opens.
+Touch: drag orbits, pinch zooms; tap selects, second tap on the same hotspot opens.
 
-Keyboard: left/right cycles; Enter opens; semantic fallback nav remains available. Default selection is `WORK`.
+Keyboard: left/right cycles; Enter opens; `+`/`-` zoom; `WASD` pans; `0`/`R` resets; semantic fallback nav remains available. Default selection is `WORK`.
 
 ## Hanging board
 
@@ -112,4 +114,4 @@ Low-poly is intentional; polygon count is not a quality metric.
 
 ## Non-goals
 
-Photorealism, PBR material libraries, free movement, camera parallax, camera animation, floating HTML labels, a multi-row menu board, or rendering long-form content inside WebGL.
+Photorealism, PBR material libraries, floating HTML labels, a multi-row menu board, or rendering long-form content inside WebGL.

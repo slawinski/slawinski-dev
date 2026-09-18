@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 
 type SectionId = 'work' | 'writing' | 'speaking' | 'about' | 'contact'
 
@@ -45,9 +46,9 @@ const WORLD = {
   roomDepth: 13,
   wallHeight: 7,
   map: { x: -2.55, y: 3.42, z: -5.79, width: 8.4, height: 4.45 },
-  mainTable: { x: 2.1, y: 0.86, z: 1.15, width: 6.2, depth: 9.2 },
-  radioDesk: { x: -5.9, y: 0.76, z: -2.25, width: 3.7, depth: 1.25 },
-  board: { x: -5.25, y: 5.55, z: -2.1, width: 4.1, height: 0.78 },
+  mainTable: { x: 1.4, y: 1.16, z: 1.15, width: 4.8, depth: 9.2 },
+  radioDesk: { x: -5.9, y: 1.18, z: -2.25, width: 3.7, depth: 1.25 },
+  board: { x: -5.25, y: 5.55, z: -1.4, width: 4.1, height: 0.78 },
 }
 
 const makeMaterial = (color: number, roughness = 0.88) =>
@@ -96,6 +97,23 @@ const cylinder = (
   const mesh = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, height, segments), material)
   mesh.position.set(...position)
   mesh.rotation.set(...rotation)
+  mesh.castShadow = true
+  mesh.receiveShadow = true
+  return mesh
+}
+
+const strut = (
+  from: [number, number, number],
+  to: [number, number, number],
+  material: THREE.Material,
+) => {
+  const a = new THREE.Vector3(...from)
+  const b = new THREE.Vector3(...to)
+  const direction = b.clone().sub(a)
+  const length = direction.length()
+  const mesh = new THREE.Mesh(new THREE.BoxGeometry(0.46, length, 0.18), material)
+  mesh.position.copy(a).add(b).multiplyScalar(0.5)
+  mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.normalize())
   mesh.castShadow = true
   mesh.receiveShadow = true
   return mesh
@@ -197,7 +215,7 @@ const createHangingBoard = (scene: THREE.Scene) => {
   const rodLength = 1.28
   board.add(cylinder(0.028, rodLength, [-width * 0.36, height / 2 + rodLength / 2, 0], materials.metalDark, 8))
   board.add(cylinder(0.028, rodLength, [width * 0.36, height / 2 + rodLength / 2, 0], materials.metalDark, 8))
-  board.rotation.y = -0.12; scene.add(board)
+  board.rotation.y = 0; scene.add(board)
   return boardState.draw
 }
 
@@ -210,21 +228,49 @@ const createRoomShell = (scene: THREE.Scene) => {
 
   const beamMaterial = makeMaterial(0xb5aa8e, 0.95)
   const beamSpecs: Array<[[number, number, number], [number, number, number], [number, number, number]]> = [
-    [[8.8, 0.34, 0.38], [1.4, 6.35, -1.9], [0, 0, -0.03]],
-    [[8.5, 0.32, 0.36], [3.8, 5.95, -0.2], [0, 0, -0.38]],
-    [[8.3, 0.30, 0.34], [5.25, 5.5, 0.9], [0, 0, -0.69]],
-    [[0.34, 5.6, 0.34], [4.15, 3.5, -2.2], [0, 0, 0]],
+    [[18, 0.58, 0.62], [0, 6.35, -1.9], [0, 0, 0]],
+    [[18, 0.58, 0.62], [0, 6.35, 1.0], [0, 0, 0]],
+    [[0.62, 6.3, 0.62], [5.3, 3.15, -1.9], [0, 0, 0]],
+    [[0.62, 6.3, 0.62], [5.3, 3.15, 1.0], [0, 0, 0]],
+    [[0.62, 6.3, 0.62], [-8.83, 3.15, -1.9], [0, 0, 0]],
+    [[0.62, 6.3, 0.62], [-8.83, 3.15, 1.0], [0, 0, 0]],
   ]
   for (const [size, position, rotation] of beamSpecs) scene.add(box(size, position, beamMaterial, rotation))
+  // Surface-mounted planks: the front/back z offsets are the post half-depth
+  // plus half the plank depth, so the planks sit against the timber faces
+  // instead of passing through them. They continue above the beams into the
+  // ceiling structure.
+  scene.add(strut([5.3, 4.7, -1.5], [1.06, 7.15, -1.5], beamMaterial))
+  scene.add(strut([5.3, 4.7, -2.3], [9.54, 7.15, -2.3], beamMaterial))
+  scene.add(strut([5.3, 4.7, 1.4], [1.06, 7.15, 1.4], beamMaterial))
+  scene.add(strut([5.3, 4.7, 0.6], [9.54, 7.15, 0.6], beamMaterial))
+  scene.add(strut([-8.83, 4.7, -1.5], [-4.59, 7.15, -1.5], beamMaterial))
+  scene.add(strut([-8.83, 4.7, 1.4], [-4.59, 7.15, 1.4], beamMaterial))
 
   scene.add(box([1.7, 4.9, 0.28], [2.75, 2.45, WORLD.backWallZ + 0.02], materials.black))
-  scene.add(box([1.65, 4.2, 0.26], [5.65, 2.1, WORLD.backWallZ + 0.02], materials.wood))
-  for (let y = 0.55; y <= 3.5; y += 0.72) scene.add(box([1.48, 0.045, 0.03], [5.65, y, WORLD.backWallZ + 0.18], materials.woodDark))
+  scene.add(box([0.26, 4.2, 1.65], [8.82, 2.1, -2.95], materials.wood))
+  for (let y = 0.55; y <= 3.5; y += 0.72) scene.add(box([0.03, 0.045, 1.48], [8.66, y, -2.95], materials.woodDark))
 
-  scene.add(cylinder(0.38, 0.10, [3.8, 5.0, WORLD.backWallZ + 0.35], materials.black, 16, [Math.PI / 2, 0, 0]))
-  scene.add(cylinder(0.31, 0.025, [3.8, 5.0, WORLD.backWallZ + 0.41], materials.paperLight, 16, [Math.PI / 2, 0, 0]))
-  scene.add(box([0.025, 0.22, 0.02], [3.8, 5.07, WORLD.backWallZ + 0.45], materials.black, [0, 0, -0.25]))
-  scene.add(box([0.025, 0.16, 0.02], [3.83, 4.94, WORLD.backWallZ + 0.45], materials.black, [0, 0, 0.65]))
+  // The clock is mounted on the visible face of the front strut. The strut
+  // face is at z=-1.41; keep the clock's rear rim just in front of it so the
+  // dial never intersects the plank after the support structure is thickened.
+  scene.add(cylinder(0.38, 0.10, [4.6, 5.28, -1.34], materials.black, 16, [Math.PI / 2, 0, 0]))
+  scene.add(cylinder(0.31, 0.025, [4.6, 5.28, -1.28], materials.paperLight, 16, [Math.PI / 2, 0, 0]))
+  const clockCenter: [number, number, number] = [4.6, 5.28, -1.26]
+  const minuteHand = new THREE.Group(); minuteHand.position.set(...clockCenter)
+  minuteHand.add(box([0.025, 0.22, 0.02], [0, 0.11, 0], materials.black))
+  const hourHand = new THREE.Group(); hourHand.position.set(...clockCenter)
+  hourHand.add(box([0.025, 0.16, 0.02], [0, 0.08, 0], materials.black))
+  scene.add(minuteHand, hourHand)
+  const updateClock = () => {
+    const now = new Date()
+    const minutes = now.getMinutes() + now.getSeconds() / 60
+    const hours = (now.getHours() % 12) + minutes / 60
+    minuteHand.rotation.z = -minutes / 60 * Math.PI * 2
+    hourHand.rotation.z = -hours / 12 * Math.PI * 2
+  }
+  updateClock()
+  return updateClock
 }
 
 const createMapBoard = (scene: THREE.Scene) => {
@@ -240,8 +286,8 @@ const createTable = (scene: THREE.Scene) => {
   const { x, y, z, width, depth } = WORLD.mainTable
   scene.add(box([width, 0.18, depth], [x, y, z], materials.wood))
   scene.add(box([width - 0.42, 0.035, depth - 0.32], [x, y + 0.11, z], materials.felt))
-  for (const lx of [x - width / 2 + 0.32, x + width / 2 - 0.32]) for (const lz of [z - depth / 2 + 0.42, z + depth / 2 - 0.42]) scene.add(box([0.28, 0.86, 0.28], [lx, 0.43, lz], materials.woodDark))
-  scene.add(box([4.8, 0.46, 0.65], [x + 0.35, y + 0.31, z - 1.0], materials.wood))
+  for (const lx of [x - width / 2 + 0.32, x + width / 2 - 0.32]) for (const lz of [z - depth / 2 + 0.42, z + depth / 2 - 0.42]) scene.add(box([0.28, 1.07, 0.28], [lx, 0.535, lz], materials.woodDark))
+  scene.add(box([1.2, 0.46, 9.2], [1.4, y + 0.31, z], materials.wood))
 }
 
 const createChair = (scene: THREE.Scene, x: number, z: number, rotationY: number) => {
@@ -254,7 +300,7 @@ const createChair = (scene: THREE.Scene, x: number, z: number, rotationY: number
 }
 
 const createPhone = (scene: THREE.Scene, x: number, z: number, color: number, rotationY = 0) => {
-  const group = new THREE.Group(); group.position.set(x, 1.26, z); group.rotation.y = rotationY
+  const group = new THREE.Group(); group.position.set(x, 1.81, z); group.rotation.y = rotationY
   const phoneMaterial = makeMaterial(color, 0.82)
   group.add(box([0.78, 0.22, 0.62], [0, 0, 0], phoneMaterial))
   group.add(cylinder(0.19, 0.035, [0.12, 0.14, 0.08], materials.paperLight, 12, [Math.PI / 2, 0, 0]))
@@ -265,7 +311,7 @@ const createPhone = (scene: THREE.Scene, x: number, z: number, color: number, ro
 }
 
 const createDeskLamp = (scene: THREE.Scene, x: number, z: number, scale = 1) => {
-  const group = new THREE.Group(); group.position.set(x, 0, z)
+  const group = new THREE.Group(); group.position.set(x, 0.3, z)
   group.add(cylinder(0.25 * scale, 0.07 * scale, [0, 1.02, 0], materials.brass, 12))
   group.add(cylinder(0.035 * scale, 0.7 * scale, [0, 1.4, 0], materials.brass, 8))
   const shade = new THREE.Mesh(new THREE.ConeGeometry(0.36 * scale, 0.3 * scale, 8, 1, true), materials.green)
@@ -276,7 +322,7 @@ const createRadioDesk = (scene: THREE.Scene) => {
   const { x, y, z, width, depth } = WORLD.radioDesk
   scene.add(box([width, 0.14, depth], [x, y, z], materials.wood))
   for (const lx of [x - width / 2 + 0.25, x + width / 2 - 0.25]) scene.add(box([0.24, y, 0.24], [lx, y / 2, z - depth * 0.25], materials.woodDark))
-  const radios: Array<[number, number, number]> = [[-6.75, 1.3, -2.45], [-5.85, 1.15, -2.35], [-5.05, 1.22, -2.35]]
+  const radios: Array<[number, number, number]> = [[-6.75, 1.72, -2.45], [-5.85, 1.57, -2.35], [-5.05, 1.64, -2.35]]
   radios.forEach(([rx, ry, rz], index) => {
     scene.add(box([0.72, 0.58 + index * 0.05, 0.48], [rx, ry, rz], materials.metal))
     scene.add(cylinder(0.11, 0.04, [rx - 0.18, ry, rz + 0.26], materials.black, 10, [Math.PI / 2, 0, 0]))
@@ -285,18 +331,31 @@ const createRadioDesk = (scene: THREE.Scene) => {
 }
 
 const createProjector = (scene: THREE.Scene) => {
-  const group = new THREE.Group(); group.position.set(4.45, 1.2, 3.15); group.rotation.y = -0.25
-  group.add(box([1.15, 1.15, 1.15], [0, 0.38, 0], materials.metal))
-  for (const [y, radius] of [[1.34, 0.72], [0.25, 0.62]] as const) {
-    group.add(cylinder(radius, 0.13, [0.18, y, -0.06], materials.metal, 10, [Math.PI / 2, 0, 0]))
-    group.add(cylinder(radius * 0.18, 0.18, [0.18, y, -0.13], materials.metalDark, 8, [Math.PI / 2, 0, 0]))
+  const group = new THREE.Group(); group.position.set(1.4, 1.88, 3.9); group.rotation.y = -1.57
+  group.add(box([0.72, 0.85, 0.8], [0, 0.33, 0], materials.metal))
+  for (const fx of [-0.26, 0.26]) for (const fz of [-0.3, 0.3]) group.add(box([0.1, 0.08, 0.1], [fx, -0.135, fz], materials.metalDark))
+  for (const [y, radius] of [[0.98, 0.45], [0.3, 0.38]] as const) {
+    group.add(cylinder(radius, 0.1, [0.12, y, -0.04], materials.metal, 10, [Math.PI / 2, 0, 0]))
+    group.add(cylinder(radius * 0.18, 0.14, [0.12, y, -0.09], materials.metalDark, 8, [Math.PI / 2, 0, 0]))
   }
-  group.add(cylinder(0.18, 1.2, [-0.65, 0.52, 0.02], materials.metalDark, 8, [0, 0, Math.PI / 2])); scene.add(group)
+  group.add(cylinder(0.12, 0.85, [-0.45, 0.42, 0.02], materials.metalDark, 8, [0, 0, Math.PI / 2]))
+  group.add(cylinder(0.15, 0.08, [-0.88, 0.42, 0.02], materials.metalDark, 8, [0, 0, Math.PI / 2]))
+  const lensGlass = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.11, 0.11, 0.02, 12),
+    new THREE.MeshStandardMaterial({ color: 0x1a2530, roughness: 0.2, metalness: 0.2, emissive: 0xffe2a8, emissiveIntensity: 0.5 }),
+  )
+  lensGlass.position.set(-0.93, 0.42, 0.02); lensGlass.rotation.z = Math.PI / 2; group.add(lensGlass)
+  for (let i = 0; i < 4; i += 1) group.add(box([0.3, 0.03, 0.02], [0.1, 0.08 + i * 0.09, -0.41], materials.black))
+  group.add(cylinder(0.05, 0.07, [0.22, 0.79, 0.28], materials.brass, 8))
+  group.add(cylinder(0.045, 0.06, [-0.2, 0.785, 0.28], materials.metalDark, 8))
+  for (const hx of [-0.2, 0.2]) group.add(box([0.05, 0.2, 0.05], [hx, 0.855, -0.28], materials.metalDark))
+  group.add(box([0.45, 0.05, 0.05], [0, 0.975, -0.28], materials.metalDark))
+  scene.add(group)
 }
 
 const createPendant = (scene: THREE.Scene, position: [number, number, number], color: number, intensity: number, distance: number) => {
   const [x, y, z] = position
-  scene.add(cylinder(0.022, 1.2, [x, y + 0.72, z], materials.black, 6))
+  scene.add(cylinder(0.022, 2.0, [x, y + 1.0, z], materials.black, 6))
   const shade = new THREE.Mesh(new THREE.ConeGeometry(0.35, 0.34, 8, 1, true), makeMaterial(color, 0.9))
   shade.position.set(x, y, z); shade.rotation.x = Math.PI; scene.add(shade)
   const light = new THREE.PointLight(0xffd38a, intensity, distance, 1.7)
@@ -304,21 +363,45 @@ const createPendant = (scene: THREE.Scene, position: [number, number, number], c
 }
 
 const createWallFan = (scene: THREE.Scene) => {
-  const group = new THREE.Group(); group.position.set(6.3, 4.35, -5.75)
-  group.add(new THREE.Mesh(new THREE.TorusGeometry(0.52, 0.028, 6, 18), materials.metalDark))
-  group.add(cylinder(0.12, 0.16, [0, 0, 0.03], materials.metalDark, 10, [Math.PI / 2, 0, 0]))
-  for (let i = 0; i < 4; i += 1) group.add(box([0.12, 0.62, 0.035], [0, 0.27, 0], materials.metal, [0, 0, i * Math.PI / 2 + 0.42]))
+  const group = new THREE.Group(); group.position.set(4.7, 4.3, 1.0); group.rotation.y = -Math.PI / 2
+  group.add(cylinder(0.06, 0.55, [0, 0, -0.3], materials.metalDark, 8, [Math.PI / 2, 0, 0]))
+  group.add(cylinder(0.15, 0.32, [0, 0, -0.18], materials.metalDark, 10, [Math.PI / 2, 0, 0]))
+  group.add(new THREE.Mesh(new THREE.TorusGeometry(0.52, 0.008, 6, 24), materials.metalDark))
+  const cageWireGeo = new THREE.TorusGeometry(0.515, 0.008, 4, 16, Math.PI)
+  const addCageSide = (rimZ: number, flip: boolean) => {
+    for (let i = 0; i < 8; i += 1) {
+      const pivot = new THREE.Group(); pivot.rotation.z = i * Math.PI / 8
+      const wire = new THREE.Mesh(cageWireGeo, materials.metalDark)
+      wire.scale.set(1, 0.5, 1)
+      wire.rotation.x = flip ? -Math.PI / 2 : Math.PI / 2
+      wire.position.z = rimZ
+      pivot.add(wire); group.add(pivot)
+    }
+  }
+  addCageSide(0, false)
+  addCageSide(0, true)
+  group.add(cylinder(0.07, 0.025, [0, 0, 0.25], materials.metalDark, 10, [Math.PI / 2, 0, 0]))
+  const spinner = new THREE.Group(); group.add(spinner)
+  for (let i = 0; i < 5; i += 1) {
+    const pivot = new THREE.Group(); pivot.rotation.z = i * Math.PI * 2 / 5
+    const blade = box([0.15, 0.38, 0.02], [0, 0.28, 0.02], materials.metal)
+    blade.rotation.y = 0.5
+    pivot.add(blade); spinner.add(pivot)
+  }
+  group.add(cylinder(0.13, 0.1, [0, 0, 0.02], materials.metalDark, 12, [Math.PI / 2, 0, 0]))
+  group.add(cylinder(0.06, 0.06, [0, 0, 0.08], materials.metal, 8, [Math.PI / 2, 0, 0]))
   scene.add(group)
+  return spinner
 }
 
 const createPaperCluster = (scene: THREE.Scene) => {
-  const papers = new THREE.Group(); papers.position.set(0.65, 1.0, 2.35)
+  const papers = new THREE.Group(); papers.position.set(-0.25, 1.3, 2.35)
   papers.add(box([1.75, 0.025, 1.15], [0, 0, 0], materials.paperLight, [0, 0.08, 0]))
   papers.add(box([1.35, 0.028, 0.95], [0.2, 0.035, 0.13], materials.paper, [0, -0.05, 0])); scene.add(papers)
 }
 
 const createFolders = (scene: THREE.Scene) => {
-  const group = new THREE.Group(); group.position.set(-0.45, 1.12, -0.15)
+  const group = new THREE.Group(); group.position.set(-0.45, 1.42, -0.15)
   for (let i = 0; i < 4; i += 1) group.add(box([1.35, 0.12, 0.95], [0.06 * i, i * 0.13, -0.03 * i], i % 2 ? materials.green : materials.woodDark))
   scene.add(group)
 }
@@ -333,21 +416,21 @@ const createHotspot = (scene: THREE.Scene, id: SectionId, size: [number, number,
 }
 
 const createScene = (scene: THREE.Scene, camera: THREE.PerspectiveCamera) => {
-  createRoomShell(scene); createTable(scene); createRadioDesk(scene); createMapBoard(scene); createProjector(scene); createPaperCluster(scene); createFolders(scene); createWallFan(scene)
-  createChair(scene, -2.65, 2.15, 0.5); createChair(scene, 5.15, -0.2, -1.2); createChair(scene, 5.4, 2.2, -1.15)
-  createPhone(scene, 0.2, -1.4, 0x315b3c, 0.08); createPhone(scene, 1.25, -1.25, 0xd8ceb0, -0.03); createPhone(scene, 2.35, -1.0, PALETTE.red, 0.08); createPhone(scene, 3.4, -0.75, 0xd9d1b8, 0.14); createPhone(scene, 4.25, -0.45, 0x315b3c, 0.2)
-  createDeskLamp(scene, -0.75, -0.85, 0.9); createDeskLamp(scene, 1.0, 0.6, 0.92)
-  createPendant(scene, [-2.95, 5.25, -4.8], 0x284b2e, 2.2, 7); createPendant(scene, [-1.35, 5.0, -4.75], 0x5e8a32, 1.4, 5); createPendant(scene, [4.9, 4.6, -4.9], 0x4f632c, 0.7, 4)
+  const updateClock = createRoomShell(scene); createTable(scene); createRadioDesk(scene); createMapBoard(scene); createProjector(scene); createPaperCluster(scene); createFolders(scene); const fanSpinner = createWallFan(scene)
+  createChair(scene, -2.65, 2.15, -1.07); createChair(scene, 4.5, -0.2, 1.91); createChair(scene, 4.5, 2.2, 1.31)
+  createPhone(scene, 1.4, -2.25, 0x315b3c, 3.14); createPhone(scene, 1.4, -1.4, 0xd8ceb0, -1.57); createPhone(scene, 1.4, -0.55, PALETTE.red, 1.57); createPhone(scene, 1.4, 0.3, 0xd9d1b8, -1.57); createPhone(scene, 1.4, 1.15, 0x315b3c, 1.57)
+  createDeskLamp(scene, -0.75, -0.85, 0.9); createDeskLamp(scene, 0.3, 0.6, 0.92)
+  createPendant(scene, [-1.35, 5.0, -4.75], 0x5e8a32, 1.4, 5)
   const boardDraw = createHangingBoard(scene)
   const hotspots: Hotspot[] = [
     createHotspot(scene, 'work', [8.55, 4.5, 0.28], [WORLD.map.x, WORLD.map.y, WORLD.map.z + 0.3]),
-    createHotspot(scene, 'writing', [2.5, 0.62, 2.2], [0.7, 1.13, 2.2]),
+    createHotspot(scene, 'writing', [2.0, 0.62, 2.2], [-0.2, 1.43, 2.2]),
     createHotspot(scene, 'speaking', [3.8, 1.9, 1.5], [WORLD.radioDesk.x, 1.35, WORLD.radioDesk.z]),
-    createHotspot(scene, 'contact', [5.2, 1.45, 2.0], [2.35, 1.42, -0.95]),
-    createHotspot(scene, 'about', [2.35, 2.5, 2.0], [4.45, 2.0, 3.15]),
+    createHotspot(scene, 'contact', [1.1, 1.6, 4.1], [1.4, 1.9, -0.55]),
+    createHotspot(scene, 'about', [2.35, 2.5, 1.5], [1.4, 2.4, 4.05]),
   ]
   camera.position.set(-4.08, 4.47, 10.34); camera.lookAt(-2.15, 2.7, -4.75)
-  return { hotspots, boardDraw }
+  return { hotspots, boardDraw, fanSpinner, updateClock }
 }
 
 export const mountOperationRoom = (root: HTMLElement) => {
@@ -370,11 +453,30 @@ export const mountOperationRoom = (root: HTMLElement) => {
   const warmFill = new THREE.DirectionalLight(0xffd599, 1.15); warmFill.position.set(-4, 7, 7); warmFill.castShadow = true; warmFill.shadow.mapSize.set(1024, 1024); scene.add(warmFill)
   const coolFill = new THREE.DirectionalLight(0xb8d0cb, 0.45); coolFill.position.set(7, 5, -1); scene.add(coolFill)
 
-  const { hotspots, boardDraw } = createScene(scene, camera)
+  const { hotspots, boardDraw, fanSpinner, updateClock } = createScene(scene, camera)
   const raycaster = new THREE.Raycaster(); const pointer = new THREE.Vector2(2, 2)
-  const baseCameraPosition = camera.position.clone(); const currentCameraPosition = camera.position.clone(); const targetCameraPosition = camera.position.clone(); const targetLookAt = new THREE.Vector3(-2.15, 2.7, -4.75)
+  const HOME_POSITION = new THREE.Vector3(-4.08, 4.47, 10.34)
+  const HOME_TARGET = new THREE.Vector3(-2.15, 2.7, -4.75)
+  const TARGET_BOUNDS = { minX: -6, maxX: 4, minY: 0.8, maxY: 5.2, minZ: -5.8, maxZ: 4 }
+  const DRAG_THRESHOLD_PX = 6
+  const controls = new OrbitControls(camera, canvas)
+  controls.target.copy(HOME_TARGET)
+  controls.enableDamping = true
+  controls.dampingFactor = 0.08
+  controls.minDistance = 5
+  controls.maxDistance = 22
+  controls.minPolarAngle = 0.5
+  controls.maxPolarAngle = 1.53
+  controls.minAzimuthAngle = -0.98
+  controls.maxAzimuthAngle = 0.72
+  controls.update()
   let activeId: SectionId = 'work'; let lastTouchSelection: SectionId | null = null; let frame = 0; let disposed = false
-  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)'); const coarsePointer = window.matchMedia('(pointer: coarse)')
+  let lastTime = performance.now()
+  const FAN_SPEED = 4
+  let downX = 0; let downY = 0; let dragged = false
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
+  const applyMotionPreference = () => { controls.enableDamping = !reducedMotion.matches }
+  applyMotionPreference()
 
   const setActive = (id: SectionId) => {
     if (id === activeId) return
@@ -392,37 +494,87 @@ export const mountOperationRoom = (root: HTMLElement) => {
     canvas.style.cursor = 'default'; return null
   }
   const onPointerMove = (event: PointerEvent) => {
+    if (dragged || (event.buttons & 1) === 1 || (event.buttons & 2) === 2) return
     if (event.pointerType === 'touch') return
     updatePointer(event); pick()
-    if (!reducedMotion.matches && !coarsePointer.matches) targetCameraPosition.copy(baseCameraPosition)
   }
   const navigate = (id: SectionId) => window.location.assign(SECTIONS[id].href)
+  const resetView = () => {
+    camera.position.copy(HOME_POSITION)
+    controls.target.copy(HOME_TARGET)
+    controls.update()
+  }
   const onPointerDown = (event: PointerEvent) => {
+    downX = event.clientX; downY = event.clientY; dragged = false
+  }
+  const onPointerUp = (event: PointerEvent) => {
+    if (Math.hypot(event.clientX - downX, event.clientY - downY) > DRAG_THRESHOLD_PX || dragged) return
     updatePointer(event); const hit = pick(); if (!hit) return
     if (event.pointerType === 'touch' && lastTouchSelection !== hit) { lastTouchSelection = hit; setActive(hit); return }
     navigate(hit)
   }
+  const onDragMove = (event: PointerEvent) => {
+    if (Math.hypot(event.clientX - downX, event.clientY - downY) > DRAG_THRESHOLD_PX) dragged = true
+  }
+  const dolly = (direction: 1 | -1) => {
+    const offset = camera.position.clone().sub(controls.target)
+    const next = offset.length() * (direction === 1 ? 1.15 : 1 / 1.15)
+    const clamped = THREE.MathUtils.clamp(next, controls.minDistance, controls.maxDistance)
+    offset.setLength(clamped)
+    camera.position.copy(controls.target).add(offset)
+    controls.update()
+  }
+  const panTarget = (dx: number, dz: number) => {
+    controls.target.x = THREE.MathUtils.clamp(controls.target.x + dx, TARGET_BOUNDS.minX, TARGET_BOUNDS.maxX)
+    controls.target.y = THREE.MathUtils.clamp(controls.target.y, TARGET_BOUNDS.minY, TARGET_BOUNDS.maxY)
+    controls.target.z = THREE.MathUtils.clamp(controls.target.z + dz, TARGET_BOUNDS.minZ, TARGET_BOUNDS.maxZ)
+    controls.update()
+  }
   const onKeyDown = (event: KeyboardEvent) => {
-    if (!['ArrowLeft', 'ArrowRight', 'Enter'].includes(event.key)) return
-    event.preventDefault(); const index = SECTION_ORDER.indexOf(activeId)
+    if (['ArrowLeft', 'ArrowRight', 'Enter', '+', '=', '-', '_', '0', 'r', 'R', 'w', 'W', 'a', 'A', 's', 'S', 'd', 'D'].includes(event.key)) event.preventDefault(); else return
+    const index = SECTION_ORDER.indexOf(activeId)
     if (event.key === 'ArrowLeft') setActive(SECTION_ORDER[(index - 1 + SECTION_ORDER.length) % SECTION_ORDER.length])
     if (event.key === 'ArrowRight') setActive(SECTION_ORDER[(index + 1) % SECTION_ORDER.length])
     if (event.key === 'Enter') navigate(activeId)
+    if (event.key === '+' || event.key === '=') dolly(-1)
+    if (event.key === '-' || event.key === '_') dolly(1)
+    if (event.key === '0' || event.key === 'r' || event.key === 'R') resetView()
+    if (event.key === 'w' || event.key === 'W') panTarget(0, -0.6)
+    if (event.key === 's' || event.key === 'S') panTarget(0, 0.6)
+    if (event.key === 'a' || event.key === 'A') panTarget(-0.6, 0)
+    if (event.key === 'd' || event.key === 'D') panTarget(0.6, 0)
+  }
+  const clampTarget = () => {
+    controls.target.x = THREE.MathUtils.clamp(controls.target.x, TARGET_BOUNDS.minX, TARGET_BOUNDS.maxX)
+    controls.target.y = THREE.MathUtils.clamp(controls.target.y, TARGET_BOUNDS.minY, TARGET_BOUNDS.maxY)
+    controls.target.z = THREE.MathUtils.clamp(controls.target.z, TARGET_BOUNDS.minZ, TARGET_BOUNDS.maxZ)
   }
   const render = () => {
     if (disposed) return
-    if (!reducedMotion.matches) { currentCameraPosition.lerp(targetCameraPosition, 0.055); camera.position.copy(currentCameraPosition); camera.lookAt(targetLookAt) }
+    const now = performance.now()
+    const dt = Math.min((now - lastTime) / 1000, 0.1)
+    lastTime = now
+    if (!reducedMotion.matches) fanSpinner.rotation.z -= dt * FAN_SPEED
+    updateClock()
+    clampTarget()
+    controls.update()
     renderer.render(scene, camera); frame = requestAnimationFrame(render)
   }
   const onContextLost = (event: Event) => { event.preventDefault(); root.dataset.webgl = 'failed' }
+  const resetButton = root.querySelector<HTMLElement>('[data-operation-room-reset]')
+  const onResetClick = () => resetView()
 
   resize(); selectDefault(); loading?.setAttribute('data-ready', 'true')
-  canvas.addEventListener('pointermove', onPointerMove); canvas.addEventListener('pointerdown', onPointerDown); canvas.addEventListener('keydown', onKeyDown); canvas.addEventListener('webglcontextlost', onContextLost); window.addEventListener('resize', resize)
+  canvas.addEventListener('pointermove', onPointerMove); canvas.addEventListener('pointermove', onDragMove); canvas.addEventListener('pointerdown', onPointerDown); canvas.addEventListener('pointerup', onPointerUp); canvas.addEventListener('keydown', onKeyDown); canvas.addEventListener('webglcontextlost', onContextLost); resetButton?.addEventListener('click', onResetClick)
+  if (typeof reducedMotion.addEventListener === 'function') reducedMotion.addEventListener('change', applyMotionPreference)
+  window.addEventListener('resize', resize)
   frame = requestAnimationFrame(render)
 
   return () => {
     disposed = true; cancelAnimationFrame(frame)
-    canvas.removeEventListener('pointermove', onPointerMove); canvas.removeEventListener('pointerdown', onPointerDown); canvas.removeEventListener('keydown', onKeyDown); canvas.removeEventListener('webglcontextlost', onContextLost); window.removeEventListener('resize', resize); renderer.dispose()
+    canvas.removeEventListener('pointermove', onPointerMove); canvas.removeEventListener('pointermove', onDragMove); canvas.removeEventListener('pointerdown', onPointerDown); canvas.removeEventListener('pointerup', onPointerUp); canvas.removeEventListener('keydown', onKeyDown); canvas.removeEventListener('webglcontextlost', onContextLost); resetButton?.removeEventListener('click', onResetClick)
+    if (typeof reducedMotion.removeEventListener === 'function') reducedMotion.removeEventListener('change', applyMotionPreference)
+    window.removeEventListener('resize', resize); controls.dispose(); renderer.dispose()
     scene.traverse((object) => {
       if (!(object instanceof THREE.Mesh)) return
       object.geometry.dispose(); const objectMaterials = Array.isArray(object.material) ? object.material : [object.material]

@@ -1,7 +1,8 @@
 <section class="operation-room" data-operation-room>
-  <canvas class="operation-room__canvas" data-operation-room-canvas tabindex="0" aria-label="Interactive 3D operations room. The camera is fixed. Use the left and right arrow keys to select a section and Enter to open it."></canvas>
+  <canvas class="operation-room__canvas" data-operation-room-canvas tabindex="0" aria-label="Interactive 3D operations room. Drag to look around, scroll or pinch to zoom, right-drag to pan. Left and right arrow keys select a section, Enter opens it, plus and minus zoom, WASD pans, 0 resets the view."></canvas>
   <div class="operation-room__loading" data-operation-room-loading aria-hidden="true"><span>Preparing operations room…</span></div>
-  <div class="operation-room__help" aria-hidden="true"><span class="operation-room__dot"></span><span>Point to select</span><span>•</span><span>Click to open</span></div>
+  <div class="operation-room__help" aria-hidden="true"><span class="operation-room__dot"></span><span>Drag to look</span><span>•</span><span>Scroll to zoom</span><span>•</span><span>Click to open</span></div>
+  <button class="operation-room__reset" type="button" data-operation-room-reset>Reset view</button>
   <p class="operation-room__live sr-only" data-operation-room-live aria-live="polite">Work selected</p>
   <nav id="experience-navigation" class="operation-room__fallback" aria-label="Portfolio sections" tabindex="-1">
     <p>3D navigation fallback</p>
@@ -23,6 +24,8 @@
   .operation-room__loading[data-ready='true'] { opacity: 0; }
   .operation-room__help { position: absolute; left: 1rem; bottom: .75rem; display: flex; gap: .6rem; align-items: center; padding: .35rem .55rem; color: rgb(240 235 208 / .82); background: rgb(14 20 18 / .42); font-size: .68rem; letter-spacing: .035em; text-transform: uppercase; pointer-events: none; }
   .operation-room__dot { width: .42rem; height: .42rem; border-radius: 50%; background: #89c76c; box-shadow: 0 0 .5rem rgb(137 199 108 / .5); }
+  .operation-room__reset { position: absolute; right: 1rem; bottom: .75rem; padding: .45rem .7rem; color: #f3edcf; background: rgb(14 20 18 / .6); border: 1px solid #718461; font: inherit; font-size: .68rem; letter-spacing: .035em; text-transform: uppercase; cursor: pointer; }
+  .operation-room__reset:hover, .operation-room__reset:focus-visible { outline: none; background: #36572f; border-color: #9cb97d; }
   .operation-room__fallback { position: fixed; z-index: 20; left: 50%; bottom: 1rem; display: flex; gap: .25rem; align-items: center; max-width: calc(100vw - 2rem); padding: .4rem; transform: translate(-50%, calc(100% + 3rem)); color: #f3edcf; background: rgb(13 17 15 / .96); border: 1px solid #718461; box-shadow: 0 .5rem 2rem rgb(0 0 0 / .32); transition: transform 140ms ease; }
   .operation-room__fallback:focus-within, .operation-room__fallback:target, .operation-room[data-webgl='failed'] .operation-room__fallback { transform: translate(-50%, 0); }
   .operation-room__fallback p { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
@@ -32,6 +35,6 @@
   .operation-room__noscript { position: absolute; inset: 1rem; display: grid; place-content: center; gap: .75rem; padding: 2rem; color: #f3edcf; background: #202926; text-align: center; }
   .operation-room__noscript a { color: inherit; }
   .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
-  @media (max-width: 700px) { .operation-room__help { font-size: .6rem; } .operation-room__help span:nth-child(3), .operation-room__help span:nth-child(4) { display: none; } }
+  @media (max-width: 700px) { .operation-room__help { font-size: .6rem; } .operation-room__help span:nth-child(n+3):nth-child(-n+4) { display: none; } .operation-room__reset { font-size: .6rem; } }
   @media (prefers-reduced-motion: reduce) { .operation-room__loading, .operation-room__fallback { transition: none; } }
 </style>
