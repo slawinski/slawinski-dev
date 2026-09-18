@@ -147,7 +147,7 @@ const createMapTexture = () =>
       context.beginPath(); context.moveTo(x, 0); context.lineTo(x, canvas.height); context.stroke()
     }
     for (let y = 0; y < canvas.height; y += 54) {
-      context.beginPath(); context.moveTo(0, y); context.lineTo(canvas.width, y); context.stroke()
+      context.beginPath(); context.moveTo(0, y); context.lineTo(x, canvas.height); context.stroke()
     }
 
     context.fillStyle = 'rgba(113, 83, 43, .45)'
@@ -301,27 +301,27 @@ const createChair = (scene: THREE.Scene, x: number, z: number, rotationY: number
 
 const createPhone = (scene: THREE.Scene, x: number, z: number, color: number, rotationY = 0) => {
   const group = new THREE.Group(); group.position.set(x, 1.81, z); group.rotation.y = rotationY
-  const phoneMaterial = makeMaterial(color, 0.84)
+  const phoneMaterial = makeMaterial(color, 0.82)
   phoneMaterial.flatShading = true
-  const shadowColor = new THREE.Color(color).multiplyScalar(0.48).getHex()
-  const shadowMaterial = makeMaterial(shadowColor, 0.9)
+  const shadowColor = new THREE.Color(color).multiplyScalar(0.43).getHex()
+  const shadowMaterial = makeMaterial(shadowColor, 0.92)
   shadowMaterial.flatShading = true
 
-  // A tapered Bakelite shell makes the silhouette read as a period rotary
-  // telephone even at the room's normal camera distance. Eight vertices keep
-  // the body intentionally low-poly rather than turning it into a hero asset.
-  const lowerWidth = 0.82; const lowerDepth = 0.64
-  const upperWidth = 0.64; const upperDepth = 0.47; const bodyHeight = 0.34
+  // Broad, low Bakelite wedge. The reference phone has a strong sloping front
+  // and a noticeably wider footprint than the earlier boxy model.
+  const lowerWidth = 0.98; const lowerDepth = 0.76
+  const upperWidth = 0.68; const upperDepth = 0.46; const bodyHeight = 0.42
+  const upperZ = -0.075
   const bodyGeometry = new THREE.BufferGeometry()
   bodyGeometry.setAttribute('position', new THREE.Float32BufferAttribute([
     -lowerWidth / 2, 0, -lowerDepth / 2,
      lowerWidth / 2, 0, -lowerDepth / 2,
      lowerWidth / 2, 0,  lowerDepth / 2,
     -lowerWidth / 2, 0,  lowerDepth / 2,
-    -upperWidth / 2, bodyHeight, -upperDepth / 2,
-     upperWidth / 2, bodyHeight, -upperDepth / 2,
-     upperWidth / 2, bodyHeight,  upperDepth / 2,
-    -upperWidth / 2, bodyHeight,  upperDepth / 2,
+    -upperWidth / 2, bodyHeight, upperZ - upperDepth / 2,
+     upperWidth / 2, bodyHeight, upperZ - upperDepth / 2,
+     upperWidth / 2, bodyHeight, upperZ + upperDepth / 2,
+    -upperWidth / 2, bodyHeight, upperZ + upperDepth / 2,
   ], 3))
   bodyGeometry.setIndex([
     0, 2, 1, 0, 3, 2,
@@ -333,50 +333,73 @@ const createPhone = (scene: THREE.Scene, x: number, z: number, color: number, ro
   ])
   bodyGeometry.computeVertexNormals()
   const body = new THREE.Mesh(bodyGeometry, phoneMaterial)
-  body.position.y = 0.08; body.castShadow = true; body.receiveShadow = true
-  group.add(box([0.88, 0.10, 0.68], [0, 0.03, 0], shadowMaterial))
+  body.position.y = 0.055; body.castShadow = true; body.receiveShadow = true
+  group.add(box([1.04, 0.09, 0.79], [0, 0.025, -0.01], shadowMaterial))
   group.add(body)
 
-  // Front rotary dial: cream backing, dark ring and ten obvious finger holes.
-  // The dial is deliberately a little oversized because it is the single
-  // strongest visual cue at the fixed menu-camera distance.
-  const dial = new THREE.Group(); dial.position.set(0, 0.245, 0.30); dial.rotation.x = -0.16
-  dial.add(cylinder(0.225, 0.035, [0, 0, 0], materials.paperLight, 16, [Math.PI / 2, 0, 0]))
-  const dialRing = new THREE.Mesh(new THREE.TorusGeometry(0.158, 0.025, 6, 18), materials.metalDark)
-  dialRing.position.z = 0.025; dialRing.castShadow = true; dial.add(dialRing)
+  // Slight front lip gives the body the stepped plinth visible on period sets.
+  group.add(box([0.84, 0.075, 0.16], [0, 0.105, 0.335], phoneMaterial, [-0.08, 0, 0]))
+
+  // Rotary dial mounted on the sloping front face. The cream plate, dark finger
+  // wheel and large holes are intentionally exaggerated enough to read from the
+  // fixed room camera instead of collapsing into a single disc.
+  const dial = new THREE.Group(); dial.position.set(0, 0.285, 0.335); dial.rotation.x = -0.32
+  dial.add(cylinder(0.245, 0.035, [0, 0, 0], materials.paperLight, 18, [Math.PI / 2, 0, 0]))
+  const outerRing = new THREE.Mesh(new THREE.TorusGeometry(0.183, 0.027, 6, 20), shadowMaterial)
+  outerRing.position.z = 0.027; outerRing.castShadow = true; dial.add(outerRing)
+  const innerRing = new THREE.Mesh(new THREE.TorusGeometry(0.095, 0.015, 5, 16), materials.paper)
+  innerRing.position.z = 0.045; innerRing.castShadow = true; dial.add(innerRing)
   for (let i = 0; i < 10; i += 1) {
-    const angle = -Math.PI * 0.15 + i * Math.PI * 2 / 10
-    const holeRadius = 0.118
+    const angle = -Math.PI * 0.13 + i * Math.PI * 2 / 10
+    const holeRadius = 0.14
     dial.add(cylinder(
-      0.026,
-      0.018,
-      [Math.cos(angle) * holeRadius, Math.sin(angle) * holeRadius, 0.042],
+      0.034,
+      0.024,
+      [Math.cos(angle) * holeRadius, Math.sin(angle) * holeRadius, 0.055],
       materials.black,
-      7,
+      8,
       [Math.PI / 2, 0, 0],
     ))
   }
-  dial.add(cylinder(0.052, 0.024, [0, 0, 0.046], materials.paper, 10, [Math.PI / 2, 0, 0]))
-  dial.add(box([0.035, 0.075, 0.025], [0.18, -0.10, 0.055], materials.brass, [0, 0, -0.35]))
+  dial.add(cylinder(0.060, 0.028, [0, 0, 0.060], materials.paperLight, 10, [Math.PI / 2, 0, 0]))
+  dial.add(box([0.035, 0.090, 0.028], [0.205, -0.105, 0.066], materials.brass, [0, 0, -0.40]))
   group.add(dial)
 
-  // Raised cradle shoulders keep the receiver from visually melting into the
-  // body. The handset itself is five coarse pieces: grip, two necks and two
-  // broad ear/mouth caps.
+  // Proper cradle ears below the handset, rather than two posts merging into it.
   for (const side of [-1, 1]) {
-    group.add(box([0.075, 0.16, 0.10], [side * 0.25, 0.43, -0.09], shadowMaterial, [0, 0, side * -0.16]))
+    group.add(box([0.105, 0.18, 0.13], [side * 0.31, 0.49, -0.105], shadowMaterial, [0, 0, side * -0.12]))
+    group.add(box([0.16, 0.055, 0.16], [side * 0.31, 0.565, -0.105], phoneMaterial))
   }
-  group.add(box([0.47, 0.10, 0.115], [0, 0.535, -0.07], phoneMaterial))
-  group.add(box([0.19, 0.105, 0.13], [-0.27, 0.515, -0.07], phoneMaterial, [0, 0, -0.20]))
-  group.add(box([0.19, 0.105, 0.13], [0.27, 0.515, -0.07], phoneMaterial, [0, 0, 0.20]))
-  group.add(cylinder(0.13, 0.13, [-0.39, 0.49, -0.07], phoneMaterial, 8, [0, 0, Math.PI / 2]))
-  group.add(cylinder(0.13, 0.13, [0.39, 0.49, -0.07], phoneMaterial, 8, [0, 0, Math.PI / 2]))
-  group.add(cylinder(0.088, 0.012, [-0.46, 0.49, -0.07], shadowMaterial, 8, [0, 0, Math.PI / 2]))
-  group.add(cylinder(0.088, 0.012, [0.46, 0.49, -0.07], shadowMaterial, 8, [0, 0, Math.PI / 2]))
 
-  // Small number-card window on the shoulder of the set. It is subtle from
-  // afar but prevents the top surface from reading as an empty coloured lump.
-  group.add(box([0.20, 0.012, 0.10], [0, 0.425, 0.01], materials.paperLight, [-0.10, 0, 0]))
+  // Curved handset: a coarse tube supplies the continuous bow seen in the
+  // reference, while the chunky end bells keep the low-poly silhouette.
+  const handsetCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(-0.34, 0.585, -0.075),
+    new THREE.Vector3(-0.20, 0.675, -0.085),
+    new THREE.Vector3(0, 0.705, -0.09),
+    new THREE.Vector3(0.20, 0.675, -0.085),
+    new THREE.Vector3(0.34, 0.585, -0.075),
+  ])
+  const handsetGrip = new THREE.Mesh(new THREE.TubeGeometry(handsetCurve, 10, 0.068, 6, false), phoneMaterial)
+  handsetGrip.castShadow = true; handsetGrip.receiveShadow = true; group.add(handsetGrip)
+
+  for (const side of [-1, 1]) {
+    group.add(cylinder(0.105, 0.16, [side * 0.39, 0.56, -0.07], phoneMaterial, 8, [0, 0, Math.PI / 2]))
+    group.add(cylinder(0.145, 0.115, [side * 0.48, 0.545, -0.065], phoneMaterial, 9, [0, 0, Math.PI / 2]))
+    group.add(cylinder(0.105, 0.016, [side * 0.545, 0.545, -0.065], shadowMaterial, 9, [0, 0, Math.PI / 2]))
+  }
+
+  // Cord leaves the right rear of the set and falls onto the desk. Keeping the
+  // tube coarse makes it visible without adding a smooth modern-looking cable.
+  const cordCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0.43, 0.22, -0.24),
+    new THREE.Vector3(0.56, 0.12, -0.18),
+    new THREE.Vector3(0.58, 0.01, 0.03),
+    new THREE.Vector3(0.48, -0.035, 0.26),
+    new THREE.Vector3(0.30, -0.055, 0.40),
+  ])
+  const cord = new THREE.Mesh(new THREE.TubeGeometry(cordCurve, 9, 0.012, 5, false), materials.black)
+  cord.castShadow = true; group.add(cord)
 
   scene.add(group)
 }
