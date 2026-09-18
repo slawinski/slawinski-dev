@@ -1,0 +1,31 @@
+name: Add radio focus and default music
+
+on:
+  push:
+    branches:
+      - 'rewrite/astro-payload'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-radio-focus:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: rewrite/astro-payload
+          fetch-depth: 0
+
+      - name: Patch radio focus, zoom-out and music defaults
+        run: python scripts/add-radio-focus-and-default-music.py
+
+      - name: Commit interaction updates
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/web/src/experience/operation-room.ts apps/web/src/experience/operation-room-audio.ts apps/web/src/components/experience/OperationRoom.astro
+          git commit -m 'Add radio dolly focus and zoom-out controls'
+          git push origin HEAD:rewrite/astro-payload
