@@ -1058,12 +1058,11 @@ export const mountOperationRoom = (root: HTMLElement) => {
   const coolFill = new THREE.DirectionalLight(0xb8d0cb, 0.45); coolFill.position.set(7, 5, -1); scene.add(coolFill)
 
   const { hotspots, hoverTargets, boardDraw, fanSpinner, updateClock } = createScene(scene, camera)
-  const raycaster = new THREE.Raycaster(); const pointer = new THREE.Vector2(2, 2)
+  const pointer = new THREE.Vector2(2, 2)
   const hoverRaycaster = new THREE.Raycaster()
   const HOME_POSITION = new THREE.Vector3(-5.08, 4.14, 8.58)
   const HOME_TARGET = new THREE.Vector3(-2.15, 2.7, -4.75)
   const TARGET_BOUNDS = { minX: -6, maxX: 4, minY: 0.8, maxY: 5.2, minZ: -5.8, maxZ: 4 }
-  const DRAG_THRESHOLD_PX = 6
   const controls = new OrbitControls(camera, canvas)
   controls.target.copy(HOME_TARGET)
   camera.position.copy(HOME_POSITION)
@@ -1080,7 +1079,6 @@ export const mountOperationRoom = (root: HTMLElement) => {
   let activeId: SectionId = 'work'; let frame = 0; let disposed = false
   let lastTime = performance.now()
   const FAN_SPEED = 4
-  let downX = 0; let downY = 0; let dragged = false
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
   const applyMotionPreference = () => { controls.enableDamping = !reducedMotion.matches }
   applyMotionPreference()
@@ -1093,48 +1091,34 @@ export const mountOperationRoom = (root: HTMLElement) => {
 const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.forEach((hotspot) => { hotspot.highlight.visible = false }) }
   const resize = () => { const width = root.clientWidth; const height = root.clientHeight; renderer.setSize(width, height, false); camera.aspect = width / height; camera.fov = 54; camera.updateProjectionMatrix() }
   const updatePointer = (event: PointerEvent) => { const bounds = canvas.getBoundingClientRect(); pointer.x = ((event.clientX - bounds.left) / bounds.width) * 2 - 1; pointer.y = -((event.clientY - bounds.top) / bounds.height) * 2 + 1 }
-  const pick = () => {
-  raycaster.setFromCamera(pointer, camera)
-  const intersections = raycaster.intersectObjects(hotspots.map((hotspot) => hotspot.hitbox), false)
-  const hit = intersections[0]?.object.userData.hotspot as SectionId | undefined
-  if (hit) { setActive(hit); canvas.style.cursor = 'default'; return hit }
-  hotspots.forEach((hotspot) => { hotspot.highlight.visible = false })
-  canvas.style.cursor = 'default'; return null
-}
   const onPointerMove = (event: PointerEvent) => {
-    if (dragged || (event.buttons & 1) === 1 || (event.buttons & 2) === 2) return
+    // Desktop interaction is hover-only: moving the pointer over a menu region
+    // immediately updates both the cover highlight and the hanging board.
     if (event.pointerType === 'touch') return
-    updatePointer(event); pick()
+    updatePointer(event)
     hoverRaycaster.setFromCamera(pointer, camera)
     const hoverHit = hoverRaycaster.intersectObjects(hoverTargets.map((target) => target.mesh), false)[0]?.object
+    const hoveredTarget = hoverTargets.find((target) => target.mesh === hoverHit)
+
     hoverTargets.forEach((target) => {
       target.material.opacity = target.mesh === hoverHit ? 0.18 : 0
     })
-    const hoveredTarget = hoverTargets.find((target) => target.mesh === hoverHit)
+
     if (hoveredTarget) {
-      boardDraw(hoveredTarget.label)
-      canvas.style.cursor = 'default'
+      const hoveredSection = SECTION_ORDER.find((id) => SECTIONS[id].label === hoveredTarget.label)
+      if (hoveredSection) setActive(hoveredSection)
     } else {
+      activeId = 'work'
       boardDraw('WORK')
-      canvas.style.cursor = 'default'
+      hotspots.forEach((hotspot) => { hotspot.highlight.visible = false })
+      if (live) live.textContent = 'Work selected'
     }
+    canvas.style.cursor = 'default'
   }
   const resetView = () => {
     camera.position.copy(HOME_POSITION)
     controls.target.copy(HOME_TARGET)
     controls.update()
-  }
-  const onPointerDown = (event: PointerEvent) => {
-    downX = event.clientX; downY = event.clientY; dragged = false
-  }
-  const onPointerUp = (event: PointerEvent) => {
-  if (Math.hypot(event.clientX - downX, event.clientY - downY) > DRAG_THRESHOLD_PX || dragged) return
-  // Highlight/select only. Navigation is deliberately disabled for now.
-  updatePointer(event)
-  pick()
-}
-  const onDragMove = (event: PointerEvent) => {
-    if (Math.hypot(event.clientX - downX, event.clientY - downY) > DRAG_THRESHOLD_PX) dragged = true
   }
   const dolly = (direction: 1 | -1) => {
     const offset = camera.position.clone().sub(controls.target)
@@ -1223,7 +1207,7 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
 
   resize(); selectDefault(); updateCameraReadout(); loading?.setAttribute('data-ready', 'true')
   controls.addEventListener('change', updateCameraReadout)
-  canvas.addEventListener('pointermove', onPointerMove); canvas.addEventListener('pointermove', onDragMove); canvas.addEventListener('pointerdown', onPointerDown); canvas.addEventListener('pointerup', onPointerUp); canvas.addEventListener('keydown', onKeyDown); canvas.addEventListener('webglcontextlost', onContextLost); resetButton?.addEventListener('click', onResetClick); copyCameraButton?.addEventListener('click', onCopyCameraClick)
+  canvas.addEventListener('pointermove', onPointerMove); canvas.addEventListener('keydown', onKeyDown); canvas.addEventListener('webglcontextlost', onContextLost); resetButton?.addEventListener('click', onResetClick); copyCameraButton?.addEventListener('click', onCopyCameraClick)
   if (typeof reducedMotion.addEventListener === 'function') reducedMotion.addEventListener('change', applyMotionPreference)
   window.addEventListener('resize', resize)
   frame = requestAnimationFrame(render)
@@ -1232,7 +1216,7 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
     disposed = true; cancelAnimationFrame(frame)
     controls.removeEventListener('change', updateCameraReadout)
     cameraReadout.remove()
-    canvas.removeEventListener('pointermove', onPointerMove); canvas.removeEventListener('pointermove', onDragMove); canvas.removeEventListener('pointerdown', onPointerDown); canvas.removeEventListener('pointerup', onPointerUp); canvas.removeEventListener('keydown', onKeyDown); canvas.removeEventListener('webglcontextlost', onContextLost); resetButton?.removeEventListener('click', onResetClick); copyCameraButton?.removeEventListener('click', onCopyCameraClick)
+    canvas.removeEventListener('pointermove', onPointerMove); canvas.removeEventListener('keydown', onKeyDown); canvas.removeEventListener('webglcontextlost', onContextLost); resetButton?.removeEventListener('click', onResetClick); copyCameraButton?.removeEventListener('click', onCopyCameraClick)
     if (typeof reducedMotion.removeEventListener === 'function') reducedMotion.removeEventListener('change', applyMotionPreference)
     window.removeEventListener('resize', resize); controls.dispose(); renderer.dispose()
     scene.traverse((object) => {
