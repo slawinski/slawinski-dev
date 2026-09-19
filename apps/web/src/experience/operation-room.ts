@@ -1285,7 +1285,7 @@ export const mountOperationRoom = (root: HTMLElement) => {
   const controls = new OrbitControls(camera, canvas)
   controls.target.copy(HOME_TARGET)
   camera.position.copy(HOME_POSITION)
-  controls.enabled = false
+  controls.enabled = true
   controls.enableDamping = true
   controls.dampingFactor = 0.08
   controls.minDistance = 5
@@ -1662,7 +1662,11 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
       }
     }
 
-    camera.lookAt(cameraTarget)
+    if (cameraTransition) {
+      camera.lookAt(cameraTarget)
+    } else {
+      controls.update()
+    }
     renderer.render(scene, camera); frame = requestAnimationFrame(render)
   }
   const onContextLost = (event: Event) => { event.preventDefault(); root.dataset.webgl = 'failed' }
