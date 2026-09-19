@@ -525,7 +525,16 @@ const createDeskLamp = (scene: THREE.Scene, x: number, z: number, scale = 1, rot
   const group = new THREE.Group(); group.position.set(x, 0.3, z); group.rotation.y = rotationY
   const brass = new THREE.MeshStandardMaterial({ color: 0xa87925, roughness: 0.5, metalness: 0.42, flatShading: true })
   const brassDark = new THREE.MeshStandardMaterial({ color: 0x6f4f1d, roughness: 0.62, metalness: 0.34, flatShading: true })
-  const shadeGreen = new THREE.MeshStandardMaterial({ color: 0x1f4e3d, roughness: 0.72, metalness: 0.02, flatShading: true })
+  const shadeGreen = new THREE.MeshStandardMaterial({
+    color: 0x1f4e3d,
+    roughness: 0.72,
+    metalness: 0.02,
+    flatShading: true,
+    // The shade is a hand-built frustum and is viewed from both above and
+    // below as the camera moves. Double-sided rendering prevents faces from
+    // disappearing because of winding/back-face culling.
+    side: THREE.DoubleSide,
+  })
   const warmUnderside = new THREE.MeshStandardMaterial({
     color: 0xd8c992,
     roughness: 0.86,
