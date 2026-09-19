@@ -59,10 +59,11 @@ const WORLD = {
 }
 
 // The WORK hover beam is physically anchored to this period wall sconce.
-// Keep the source at the shade opening so the cone visibly originates from
-// the fixture instead of appearing from an arbitrary point in the room.
-const MAP_SCONCE_MOUNT = new THREE.Vector3(-1.15, 5.96, WORLD.backWallZ + 0.18)
-const MAP_SCONCE_SOURCE = new THREE.Vector3(-1.15, 5.72, WORLD.map.z + 0.78)
+// The fixture sits centered above the map. Its shade projects just far enough
+// from the wall to clear the map/screen hardware, then aims almost vertically
+// down so the visible cone reads like the reference spotlight.
+const MAP_SCONCE_MOUNT = new THREE.Vector3(WORLD.map.x, 6.55, WORLD.backWallZ + 0.18)
+const MAP_SCONCE_SOURCE = new THREE.Vector3(WORLD.map.x, 6.08, WORLD.map.z + 0.55)
 
 const makeMaterial = (color: number, roughness = 0.88) =>
   new THREE.MeshStandardMaterial({ color, roughness, metalness: 0.02 })
@@ -1195,13 +1196,13 @@ const createHoverTarget = (
     footprintX = 0.95
     footprintZ = 0.90
   } else if (id === 'map') {
-    // The map is wall-mounted, so its beam comes from a ceiling lamp position
-    // in front/right of the board rather than dropping vertically. This makes
-    // the volume read like an angled spotlight sweeping onto the wall.
+    // The map beam starts at the centered wall sconce and drops almost straight
+    // down, with only enough rearward angle to visibly land on the wall map.
+    // Keep the pool tighter than the full map so it reads as a real spotlight.
     source = MAP_SCONCE_SOURCE.clone()
-    radius = 3.15
-    footprintX = 1.35
-    footprintZ = 0.78
+    radius = 2.05
+    footprintX = 1.18
+    footprintZ = 0.62
   }
 
   const direction = source.clone().sub(target)
