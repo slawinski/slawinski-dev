@@ -17,6 +17,7 @@ type HoverTarget = {
   label: string
   mesh: THREE.Mesh
   material: THREE.MeshBasicMaterial
+  light: THREE.SpotLight | null
 }
 
 const SECTION_ORDER: SectionId[] = ['work', 'writing', 'speaking', 'about', 'contact']
@@ -1141,9 +1142,9 @@ const createHoverTarget = (
   position: [number, number, number],
   rotation: [number, number, number] = [0, 0, 0],
 ): HoverTarget => {
-  // Raycasting keeps the original cuboid coverage, but that volume is now
-  // completely invisible. The visible hover treatment is a separate light
-  // beam, so the interaction area does not dictate the highlight shape.
+  // Keep the generous cuboid solely for pointer raycasting. Hover light is now
+  // produced by a real SpotLight, so geometry in the room can occlude it and
+  // the beam naturally terminates on the first receiving surface.
   const hitMaterial = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false, depthTest: false })
   const mesh = box(size, position, hitMaterial, rotation)
   mesh.visible = true
@@ -1153,6 +1154,8 @@ const createHoverTarget = (
   mesh.renderOrder = 20
   scene.add(mesh)
 
+  // Retained only for the back-door cover, which is intentionally still the
+  // old treatment until that interaction gets its own design pass.
   const material = new THREE.MeshBasicMaterial({
     color: 0xffd77a,
     transparent: true,
@@ -1163,62 +1166,60 @@ const createHoverTarget = (
     blending: THREE.AdditiveBlending,
   })
 
-  // The door intentionally keeps its existing cuboid treatment for now. Its
-  // final hover language will be designed separately.
   if (id === 'back-door') {
     const cover = box(size, position, material, rotation)
     cover.castShadow = false
     cover.receiveShadow = false
     cover.renderOrder = 18
     scene.add(cover)
-    return { id, label, mesh, material }
+    return { id, label, mesh, material, light: null }
   }
 
-  const target = new THREE.Vector3(...position)
   let source = new THREE.Vector3(position[0], 6.45, position[2])
+  let target = new THREE.Vector3(...position)
   let radius = Math.max(size[0], size[2]) * 0.58
-  let footprintX = 1
-  let footprintZ = 0.72
+  let intensity = 12
 
   if (id === 'radio') {
     source = new THREE.Vector3(WORLD.radioDesk.x, 6.35, WORLD.radioDesk.z - 0.05)
+    target = new THREE.Vector3(WORLD.radioDesk.x, 1.72, WORLD.radioDesk.z)
     radius = 2.05
-    footprintX = 1.05
-    footprintZ = 0.48
+    intensity = 13
   } else if (id === 'trays') {
     source = new THREE.Vector3(position[0] + 0.08, 6.20, position[2] + 0.04)
+    target = new THREE.Vector3(position[0], 1.72, position[2])
     radius = 1.05
-    footprintX = 0.92
-    footprintZ = 0.72
+    intensity = 11
   } else if (id === 'projector') {
     source = new THREE.Vector3(position[0] + 0.05, 6.30, position[2] - 0.06)
+    target = new THREE.Vector3(position[0], 2.35, position[2])
     radius = 1.05
-    footprintX = 0.95
-    footprintZ = 0.90
+    intensity = 11
   } else if (id === 'map') {
-    // The map beam starts at the centered wall sconce and drops almost straight
-    // down, with only enough rearward angle to visibly land on the wall map.
-    // Keep the pool tighter than the full map so it reads as a real spotlight.
     source = MAP_SCONCE_SOURCE.clone()
+    // Aim at the actual map plane, not an arbitrary point in front of it. The
+    // near-vertical incidence produces the reference-like pool while the map,
+    // pinned notes and frame participate in normal depth/shadow occlusion.
+    target = new THREE.Vector3(WORLD.map.x, WORLD.map.y + 0.10, WORLD.map.z + 0.06)
     radius = 2.05
-    footprintX = 1.18
-    footprintZ = 0.62
+    intensity = 28
   }
 
-  const direction = source.clone().sub(target)
-  const beam = new THREE.Mesh(
-    new THREE.ConeGeometry(radius, direction.length(), 18, 1, false),
-    material,
-  )
-  beam.position.copy(target).add(source).multiplyScalar(0.5)
-  beam.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.normalize())
-  beam.scale.set(footprintX, 1, footprintZ)
-  beam.castShadow = false
-  beam.receiveShadow = false
-  beam.renderOrder = 18
-  scene.add(beam)
+  const distance = source.distanceTo(target)
+  const angle = THREE.MathUtils.clamp(Math.atan(radius / distance), 0.18, 0.72)
+  const light = new THREE.SpotLight(0xffd27a, 0, distance + 4, angle, 0.48, 1.45)
+  light.position.copy(source)
+  light.target.position.copy(target)
+  light.castShadow = true
+  light.shadow.mapSize.set(1024, 1024)
+  light.shadow.camera.near = 0.08
+  light.shadow.camera.far = distance + 4
+  light.shadow.bias = -0.00025
+  light.shadow.normalBias = 0.025
+  light.userData.hoverIntensity = intensity
+  scene.add(light, light.target)
 
-  return { id, label, mesh, material }
+  return { id, label, mesh, material, light }
 }
 
 const createScene = (scene: THREE.Scene, camera: THREE.PerspectiveCamera) => {
@@ -1313,6 +1314,14 @@ export const mountOperationRoom = (root: HTMLElement) => {
   const applyMotionPreference = () => { controls.enableDamping = !reducedMotion.matches }
   applyMotionPreference()
 
+  const setHoverHighlight = (target: HoverTarget, active: boolean) => {
+    if (target.light) target.light.intensity = active ? Number(target.light.userData.hoverIntensity ?? 12) : 0
+    // Only the back door still uses a mesh cover. The light-driven targets keep
+    // this material at zero opacity so nothing can paint over foreground props.
+    target.material.opacity = target.id === 'back-door' && active ? 0.18 : 0
+  }
+  const clearHoverHighlights = () => hoverTargets.forEach((target) => setHoverHighlight(target, false))
+
   const setActive = (id: SectionId) => {
   // Re-entering the same target must restore its cover after a pointer leave.
   activeId = id; boardDraw(SECTIONS[id].label); if (live) live.textContent = `${SECTIONS[id].label} selected`
@@ -1390,7 +1399,7 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
   const startMapDolly = () => {
     if (viewMode !== 'home') return
 
-    hoverTargets.forEach((target) => { target.material.opacity = 0 })
+    clearHoverHighlights()
     hotspots.forEach((hotspot) => { hotspot.highlight.visible = false })
     boardDraw('WORK')
 
@@ -1422,7 +1431,7 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
   const startRadioDolly = () => {
     if (viewMode !== 'home') return
 
-    hoverTargets.forEach((target) => { target.material.opacity = 0 })
+    clearHoverHighlights()
     hotspots.forEach((hotspot) => { hotspot.highlight.visible = false })
     boardDraw('CONTACT')
 
@@ -1457,7 +1466,7 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
   const startTraysDolly = () => {
     if (viewMode !== 'home') return
 
-    hoverTargets.forEach((target) => { target.material.opacity = 0 })
+    clearHoverHighlights()
     hotspots.forEach((hotspot) => { hotspot.highlight.visible = false })
     boardDraw('WRITING')
 
@@ -1527,7 +1536,7 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
     const hoveredTarget = hoverTargets.find((target) => target.mesh === hoverHit)
 
     hoverTargets.forEach((target) => {
-      target.material.opacity = target.mesh === hoverHit ? 0.18 : 0
+      setHoverHighlight(target, target.mesh === hoverHit)
     })
 
     if (hoveredTarget) {
@@ -1550,6 +1559,7 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
     cameraTarget.copy(HOME_TARGET)
     controls.target.copy(HOME_TARGET)
     controls.update()
+    clearHoverHighlights()
     selectDefault()
   }
   const startZoomOut = () => {
