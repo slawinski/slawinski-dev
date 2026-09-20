@@ -119,7 +119,7 @@ replace_once(
   }
 
 """,
-""",
+"",
 'remove door highlight box',
 )
 
@@ -280,7 +280,6 @@ replace_once(
 'closet reduced motion settle',
 )
 
-# Always begin target interpolation from the camera's actual current controls target.
 count = text.count('startTarget: cameraTarget.clone(),')
 if count != 5:
     raise SystemExit(f'transition start targets: expected 5 matches, found {count}')
@@ -334,7 +333,6 @@ replace_once(
 'focused view camera stability',
 )
 
-# Keep the map grid regression guard explicit.
 if 'context.beginPath(); context.moveTo(0, y); context.lineTo(canvas.width, y); context.stroke()' not in text:
     raise SystemExit('map horizontal grid regression detected')
 
