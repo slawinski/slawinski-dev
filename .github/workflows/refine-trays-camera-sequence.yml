@@ -108,14 +108,14 @@ jobs:
           'trays staged transition setup',
           )
 
-          replace_once(
-          """      const eased = easeMotionControl(progress)
-              camera.position.copy(cameraTransition.path.getPoint(eased))
-              cameraTarget.lerpVectors(cameraTransition.startTarget, cameraTransition.endTarget, eased)
-              camera.up.lerpVectors(cameraTransition.startUp, cameraTransition.endUp, eased).normalize()
-              controls.target.copy(cameraTarget)
-          """,
-          """      const eased = easeMotionControl(progress)
+          start_marker = "      const eased = easeMotionControl(progress)\n"
+          end_marker = "      updateCameraReadout()\n"
+          start_index = text.find(start_marker)
+          end_index = text.find(end_marker, start_index)
+          if start_index < 0 or end_index < 0:
+              raise SystemExit('staged trays render phase markers not found')
+
+          replacement = """      const eased = easeMotionControl(progress)
               if (cameraTransition.destination === 'trays' && cameraTransition.traysSequence) {
                 const sequence = cameraTransition.traysSequence
                 const forwardEnd = 0.40
@@ -149,9 +149,8 @@ jobs:
                 camera.up.lerpVectors(cameraTransition.startUp, cameraTransition.endUp, eased).normalize()
               }
               controls.target.copy(cameraTarget)
-          """,
-          'staged trays render phases',
-          )
+          """
+          text = text[:start_index] + replacement + text[end_index:]
 
           if 'if (!enabled) return' not in text:
               raise SystemExit('focused-view punch-zoom fix missing')
