@@ -1,0 +1,127 @@
+name: Reposition post phone shelf
+
+on:
+  push:
+    branches:
+      - rewrite/astro-payload
+    paths:
+      - .github/workflows/reposition-post-phone-shelf.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: rewrite/astro-payload
+          fetch-depth: 0
+
+      - name: Move phone shelf to table-facing side
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('apps/web/src/experience/operation-room.ts')
+          text = path.read_text()
+
+          camera_start_marker = "  const getTraysViewPosition = () => {\n"
+          camera_end_marker = "  const setProjectorActive = (active: boolean) => {\n"
+          camera_start = text.index(camera_start_marker)
+          camera_end = text.index(camera_end_marker)
+          camera_before = text[camera_start:camera_end]
+
+          start = text.index('const createPostPhoneShelf = (scene: THREE.Scene) => {')
+          end = text.index('const createDeskLamp = (scene: THREE.Scene', start)
+
+          replacement = '''const createPostPhoneShelf = (scene: THREE.Scene) => {
+  // Small telephone station on the timber post nearest the doors. Mount it on
+  // the -X face: that is the side actually facing the main operations table.
+  const postX = 3.3
+  const postZ = -1.9
+  const postHalfWidth = 0.31
+  const tableFacingX = postX - postHalfWidth
+  const shelfY = 2.34
+  const shelfDepth = 0.62
+  const shelfWidth = 0.96
+  const shelfCenterX = tableFacingX - shelfDepth / 2 + 0.01
+
+  const shelfWood = makeMaterial(0x6e4426, 0.92); shelfWood.flatShading = true
+  const bracketWood = makeMaterial(0x4d301d, 0.94); bracketWood.flatShading = true
+  const conduit = makeMaterial(0x242927, 0.88); conduit.flatShading = true
+  const terminal = makeMaterial(0xbab3a0, 0.92); terminal.flatShading = true
+
+  // Shelf projects from the table-facing side of the post, with its long edge
+  // running across the post. The rear cleat and two diagonal braces make the
+  // attachment legible from both the home view and the table side.
+  scene.add(box([shelfDepth, 0.10, shelfWidth], [shelfCenterX, shelfY, postZ], shelfWood))
+  scene.add(box([0.08, 0.28, 0.78], [tableFacingX - 0.035, shelfY - 0.15, postZ], bracketWood))
+  for (const side of [-1, 1]) {
+    scene.add(box(
+      [0.48, 0.075, 0.075],
+      [shelfCenterX + 0.06, shelfY - 0.20, postZ + side * 0.31],
+      bracketWood,
+      [0, 0, 0.66],
+    ))
+  }
+
+  // Surface-run signal conduit climbs the complete visible height of the post
+  // instead of stopping above the shelf. It terminates just below the beam.
+  const conduitBottomY = shelfY + 0.12
+  const conduitTopY = 6.48
+  const conduitLength = conduitTopY - conduitBottomY
+  const conduitX = tableFacingX - 0.055
+  scene.add(cylinder(0.018, conduitLength, [conduitX, conduitBottomY + conduitLength / 2, postZ], conduit, 7))
+
+  const terminalY = shelfY + 0.52
+  scene.add(box([0.10, 0.26, 0.18], [tableFacingX - 0.060, terminalY, postZ], terminal))
+  scene.add(box([0.025, 0.16, 0.12], [tableFacingX - 0.118, terminalY, postZ], conduit))
+
+  // Reuse the detailed Bakelite phone, now slightly higher and rotated so its
+  // dial/handset face the main table (-X) rather than the room-facing +Z side.
+  const shelfTop = shelfY + 0.05
+  createPhone(scene, shelfCenterX - 0.03, postZ, PALETTE.red, -Math.PI / 2, shelfTop + 0.018, 0.58)
+
+  // Short flexible lead from the phone into the post-mounted junction box.
+  const cableCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(tableFacingX - 0.12, terminalY - 0.10, postZ + 0.03),
+    new THREE.Vector3(tableFacingX - 0.22, terminalY - 0.22, postZ + 0.05),
+    new THREE.Vector3(shelfCenterX + 0.08, shelfY + 0.28, postZ + 0.10),
+    new THREE.Vector3(shelfCenterX - 0.03, shelfTop + 0.16, postZ + 0.16),
+  ])
+  const cable = new THREE.Mesh(new THREE.TubeGeometry(cableCurve, 9, 0.010, 5, false), materials.black)
+  cable.castShadow = true
+  scene.add(cable)
+}
+
+'''
+          text = text[:start] + replacement + text[end:]
+
+          camera_start_after = text.index(camera_start_marker)
+          camera_end_after = text.index(camera_end_marker)
+          if text[camera_start_after:camera_end_after] != camera_before:
+              raise SystemExit('camera/zoom transition changed unexpectedly')
+
+          path.write_text(text)
+          PY
+
+      - name: Validate patch
+        shell: bash
+        run: |
+          grep -q "const tableFacingX = postX - postHalfWidth" apps/web/src/experience/operation-room.ts
+          grep -q "const shelfY = 2.34" apps/web/src/experience/operation-room.ts
+          grep -q "const conduitTopY = 6.48" apps/web/src/experience/operation-room.ts
+          grep -q "PALETTE.red, -Math.PI / 2" apps/web/src/experience/operation-room.ts
+
+      - name: Commit implementation
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/reposition-post-phone-shelf.yml
+          git add -A
+          git commit -m "Move phone shelf to table-facing side of post"
+          git push origin rewrite/astro-payload
