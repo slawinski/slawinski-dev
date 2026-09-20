@@ -1545,8 +1545,12 @@ export const mountOperationRoom = (root: HTMLElement) => {
       turnPosition: THREE.Vector3
       turnTarget: THREE.Vector3
     }
+    targetPath?: THREE.Curve<THREE.Vector3>
+    traysTilt?: boolean
+    reverse?: boolean
     destination: 'home' | 'map' | 'radio' | 'trays' | 'closet'
   } | null = null
+  let focusRoute: NonNullable<typeof cameraTransition> | null = null
   const FAN_SPEED = 4
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
   const applyMotionPreference = () => { controls.enableDamping = !reducedMotion.matches }
@@ -1787,14 +1791,26 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
     cameraTransition = {
       startTime: performance.now(),
       duration: 3000,
-      // The generic path remains the source of the exact first/final camera
-      // positions; the render loop uses the staged waypoints in between.
-      path: new THREE.CubicBezierCurve3(start, forwardPosition, turnPosition, end),
+      // One continuous centripetal spline passes through the intended beats
+      // (forward, right turn, overhead) without easing to a stop at either
+      // intermediate waypoint. Arc-length sampling keeps translation even.
+      path: new THREE.CatmullRomCurve3(
+        [start, forwardPosition, turnPosition, end],
+        false,
+        'centripetal',
+        0.5,
+      ),
       startTarget,
       endTarget: TRAYS_TARGET.clone(),
       startUp: camera.up.clone(),
       endUp: TRAYS_UP.clone(),
-      traysSequence: { forwardPosition, forwardTarget, turnPosition, turnTarget },
+      targetPath: new THREE.CatmullRomCurve3(
+        [startTarget, forwardTarget, turnTarget, TRAYS_TARGET.clone()],
+        false,
+        'centripetal',
+        0.5,
+      ),
+      traysTilt: true,
       destination: 'trays',
     }
     setZoomOutVisible(false)
@@ -1898,6 +1914,7 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
   }
   const resetView = () => {
     cameraTransition = null
+    focusRoute = null
     viewMode = 'home'
     setProjectorActive(false)
     closetTargetProgress = 0
@@ -1923,18 +1940,16 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
       return
     }
 
-    const start = camera.position.clone()
-    const direction = HOME_POSITION.clone().sub(start)
-    const firstGuide = start.clone().addScaledVector(direction, 0.30).add(new THREE.Vector3(0, 0.08, 0.10))
-    const secondGuide = start.clone().addScaledVector(direction, 0.72).add(new THREE.Vector3(0.08, 0.08, 0.16))
+    // Zoom-out is the exact zoom-in timeline played backwards: the same
+    // position path, look-target path, camera-up interpolation and duration.
+    if (!focusRoute) {
+      resetView()
+      return
+    }
     cameraTransition = {
+      ...focusRoute,
       startTime: performance.now(),
-      duration: 1850,
-      path: new THREE.CubicBezierCurve3(start, firstGuide, secondGuide, HOME_POSITION.clone()),
-      startTarget: controls.target.clone(),
-      endTarget: HOME_TARGET.clone(),
-      startUp: camera.up.clone(),
-      endUp: HOME_UP.clone(),
+      reverse: true,
       destination: 'home',
     }
     viewMode = 'transition'
@@ -2017,47 +2032,39 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
       const elapsed = now - cameraTransition.startTime
       const progress = Math.min(elapsed / cameraTransition.duration, 1)
       const eased = easeMotionControl(progress)
-    if (cameraTransition.destination === 'trays' && cameraTransition.traysSequence) {
-      const sequence = cameraTransition.traysSequence
-      const forwardEnd = 0.40
-      const turnEnd = 0.70
+      const routeProgress = cameraTransition.reverse ? 1 - eased : eased
 
-      if (progress < forwardEnd) {
-        // Phase 1: pure dolly forward. Translate the look target by the same
-        // amount as the camera so there is no turn or tilt yet.
-        const phase = easeMotionControl(progress / forwardEnd)
-        camera.position.lerpVectors(cameraTransition.path.getPoint(0), sequence.forwardPosition, phase)
-        cameraTarget.lerpVectors(cameraTransition.startTarget, sequence.forwardTarget, phase)
-        camera.up.lerpVectors(cameraTransition.startUp, HOME_UP, phase).normalize()
-      } else if (progress < turnEnd) {
-        // Phase 2: sweep right until the camera is clearly facing the wall
-        // with the brown door. Keep world-up vertical during the turn.
-        const phase = easeMotionControl((progress - forwardEnd) / (turnEnd - forwardEnd))
-        camera.position.lerpVectors(sequence.forwardPosition, sequence.turnPosition, phase)
-        cameraTarget.lerpVectors(sequence.forwardTarget, sequence.turnTarget, phase)
-        camera.up.copy(HOME_UP)
+      // A single globally-eased, arc-length-parameterized path prevents the
+      // mid-shot slowdowns caused by separately eased animation phases.
+      camera.position.copy(cameraTransition.path.getPointAt(routeProgress))
+      if (cameraTransition.targetPath) {
+        cameraTarget.copy(cameraTransition.targetPath.getPointAt(routeProgress))
       } else {
-        // Phase 3: once the right turn is complete, move over the trays and
-        // tilt down into the 90-degree top-down final composition.
-        const phase = easeMotionControl((progress - turnEnd) / (1 - turnEnd))
-        camera.position.lerpVectors(sequence.turnPosition, cameraTransition.path.getPoint(1), phase)
-        cameraTarget.lerpVectors(sequence.turnTarget, cameraTransition.endTarget, phase)
-        camera.up.lerpVectors(HOME_UP, cameraTransition.endUp, phase).normalize()
+        cameraTarget.lerpVectors(cameraTransition.startTarget, cameraTransition.endTarget, routeProgress)
       }
-    } else {
-      camera.position.copy(cameraTransition.path.getPoint(eased))
-      cameraTarget.lerpVectors(cameraTransition.startTarget, cameraTransition.endTarget, eased)
-      camera.up.lerpVectors(cameraTransition.startUp, cameraTransition.endUp, eased).normalize()
-    }
-    controls.target.copy(cameraTarget)
+
+      // WRITING stays upright through the forward move/right turn and blends
+      // into the top-down roll only on the final leg. This is a pure function
+      // of routeProgress, so playing the route backwards reproduces it exactly.
+      const upProgress = cameraTransition.traysTilt
+        ? easeMotionControl(THREE.MathUtils.clamp((routeProgress - 0.62) / 0.38, 0, 1))
+        : routeProgress
+      camera.up.lerpVectors(cameraTransition.startUp, cameraTransition.endUp, upProgress).normalize()
+      controls.target.copy(cameraTarget)
       updateCameraReadout()
 
       if (progress >= 1) {
-        const destination = cameraTransition.destination
-        camera.position.copy(cameraTransition.path.getPoint(1))
-        cameraTarget.copy(cameraTransition.endTarget)
-        camera.up.copy(cameraTransition.endUp)
-        controls.target.copy(cameraTransition.endTarget)
+        const completedTransition = cameraTransition
+        const destination = completedTransition.destination
+        const endpoint = completedTransition.reverse ? 0 : 1
+        camera.position.copy(completedTransition.path.getPointAt(endpoint))
+        cameraTarget.copy(completedTransition.reverse ? completedTransition.startTarget : completedTransition.endTarget)
+        camera.up.copy(completedTransition.reverse ? completedTransition.startUp : completedTransition.endUp)
+        controls.target.copy(cameraTarget)
+
+        if (destination === 'home') focusRoute = null
+        else focusRoute = completedTransition
+
         cameraTransition = null
         viewMode = destination
         settleControls(destination === 'home')
