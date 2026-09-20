@@ -556,11 +556,11 @@ const createChair = (scene: THREE.Scene, x: number, z: number, rotationY: number
   scene.add(group)
 }
 
-const createPhone = (scene: THREE.Scene, x: number, z: number, color: number, rotationY = 0) => {
-  // The scaled phone base is aligned to the brown beam's top (y=1.70), with
-  // only its underside touching the surface—no levitation or intersection.
-  const group = new THREE.Group(); group.position.set(x, 1.72, z); group.rotation.y = rotationY
-  group.scale.setScalar(0.72)
+const createPhone = (scene: THREE.Scene, x: number, z: number, color: number, rotationY = 0, y = 1.72, scale = 0.72) => {
+  // The ordinary desk phones use the defaults; optional height/scale lets the
+  // same period model sit naturally on smaller wall/post furniture as well.
+  const group = new THREE.Group(); group.position.set(x, y, z); group.rotation.y = rotationY
+  group.scale.setScalar(scale)
   const phoneMaterial = makeMaterial(color, 0.82)
   phoneMaterial.side = THREE.DoubleSide
   phoneMaterial.flatShading = true
@@ -663,6 +663,51 @@ const createPhone = (scene: THREE.Scene, x: number, z: number, color: number, ro
   cord.castShadow = true; group.add(cord)
 
   scene.add(group)
+}
+
+
+const createPostPhoneShelf = (scene: THREE.Scene) => {
+  // Reference prop: a small telephone shelf fixed to the timber post nearest
+  // the two doors. The post itself is at x=3.3 / z=-1.9; +Z faces into the room.
+  const postX = 3.3
+  const postZ = -1.9
+  const postFrontZ = postZ + 0.31
+  const shelfY = 2.04
+  const shelfDepth = 0.62
+  const shelfCenterZ = postFrontZ + shelfDepth / 2 - 0.01
+
+  const shelfWood = makeMaterial(0x6e4426, 0.92); shelfWood.flatShading = true
+  const bracketWood = makeMaterial(0x4d301d, 0.94); bracketWood.flatShading = true
+  const conduit = makeMaterial(0x242927, 0.88); conduit.flatShading = true
+  const terminal = makeMaterial(0xbab3a0, 0.92); terminal.flatShading = true
+
+  scene.add(box([0.96, 0.10, shelfDepth], [postX, shelfY, shelfCenterZ], shelfWood))
+  scene.add(box([0.78, 0.28, 0.08], [postX, shelfY - 0.15, postFrontZ + 0.035], bracketWood))
+  for (const side of [-1, 1]) {
+    scene.add(box(
+      [0.075, 0.075, 0.48],
+      [postX + side * 0.31, shelfY - 0.20, shelfCenterZ - 0.06],
+      bracketWood,
+      [-0.66, 0, 0],
+    ))
+  }
+
+  scene.add(cylinder(0.018, 1.25, [postX, 2.86, postFrontZ + 0.045], conduit, 7))
+  scene.add(box([0.18, 0.26, 0.10], [postX, 2.56, postFrontZ + 0.055], terminal))
+  scene.add(box([0.12, 0.16, 0.025], [postX, 2.56, postFrontZ + 0.118], conduit))
+
+  const shelfTop = shelfY + 0.05
+  createPhone(scene, postX, shelfCenterZ + 0.03, PALETTE.red, 0, shelfTop + 0.018, 0.58)
+
+  const cableCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(postX + 0.05, 2.43, postFrontZ + 0.11),
+    new THREE.Vector3(postX + 0.11, 2.30, postFrontZ + 0.18),
+    new THREE.Vector3(postX + 0.15, 2.18, shelfCenterZ - 0.13),
+    new THREE.Vector3(postX + 0.23, shelfTop + 0.18, shelfCenterZ + 0.02),
+  ])
+  const cable = new THREE.Mesh(new THREE.TubeGeometry(cableCurve, 9, 0.010, 5, false), materials.black)
+  cable.castShadow = true
+  scene.add(cable)
 }
 
 const createDeskLamp = (scene: THREE.Scene, x: number, z: number, scale = 1, rotationY = 0) => {
@@ -1574,6 +1619,7 @@ const createScene = (scene: THREE.Scene, camera: THREE.PerspectiveCamera) => {
   const updateClock = createRoomShell(scene); const closet = createBackCloset(scene); createTable(scene); createRadioDesk(scene); createMapBoard(scene); const projector = createProjector(scene); createFilmReelStorage(scene); const projectionScreen = createProjectionScreen(scene); createPaperCluster(scene); createFolders(scene); const fanSpinner = createWallFan(scene)
   createChair(scene, -4.65, 0.65, -1.07); createChair(scene, 2.5, -0.2, 1.91); createChair(scene, 2.5, 3.35, 1.31)
   createPhone(scene, -0.6, -2.0, 0x315b3c, 0); createPhone(scene, -0.6, -1.0, 0xd8ceb0, 1.57); createPhone(scene, -0.6, 0, PALETTE.red, -1.57); createPhone(scene, -0.6, 1.0, 0xd9d1b8, 1.57); createPhone(scene, -0.6, 2.0, 0x315b3c, -1.57)
+  createPostPhoneShelf(scene)
   const trayLampRear = createDeskLamp(scene, -2.25, -1.15, 0.9, -0.04)
   // In the rotated top-down WRITING view +X is screen-up. Move the
   // right-hand lamp upward, but stop before its shade reaches the raised
