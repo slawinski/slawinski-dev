@@ -673,7 +673,7 @@ const createPostPhoneShelf = (scene: THREE.Scene) => {
   const postZ = -1.9
   const postHalfWidth = 0.31
   const tableFacingX = postX - postHalfWidth
-  const shelfY = 2.34
+  const shelfY = 3.10
   const shelfDepth = 0.62
   const shelfWidth = 0.96
   const shelfCenterX = tableFacingX - shelfDepth / 2 + 0.01
@@ -685,15 +685,6 @@ const createPostPhoneShelf = (scene: THREE.Scene) => {
 
   scene.add(box([shelfDepth, 0.10, shelfWidth], [shelfCenterX, shelfY, postZ], shelfWood))
   scene.add(box([0.08, 0.28, 0.78], [tableFacingX - 0.035, shelfY - 0.15, postZ], bracketWood))
-  for (const side of [-1, 1]) {
-    scene.add(box(
-      [0.48, 0.075, 0.075],
-      [shelfCenterX + 0.06, shelfY - 0.20, postZ + side * 0.31],
-      bracketWood,
-      [0, 0, 0.66],
-    ))
-  }
-
   const conduitBottomY = shelfY + 0.12
   const conduitTopY = 6.48
   const conduitLength = conduitTopY - conduitBottomY
