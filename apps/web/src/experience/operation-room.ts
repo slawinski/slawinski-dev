@@ -1627,14 +1627,19 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
   // ends, closer to a programmed motion-control camera move.
   const easeMotionControl = (value: number) => value * value * value * (value * (value * 6 - 15) + 10)
   const settleControls = (enabled: boolean) => {
-    // OrbitControls keeps internal damping deltas. Flushing them at a camera
-    // hand-off prevents the one-frame snap that used to happen at the end of a dolly.
+    // Focused views intentionally sit closer than OrbitControls.minDistance.
+    // Calling controls.update() while handing off to a disabled focused view
+    // clamps that distance and causes the sharp punch-zoom backwards at the
+    // exact end of the dolly. Keep the camera pose untouched while focused;
+    // only flush OrbitControls when returning to the normal room view.
     controls.target.copy(cameraTarget)
+    controls.enabled = enabled
+    if (!enabled) return
+
     const damping = controls.enableDamping
     controls.enableDamping = false
     controls.update()
     controls.enableDamping = damping
-    controls.enabled = enabled
   }
   const startMapDolly = () => {
     if (viewMode !== 'home') return
