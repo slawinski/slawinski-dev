@@ -1538,6 +1538,12 @@ export const mountOperationRoom = (root: HTMLElement) => {
     endTarget: THREE.Vector3
     startUp: THREE.Vector3
     endUp: THREE.Vector3
+    traysSequence?: {
+      forwardPosition: THREE.Vector3
+      forwardTarget: THREE.Vector3
+      turnPosition: THREE.Vector3
+      turnTarget: THREE.Vector3
+    }
     destination: 'home' | 'map' | 'radio' | 'trays' | 'closet'
   } | null = null
   const FAN_SPEED = 4
@@ -1757,19 +1763,37 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
     }
 
     const start = camera.position.clone()
-    const direction = end.clone().sub(start)
-    // Motion-control style move: glide toward the desk, arc above the trays,
-    // then settle into the rotated true top-down inspection shot.
-    const controlA = start.clone().addScaledVector(direction, 0.28).add(new THREE.Vector3(0.12, 0.55, 0.38))
-    const controlB = start.clone().addScaledVector(direction, 0.74).add(new THREE.Vector3(0.08, 0.52, 0.10))
+    const startTarget = controls.target.clone()
+    const forwardDirection = startTarget.clone().sub(start).normalize()
+
+    // WRITING uses a deliberately staged motion-control move instead of a
+    // single simultaneous arc: first dolly forward while holding the view,
+    // then make a clear right turn toward the brown-door wall, and only
+    // after the turn is established rise over the trays and tilt down.
+    const forwardPosition = start.clone().addScaledVector(forwardDirection, 4.15)
+    const forwardTarget = startTarget.clone().addScaledVector(forwardDirection, 4.15)
+    const turnPosition = new THREE.Vector3(
+      TRAYS_TARGET.x - 2.45,
+      TRAYS_TARGET.y + 1.55,
+      TRAYS_TARGET.z + 0.10,
+    )
+    const turnTarget = new THREE.Vector3(
+      TRAYS_TARGET.x + 0.65,
+      TRAYS_TARGET.y + 0.95,
+      TRAYS_TARGET.z,
+    )
+
     cameraTransition = {
       startTime: performance.now(),
-      duration: 2700,
-      path: new THREE.CubicBezierCurve3(start, controlA, controlB, end),
-      startTarget: controls.target.clone(),
+      duration: 3000,
+      // The generic path remains the source of the exact first/final camera
+      // positions; the render loop uses the staged waypoints in between.
+      path: new THREE.CubicBezierCurve3(start, forwardPosition, turnPosition, end),
+      startTarget,
       endTarget: TRAYS_TARGET.clone(),
       startUp: camera.up.clone(),
       endUp: TRAYS_UP.clone(),
+      traysSequence: { forwardPosition, forwardTarget, turnPosition, turnTarget },
       destination: 'trays',
     }
     setZoomOutVisible(false)
@@ -1992,10 +2016,39 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
       const elapsed = now - cameraTransition.startTime
       const progress = Math.min(elapsed / cameraTransition.duration, 1)
       const eased = easeMotionControl(progress)
+    if (cameraTransition.destination === 'trays' && cameraTransition.traysSequence) {
+      const sequence = cameraTransition.traysSequence
+      const forwardEnd = 0.40
+      const turnEnd = 0.70
+
+      if (progress < forwardEnd) {
+        // Phase 1: pure dolly forward. Translate the look target by the same
+        // amount as the camera so there is no turn or tilt yet.
+        const phase = easeMotionControl(progress / forwardEnd)
+        camera.position.lerpVectors(cameraTransition.path.getPoint(0), sequence.forwardPosition, phase)
+        cameraTarget.lerpVectors(cameraTransition.startTarget, sequence.forwardTarget, phase)
+        camera.up.lerpVectors(cameraTransition.startUp, HOME_UP, phase).normalize()
+      } else if (progress < turnEnd) {
+        // Phase 2: sweep right until the camera is clearly facing the wall
+        // with the brown door. Keep world-up vertical during the turn.
+        const phase = easeMotionControl((progress - forwardEnd) / (turnEnd - forwardEnd))
+        camera.position.lerpVectors(sequence.forwardPosition, sequence.turnPosition, phase)
+        cameraTarget.lerpVectors(sequence.forwardTarget, sequence.turnTarget, phase)
+        camera.up.copy(HOME_UP)
+      } else {
+        // Phase 3: once the right turn is complete, move over the trays and
+        // tilt down into the 90-degree top-down final composition.
+        const phase = easeMotionControl((progress - turnEnd) / (1 - turnEnd))
+        camera.position.lerpVectors(sequence.turnPosition, cameraTransition.path.getPoint(1), phase)
+        cameraTarget.lerpVectors(sequence.turnTarget, cameraTransition.endTarget, phase)
+        camera.up.lerpVectors(HOME_UP, cameraTransition.endUp, phase).normalize()
+      }
+    } else {
       camera.position.copy(cameraTransition.path.getPoint(eased))
       cameraTarget.lerpVectors(cameraTransition.startTarget, cameraTransition.endTarget, eased)
       camera.up.lerpVectors(cameraTransition.startUp, cameraTransition.endUp, eased).normalize()
-      controls.target.copy(cameraTarget)
+    }
+    controls.target.copy(cameraTarget)
       updateCameraReadout()
 
       if (progress >= 1) {
