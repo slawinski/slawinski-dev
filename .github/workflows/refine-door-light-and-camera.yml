@@ -1,0 +1,31 @@
+name: Refine door light and camera
+
+on:
+  push:
+    branches:
+      - 'rewrite/astro-payload'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-operation-room:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: rewrite/astro-payload
+          fetch-depth: 0
+
+      - name: Patch door hover and dolly camera behavior
+        run: python scripts/refine-door-light-and-camera.py
+
+      - name: Commit refinements
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/web/src/experience/operation-room.ts
+          git commit -m 'Refine door hover light and dolly camera motion'
+          git push origin HEAD:rewrite/astro-payload
