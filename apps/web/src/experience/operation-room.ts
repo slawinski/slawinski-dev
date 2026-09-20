@@ -57,6 +57,7 @@ const WORLD = {
   mainTable: { x: -0.6, y: 1.16, z: 1.15, width: 4.8, depth: 9.2 },
   radioDesk: { x: -5.9, y: 1.18, z: -2.25, width: 3.7, depth: 1.25 },
   board: { x: -5.25, y: 5.55, z: -1.4, width: 4.1, height: 0.78 },
+  closet: { x: 2.75, width: 1.7, height: 4.9, depth: 1.65 },
 }
 
 // The WORK hover beam is physically anchored to this period wall sconce.
@@ -237,7 +238,18 @@ const createHangingBoard = (scene: THREE.Scene) => {
 const createRoomShell = (scene: THREE.Scene) => {
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(WORLD.roomWidth, WORLD.roomDepth), materials.floor)
   floor.rotation.x = -Math.PI / 2; floor.position.set(0, WORLD.floorY, 0); floor.receiveShadow = true; scene.add(floor)
-  scene.add(box([WORLD.roomWidth, WORLD.wallHeight, 0.18], [0, WORLD.wallHeight / 2, WORLD.backWallZ], materials.wall))
+  // The ABOUT doorway is a real opening in the back wall. Split the wall into
+  // left/right/top sections so the camera can actually see into the closet once
+  // the door swings inward instead of revealing another wall behind it.
+  const backWallMinX = -WORLD.roomWidth / 2
+  const backWallMaxX = WORLD.roomWidth / 2
+  const closetMinX = WORLD.closet.x - WORLD.closet.width / 2
+  const closetMaxX = WORLD.closet.x + WORLD.closet.width / 2
+  const leftBackWidth = closetMinX - backWallMinX
+  const rightBackWidth = backWallMaxX - closetMaxX
+  scene.add(box([leftBackWidth, WORLD.wallHeight, 0.18], [(backWallMinX + closetMinX) / 2, WORLD.wallHeight / 2, WORLD.backWallZ], materials.wall))
+  scene.add(box([rightBackWidth, WORLD.wallHeight, 0.18], [(closetMaxX + backWallMaxX) / 2, WORLD.wallHeight / 2, WORLD.backWallZ], materials.wall))
+  scene.add(box([WORLD.closet.width, WORLD.wallHeight - WORLD.closet.height, 0.18], [WORLD.closet.x, WORLD.closet.height + (WORLD.wallHeight - WORLD.closet.height) / 2, WORLD.backWallZ], materials.wall))
   scene.add(box([0.18, WORLD.wallHeight, WORLD.roomDepth], [-8.8, WORLD.wallHeight / 2, 0], materials.wallShadow))
   scene.add(box([0.18, WORLD.wallHeight, WORLD.roomDepth], [6.8, WORLD.wallHeight / 2, 0], materials.wallShadow))
   // Green trim is a low baseboard, not a raised wall panel. It wraps the
@@ -248,8 +260,8 @@ const createRoomShell = (scene: THREE.Scene) => {
   const rightWallX = 6.8
   const wallSpan = rightWallX - leftWallX
   // Keep the back-wall baseboard clear of the black door as well.
-  const backDoorMinX = 2.75 - 1.7 / 2
-  const backDoorMaxX = 2.75 + 1.7 / 2
+  const backDoorMinX = WORLD.closet.x - WORLD.closet.width / 2
+  const backDoorMaxX = WORLD.closet.x + WORLD.closet.width / 2
   scene.add(box([backDoorMinX - leftWallX, baseboardHeight, 0.18], [(leftWallX + backDoorMinX) / 2, baseboardY, WORLD.backWallZ + 0.12], materials.green))
   scene.add(box([rightWallX - backDoorMaxX, baseboardHeight, 0.18], [(backDoorMaxX + rightWallX) / 2, baseboardY, WORLD.backWallZ + 0.12], materials.green))
   scene.add(box([0.18, baseboardHeight, WORLD.roomDepth], [leftWallX + 0.12, baseboardY, 0], materials.green))
@@ -283,7 +295,6 @@ const createRoomShell = (scene: THREE.Scene) => {
   scene.add(strut([-8.83, 4.95, -1.5], [-4.59, 7.4, -1.5], beamMaterial))
   scene.add(strut([-8.83, 4.95, 2.6], [-4.59, 7.4, 2.6], beamMaterial))
 
-  scene.add(box([1.7, 4.9, 0.28], [2.75, 2.45, WORLD.backWallZ + 0.02], materials.black))
   scene.add(box([0.26, 4.9, 1.65], [6.82, 2.45, -2.95], materials.wood))
   for (let y = 0.55; y <= 3.5; y += 0.72) scene.add(box([0.03, 0.045, 1.48], [6.66, y, -2.95], materials.woodDark))
 
@@ -307,6 +318,83 @@ const createRoomShell = (scene: THREE.Scene) => {
   }
   updateClock()
   return updateClock
+}
+
+const createBackCloset = (scene: THREE.Scene) => {
+  const { x, width, height, depth } = WORLD.closet
+  const frontZ = WORLD.backWallZ + 0.10
+  const backZ = WORLD.backWallZ - depth
+  const interiorCenterZ = (WORLD.backWallZ + backZ) / 2
+  const closetWall = makeMaterial(0x69716c, 0.98); closetWall.flatShading = true
+  const closetDark = makeMaterial(0x363b37, 0.96); closetDark.flatShading = true
+  const doorMaterial = makeMaterial(0x25221e, 0.90); doorMaterial.flatShading = true
+  const doorInset = makeMaterial(0x35312b, 0.92); doorInset.flatShading = true
+  const shelfMaterial = makeMaterial(0x5b4228, 0.92); shelfMaterial.flatShading = true
+  const coatMaterial = makeMaterial(0x313b34, 0.96); coatMaterial.flatShading = true
+
+  // Recessed closet shell behind the wall opening.
+  scene.add(box([width + 0.10, height, 0.12], [x, height / 2, backZ], closetDark))
+  scene.add(box([0.12, height, depth], [x - width / 2 - 0.01, height / 2, interiorCenterZ], closetWall))
+  scene.add(box([0.12, height, depth], [x + width / 2 + 0.01, height / 2, interiorCenterZ], closetWall))
+  scene.add(box([width + 0.10, 0.12, depth], [x, height - 0.06, interiorCenterZ], closetWall))
+  scene.add(box([width + 0.10, 0.10, depth], [x, 0.05, interiorCenterZ], materials.floor))
+
+  // Heavy jamb/frame on the room side makes the recess read as a closet rather
+  // than a black rectangle cut into the wall.
+  const frameDepth = 0.20
+  scene.add(box([0.13, height + 0.12, frameDepth], [x - width / 2 - 0.07, height / 2, frontZ], materials.woodDark))
+  scene.add(box([0.13, height + 0.12, frameDepth], [x + width / 2 + 0.07, height / 2, frontZ], materials.woodDark))
+  scene.add(box([width + 0.27, 0.13, frameDepth], [x, height + 0.065, frontZ], materials.woodDark))
+
+  // A shelf, rail and a couple of low-poly coats give the close-up something
+  // recognisably closet-like to inspect without over-detailing the scene.
+  scene.add(box([width - 0.24, 0.10, 0.52], [x, 3.72, backZ + 0.40], shelfMaterial))
+  scene.add(cylinder((width - 0.40) / 2, 0.045, [x, 3.35, backZ + 0.58], materials.metalDark, 10, [0, 0, Math.PI / 2]))
+  scene.add(box([0.52, 1.30, 0.18], [x - 0.36, 2.54, backZ + 0.55], coatMaterial, [0, 0, -0.05]))
+  scene.add(box([0.54, 1.16, 0.18], [x + 0.34, 2.61, backZ + 0.57], makeMaterial(0x51483b, 0.96), [0, 0, 0.06]))
+  scene.add(box([0.72, 0.42, 0.52], [x, 0.28, backZ + 0.44], shelfMaterial))
+
+  // Door pivots at its left jamb. Positive Y rotation sends the free edge into
+  // negative Z, so it genuinely opens inward into the closet during the dolly.
+  const doorPivot = new THREE.Group()
+  doorPivot.position.set(x - width / 2 + 0.06, 0.08, frontZ + 0.015)
+  const doorWidth = width - 0.12
+  const doorHeight = height - 0.16
+  const door = box([doorWidth, doorHeight, 0.12], [doorWidth / 2, doorHeight / 2, 0], doorMaterial)
+  doorPivot.add(door)
+  doorPivot.add(box([doorWidth - 0.24, 1.62, 0.035], [doorWidth / 2, 3.63, 0.075], doorInset))
+  doorPivot.add(box([doorWidth - 0.24, 1.62, 0.035], [doorWidth / 2, 1.57, 0.075], doorInset))
+  doorPivot.add(cylinder(0.065, 0.10, [doorWidth - 0.18, 2.36, 0.105], materials.brass, 10, [Math.PI / 2, 0, 0]))
+  scene.add(doorPivot)
+
+  // Soft practical light at the closet ceiling. Its intensity follows the door
+  // opening so the light does not leak through the closed door in the home view.
+  const fixtureMaterial = new THREE.MeshStandardMaterial({
+    color: 0xe5dbb9,
+    roughness: 0.80,
+    emissive: 0xffd797,
+    emissiveIntensity: 0.05,
+  })
+  const fixture = cylinder(0.18, 0.055, [x, height - 0.16, WORLD.backWallZ - depth * 0.45], fixtureMaterial, 12)
+  scene.add(fixture)
+  const light = new THREE.SpotLight(0xffdda5, 0, 5.2, 0.88, 0.78, 1.35)
+  light.position.set(x, height - 0.22, WORLD.backWallZ - depth * 0.45)
+  light.target.position.set(x, 1.55, backZ + 0.42)
+  light.castShadow = true
+  light.shadow.mapSize.set(512, 512)
+  light.shadow.bias = -0.00025
+  light.shadow.normalBias = 0.025
+  scene.add(light, light.target)
+
+  const setProgress = (value: number) => {
+    const progress = THREE.MathUtils.clamp(value, 0, 1)
+    doorPivot.rotation.y = progress * 1.36
+    light.intensity = progress * 4.2
+    fixtureMaterial.emissiveIntensity = 0.05 + progress * 0.72
+  }
+  setProgress(0)
+
+  return { setProgress }
 }
 
 const createMapBoard = (scene: THREE.Scene) => {
@@ -1292,7 +1380,7 @@ const createHoverTarget = (
 }
 
 const createScene = (scene: THREE.Scene, camera: THREE.PerspectiveCamera) => {
-  const updateClock = createRoomShell(scene); createTable(scene); createRadioDesk(scene); createMapBoard(scene); const projector = createProjector(scene); const projectionScreen = createProjectionScreen(scene); createPaperCluster(scene); createFolders(scene); const fanSpinner = createWallFan(scene)
+  const updateClock = createRoomShell(scene); const closet = createBackCloset(scene); createTable(scene); createRadioDesk(scene); createMapBoard(scene); const projector = createProjector(scene); const projectionScreen = createProjectionScreen(scene); createPaperCluster(scene); createFolders(scene); const fanSpinner = createWallFan(scene)
   createChair(scene, -4.65, 0.65, -1.07); createChair(scene, 2.5, -0.2, 1.91); createChair(scene, 2.5, 3.35, 1.31)
   createPhone(scene, -0.6, -2.0, 0x315b3c, 0); createPhone(scene, -0.6, -1.0, 0xd8ceb0, 1.57); createPhone(scene, -0.6, 0, PALETTE.red, -1.57); createPhone(scene, -0.6, 1.0, 0xd9d1b8, 1.57); createPhone(scene, -0.6, 2.0, 0x315b3c, -1.57)
   const trayLampRear = createDeskLamp(scene, -2.25, -1.15, 0.9, -0.04)
@@ -1320,7 +1408,7 @@ const hoverTargets: HoverTarget[] = [
   createHoverTarget(scene, 'back-door', 'ABOUT', [1.8, 4.85, 0.12], [2.75, 2.45, WORLD.backWallZ + 0.20]),
 ]
   camera.position.set(-4.08, 4.47, 10.34); camera.lookAt(-2.15, 2.7, -4.75)
-  return { hotspots, hoverTargets, boardDraw, fanSpinner, updateClock, projector, projectionScreen }
+  return { hotspots, hoverTargets, boardDraw, fanSpinner, updateClock, projector, projectionScreen, closet }
 }
 
 export const mountOperationRoom = (root: HTMLElement) => {
@@ -1344,7 +1432,7 @@ export const mountOperationRoom = (root: HTMLElement) => {
   const warmFill = new THREE.DirectionalLight(0xffd599, 1.15); warmFill.position.set(-4, 7, 7); warmFill.castShadow = true; warmFill.shadow.mapSize.set(1024, 1024); scene.add(warmFill)
   const coolFill = new THREE.DirectionalLight(0xb8d0cb, 0.45); coolFill.position.set(7, 5, -1); scene.add(coolFill)
 
-  const { hotspots, hoverTargets, boardDraw, fanSpinner, updateClock, projector, projectionScreen } = createScene(scene, camera)
+  const { hotspots, hoverTargets, boardDraw, fanSpinner, updateClock, projector, projectionScreen, closet } = createScene(scene, camera)
   const pointer = new THREE.Vector2(2, 2)
   const hoverRaycaster = new THREE.Raycaster()
   const HOME_POSITION = new THREE.Vector3(-5.08, 4.14, 8.58)
@@ -1352,6 +1440,7 @@ export const mountOperationRoom = (root: HTMLElement) => {
   const MAP_TARGET = new THREE.Vector3(WORLD.map.x, WORLD.map.y, WORLD.map.z + 0.06)
   const RADIO_TARGET = new THREE.Vector3(WORLD.radioDesk.x, 1.92, WORLD.radioDesk.z + 0.04)
   const TRAYS_TARGET = new THREE.Vector3(-1.95, 1.61, -0.15)
+  const CLOSET_TARGET = new THREE.Vector3(WORLD.closet.x, 2.42, WORLD.backWallZ - WORLD.closet.depth * 0.72)
   const TARGET_BOUNDS = { minX: -6, maxX: 4, minY: 0.8, maxY: 5.2, minZ: -5.8, maxZ: 4 }
   const cameraTarget = HOME_TARGET.clone()
   const controls = new OrbitControls(camera, canvas)
@@ -1371,14 +1460,16 @@ export const mountOperationRoom = (root: HTMLElement) => {
   let lastTime = performance.now()
   let projectorActive = false
   let projectorScreenProgress = 0
-  let viewMode: 'home' | 'transition' | 'map' | 'radio' | 'trays' = 'home'
+  let closetProgress = 0
+  let closetTargetProgress = 0
+  let viewMode: 'home' | 'transition' | 'map' | 'radio' | 'trays' | 'closet' = 'home'
   let cameraTransition: {
     startTime: number
     duration: number
     path: THREE.Curve<THREE.Vector3>
     startTarget: THREE.Vector3
     endTarget: THREE.Vector3
-    destination: 'home' | 'map' | 'radio' | 'trays'
+    destination: 'home' | 'map' | 'radio' | 'trays' | 'closet'
   } | null = null
   const FAN_SPEED = 4
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -1441,6 +1532,16 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
     const distance = Math.max(verticalDistance, horizontalDistance) * 1.18
     return new THREE.Vector3(TRAYS_TARGET.x + 0.03, TRAYS_TARGET.y + distance, TRAYS_TARGET.z + 0.16)
   }
+  const getClosetViewPosition = () => {
+    // Frame almost the entire doorway while aiming slightly into the recess so
+    // the final shot reads as looking into a small room rather than at a door.
+    const verticalHalfFov = THREE.MathUtils.degToRad(camera.fov * 0.5)
+    const verticalDistance = (WORLD.closet.height * 0.5) / Math.tan(verticalHalfFov)
+    const horizontalHalfFov = Math.atan(Math.tan(verticalHalfFov) * camera.aspect)
+    const horizontalDistance = (WORLD.closet.width * 0.5) / Math.tan(horizontalHalfFov)
+    const distance = Math.max(verticalDistance, horizontalDistance) * 1.14
+    return new THREE.Vector3(CLOSET_TARGET.x + 0.12, CLOSET_TARGET.y + 0.04, CLOSET_TARGET.z + distance)
+  }
   const setZoomOutVisible = (visible: boolean) => {
     if (zoomOutButton) zoomOutButton.hidden = !visible
   }
@@ -1463,6 +1564,10 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
       camera.position.copy(getTraysViewPosition())
       cameraTarget.copy(TRAYS_TARGET)
       controls.target.copy(TRAYS_TARGET)
+    } else if (viewMode === 'closet') {
+      camera.position.copy(getClosetViewPosition())
+      cameraTarget.copy(CLOSET_TARGET)
+      controls.target.copy(CLOSET_TARGET)
     }
   }
   const updatePointer = (event: PointerEvent) => { const bounds = canvas.getBoundingClientRect(); pointer.x = ((event.clientX - bounds.left) / bounds.width) * 2 - 1; pointer.y = -((event.clientY - bounds.top) / bounds.height) * 2 + 1 }
@@ -1570,6 +1675,43 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
     setZoomOutVisible(false)
     viewMode = 'transition'
   }
+  const startClosetDolly = () => {
+    if (viewMode !== 'home') return
+
+    clearHoverHighlights()
+    hotspots.forEach((hotspot) => { hotspot.highlight.visible = false })
+    boardDraw('ABOUT')
+    closetTargetProgress = 1
+
+    const end = getClosetViewPosition()
+    if (reducedMotion.matches) {
+      closetProgress = 1
+      closet.setProgress(1)
+      camera.position.copy(end)
+      cameraTarget.copy(CLOSET_TARGET)
+      controls.target.copy(CLOSET_TARGET)
+      viewMode = 'closet'
+      setZoomOutVisible(true)
+      return
+    }
+
+    const start = camera.position.clone()
+    const direction = end.clone().sub(start)
+    // Glide toward the doorway with a small lateral settle. The door begins to
+    // open as the camera approaches and swings fully inward before the close-up.
+    const controlA = start.clone().addScaledVector(direction, 0.30).add(new THREE.Vector3(0.16, 0.04, 0.16))
+    const controlB = start.clone().addScaledVector(direction, 0.76).add(new THREE.Vector3(0.22, -0.03, 0.04))
+    cameraTransition = {
+      startTime: performance.now(),
+      duration: 2650,
+      path: new THREE.CubicBezierCurve3(start, controlA, controlB, end),
+      startTarget: cameraTarget.clone(),
+      endTarget: CLOSET_TARGET.clone(),
+      destination: 'closet',
+    }
+    setZoomOutVisible(false)
+    viewMode = 'transition'
+  }
   const setProjectorActive = (active: boolean) => {
     projectorActive = active
     if (reducedMotion.matches) {
@@ -1598,6 +1740,7 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
     if (target.id === 'map') startMapDolly()
     if (target.id === 'radio') startRadioDolly()
     if (target.id === 'trays') startTraysDolly()
+    if (target.id === 'back-door') startClosetDolly()
   }
   const onPointerMove = (event: PointerEvent) => {
     // Desktop interaction is hover-only: moving the pointer over a menu region
@@ -1627,6 +1770,11 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
     cameraTransition = null
     viewMode = 'home'
     setProjectorActive(false)
+    closetTargetProgress = 0
+    if (reducedMotion.matches) {
+      closetProgress = 0
+      closet.setProgress(0)
+    }
     setZoomOutVisible(false)
     camera.position.copy(HOME_POSITION)
     cameraTarget.copy(HOME_TARGET)
@@ -1636,8 +1784,9 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
     selectDefault()
   }
   const startZoomOut = () => {
-    if (viewMode !== 'map' && viewMode !== 'radio' && viewMode !== 'trays') return
+    if (viewMode !== 'map' && viewMode !== 'radio' && viewMode !== 'trays' && viewMode !== 'closet') return
     setZoomOutVisible(false)
+    closetTargetProgress = 0
 
     if (reducedMotion.matches) {
       resetView()
@@ -1691,6 +1840,14 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
     if (!reducedMotion.matches) fanSpinner.rotation.z -= dt * FAN_SPEED
     updateClock()
 
+    if (reducedMotion.matches) {
+      closetProgress = closetTargetProgress
+    } else {
+      closetProgress = THREE.MathUtils.damp(closetProgress, closetTargetProgress, closetTargetProgress > closetProgress ? 3.2 : 4.2, dt)
+      if (Math.abs(closetProgress - closetTargetProgress) < 0.001) closetProgress = closetTargetProgress
+    }
+    closet.setProgress(closetProgress)
+
     const projectorTarget = projectorActive ? 1 : 0
     if (reducedMotion.matches) {
       projectorScreenProgress = projectorTarget
@@ -1740,7 +1897,7 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
         controls.target.copy(cameraTransition.endTarget)
         cameraTransition = null
         viewMode = destination
-        setZoomOutVisible(destination === 'map' || destination === 'radio' || destination === 'trays')
+        setZoomOutVisible(destination === 'map' || destination === 'radio' || destination === 'trays' || destination === 'closet')
         if (destination === 'home') selectDefault()
       }
     }
