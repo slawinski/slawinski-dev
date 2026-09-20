@@ -1,0 +1,31 @@
+name: Rework projector film storage
+
+on:
+  push:
+    branches:
+      - 'rewrite/astro-payload'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: rewrite/astro-payload
+          fetch-depth: 0
+      - name: Rework film reel storage
+        run: python scripts/rework-projector-film-storage.py
+      - name: Validate patch
+        run: git diff --check
+      - name: Commit scene update
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/rework-projector-film-storage.yml scripts/rework-projector-film-storage.py
+          git add apps/web/src/experience/operation-room.ts
+          git commit -m 'Rework film storage left of projector'
+          git push origin HEAD:rewrite/astro-payload
