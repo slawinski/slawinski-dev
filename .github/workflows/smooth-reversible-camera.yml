@@ -1,0 +1,290 @@
+name: Smooth reversible camera
+
+on:
+  push:
+    branches:
+      - 'rewrite/astro-payload'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-camera:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: rewrite/astro-payload
+          fetch-depth: 0
+
+      - name: Make focus camera motion continuous and exactly reversible
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('apps/web/src/experience/operation-room.ts')
+          text = path.read_text()
+
+          def replace_once(old: str, new: str, label: str) -> None:
+              global text
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{label}: expected exactly one match, found {count}')
+              text = text.replace(old, new, 1)
+
+          replace_once(
+          """    traysSequence?: {
+                forwardPosition: THREE.Vector3
+                forwardTarget: THREE.Vector3
+                turnPosition: THREE.Vector3
+                turnTarget: THREE.Vector3
+              }
+              destination: 'home' | 'map' | 'radio' | 'trays' | 'closet'
+            } | null = null
+          """,
+          """    traysSequence?: {
+                forwardPosition: THREE.Vector3
+                forwardTarget: THREE.Vector3
+                turnPosition: THREE.Vector3
+                turnTarget: THREE.Vector3
+              }
+              targetPath?: THREE.Curve<THREE.Vector3>
+              traysTilt?: boolean
+              reverse?: boolean
+              destination: 'home' | 'map' | 'radio' | 'trays' | 'closet'
+            } | null = null
+            let focusRoute: NonNullable<typeof cameraTransition> | null = null
+          """,
+          'camera transition route metadata',
+          )
+
+          replace_once(
+          """      // The generic path remains the source of the exact first/final camera
+                // positions; the render loop uses the staged waypoints in between.
+                path: new THREE.CubicBezierCurve3(start, forwardPosition, turnPosition, end),
+                startTarget,
+                endTarget: TRAYS_TARGET.clone(),
+                startUp: camera.up.clone(),
+                endUp: TRAYS_UP.clone(),
+                traysSequence: { forwardPosition, forwardTarget, turnPosition, turnTarget },
+                destination: 'trays',
+          """,
+          """      // One continuous centripetal spline passes through the three intended
+                // beats (forward, right turn, overhead) without easing to a stop at the
+                // intermediate waypoints. Arc-length sampling in the render loop keeps
+                // the physical dolly speed visually even through the turn.
+                path: new THREE.CatmullRomCurve3(
+                  [start, forwardPosition, turnPosition, end],
+                  false,
+                  'centripetal',
+                  0.5,
+                ),
+                startTarget,
+                endTarget: TRAYS_TARGET.clone(),
+                startUp: camera.up.clone(),
+                endUp: TRAYS_UP.clone(),
+                targetPath: new THREE.CatmullRomCurve3(
+                  [startTarget, forwardTarget, turnTarget, TRAYS_TARGET.clone()],
+                  false,
+                  'centripetal',
+                  0.5,
+                ),
+                traysTilt: true,
+                destination: 'trays',
+          """,
+          'continuous trays route',
+          )
+
+          old_zoom_out = """  const startZoomOut = () => {
+              if (viewMode !== 'map' && viewMode !== 'radio' && viewMode !== 'trays' && viewMode !== 'closet') return
+              setZoomOutVisible(false)
+              closetTargetProgress = 0
+
+              if (reducedMotion.matches) {
+                resetView()
+                return
+              }
+
+              const start = camera.position.clone()
+              const direction = HOME_POSITION.clone().sub(start)
+              const firstGuide = start.clone().addScaledVector(direction, 0.30).add(new THREE.Vector3(0, 0.08, 0.10))
+              const secondGuide = start.clone().addScaledVector(direction, 0.72).add(new THREE.Vector3(0.08, 0.08, 0.16))
+              cameraTransition = {
+                startTime: performance.now(),
+                duration: 1850,
+                path: new THREE.CubicBezierCurve3(start, firstGuide, secondGuide, HOME_POSITION.clone()),
+                startTarget: controls.target.clone(),
+                endTarget: HOME_TARGET.clone(),
+                startUp: camera.up.clone(),
+                endUp: HOME_UP.clone(),
+                destination: 'home',
+              }
+              viewMode = 'transition'
+            }
+          """
+          new_zoom_out = """  const startZoomOut = () => {
+              if (viewMode !== 'map' && viewMode !== 'radio' && viewMode !== 'trays' && viewMode !== 'closet') return
+              setZoomOutVisible(false)
+              closetTargetProgress = 0
+
+              if (reducedMotion.matches) {
+                resetView()
+                return
+              }
+
+              // Reuse the exact route that produced the focused view. Sampling the
+              // same position/target/up curves backwards makes zoom-out a literal
+              // time-reversal of zoom-in instead of a separately-authored approximation.
+              if (!focusRoute) {
+                resetView()
+                return
+              }
+              cameraTransition = {
+                ...focusRoute,
+                startTime: performance.now(),
+                reverse: true,
+                destination: 'home',
+              }
+              viewMode = 'transition'
+            }
+          """
+          replace_once(old_zoom_out, new_zoom_out, 'reverse zoom-out route')
+
+          old_render = """    if (cameraTransition) {
+              const elapsed = now - cameraTransition.startTime
+              const progress = Math.min(elapsed / cameraTransition.duration, 1)
+              const eased = easeMotionControl(progress)
+            if (cameraTransition.destination === 'trays' && cameraTransition.traysSequence) {
+              const sequence = cameraTransition.traysSequence
+              const forwardEnd = 0.40
+              const turnEnd = 0.70
+
+              if (progress < forwardEnd) {
+                // Phase 1: pure dolly forward. Translate the look target by the same
+                // amount as the camera so there is no turn or tilt yet.
+                const phase = easeMotionControl(progress / forwardEnd)
+                camera.position.lerpVectors(cameraTransition.path.getPoint(0), sequence.forwardPosition, phase)
+                cameraTarget.lerpVectors(cameraTransition.startTarget, sequence.forwardTarget, phase)
+                camera.up.lerpVectors(cameraTransition.startUp, HOME_UP, phase).normalize()
+              } else if (progress < turnEnd) {
+                // Phase 2: sweep right until the camera is clearly facing the wall
+                // with the brown door. Keep world-up vertical during the turn.
+                const phase = easeMotionControl((progress - forwardEnd) / (turnEnd - forwardEnd))
+                camera.position.lerpVectors(sequence.forwardPosition, sequence.turnPosition, phase)
+                cameraTarget.lerpVectors(sequence.forwardTarget, sequence.turnTarget, phase)
+                camera.up.copy(HOME_UP)
+              } else {
+                // Phase 3: once the right turn is complete, move over the trays and
+                // tilt down into the 90-degree top-down final composition.
+                const phase = easeMotionControl((progress - turnEnd) / (1 - turnEnd))
+                camera.position.lerpVectors(sequence.turnPosition, cameraTransition.path.getPoint(1), phase)
+                cameraTarget.lerpVectors(sequence.turnTarget, cameraTransition.endTarget, phase)
+                camera.up.lerpVectors(HOME_UP, cameraTransition.endUp, phase).normalize()
+              }
+            } else {
+              camera.position.copy(cameraTransition.path.getPoint(eased))
+              cameraTarget.lerpVectors(cameraTransition.startTarget, cameraTransition.endTarget, eased)
+              camera.up.lerpVectors(cameraTransition.startUp, cameraTransition.endUp, eased).normalize()
+            }
+            controls.target.copy(cameraTarget)
+              updateCameraReadout()
+
+              if (progress >= 1) {
+                const destination = cameraTransition.destination
+                camera.position.copy(cameraTransition.path.getPoint(1))
+                cameraTarget.copy(cameraTransition.endTarget)
+                camera.up.copy(cameraTransition.endUp)
+                controls.target.copy(cameraTransition.endTarget)
+                cameraTransition = null
+                viewMode = destination
+                settleControls(destination === 'home')
+                setZoomOutVisible(destination === 'map' || destination === 'radio' || destination === 'trays' || destination === 'closet')
+                if (destination === 'home') selectDefault()
+              }
+            }
+          """
+          new_render = """    if (cameraTransition) {
+              const elapsed = now - cameraTransition.startTime
+              const progress = Math.min(elapsed / cameraTransition.duration, 1)
+              const eased = easeMotionControl(progress)
+              const routeProgress = cameraTransition.reverse ? 1 - eased : eased
+
+              // Every focus move is sampled from one continuous route. getPointAt()
+              // uses arc-length parameterization, avoiding the visible speed pulses
+              // that occur when separate animation phases ease independently.
+              camera.position.copy(cameraTransition.path.getPointAt(routeProgress))
+              if (cameraTransition.targetPath) {
+                cameraTarget.copy(cameraTransition.targetPath.getPointAt(routeProgress))
+              } else {
+                cameraTarget.lerpVectors(cameraTransition.startTarget, cameraTransition.endTarget, routeProgress)
+              }
+
+              // The trays keep their requested forward -> right turn -> tilt-down
+              // composition, but the roll/tilt blends in only near the overhead leg.
+              // Because this is a pure function of routeProgress it reverses exactly.
+              const upProgress = cameraTransition.traysTilt
+                ? easeMotionControl(THREE.MathUtils.clamp((routeProgress - 0.62) / 0.38, 0, 1))
+                : routeProgress
+              camera.up.lerpVectors(cameraTransition.startUp, cameraTransition.endUp, upProgress).normalize()
+              controls.target.copy(cameraTarget)
+              updateCameraReadout()
+
+              if (progress >= 1) {
+                const completedTransition = cameraTransition
+                const destination = completedTransition.destination
+                const endpoint = completedTransition.reverse ? 0 : 1
+                camera.position.copy(completedTransition.path.getPointAt(endpoint))
+                cameraTarget.copy(completedTransition.reverse ? completedTransition.startTarget : completedTransition.endTarget)
+                camera.up.copy(completedTransition.reverse ? completedTransition.startUp : completedTransition.endUp)
+                controls.target.copy(cameraTarget)
+                if (destination === 'home') focusRoute = null
+                else focusRoute = completedTransition
+                cameraTransition = null
+                viewMode = destination
+                settleControls(destination === 'home')
+                setZoomOutVisible(destination === 'map' || destination === 'radio' || destination === 'trays' || destination === 'closet')
+                if (destination === 'home') selectDefault()
+              }
+            }
+          """
+          replace_once(old_render, new_render, 'continuous reversible render sampling')
+
+          replace_once(
+          """  const resetView = () => {
+              cameraTransition = null
+              viewMode = 'home'
+          """,
+          """  const resetView = () => {
+              cameraTransition = null
+              focusRoute = null
+              viewMode = 'home'
+          """,
+          'clear remembered focus route on reset',
+          )
+
+          if 'context.beginPath(); context.moveTo(0, y); context.lineTo(canvas.width, y); context.stroke()' not in text:
+              raise SystemExit('map horizontal grid regression detected')
+          if 'deskPapers.position.set(-2.38, 1.305, 0.92)' not in text:
+              raise SystemExit('latest paper layout was lost')
+          if 'getPointAt(routeProgress)' not in text or 'reverse: true' not in text:
+              raise SystemExit('reversible camera implementation missing')
+          if 'const phase = easeMotionControl(progress / forwardEnd)' in text:
+              raise SystemExit('old stop-start trays phases still present')
+
+          path.write_text(text)
+          PY
+
+          git diff --check
+          git diff -- apps/web/src/experience/operation-room.ts
+          git rm .github/workflows/smooth-reversible-camera.yml
+
+      - name: Commit camera refinement
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Make focus camera motion smooth and reversible'
+          git push origin HEAD:rewrite/astro-payload
