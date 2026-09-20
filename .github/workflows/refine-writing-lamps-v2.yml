@@ -125,30 +125,23 @@ jobs:
           'move right tray lamp upward without clipping centre box',
           )
 
-          replace_once(
-          """    sources = lightSources.length > 0
-                  ? lightSources.map((source) => source.clone())
-                  : [new THREE.Vector3(position[0], 2.0, position[2] - 0.8), new THREE.Vector3(position[0], 2.0, position[2] + 0.8)]
-                targets = [
-                  new THREE.Vector3(position[0] - 0.05, 1.42, position[2] - 0.26),
-                  new THREE.Vector3(position[0] + 0.12, 1.38, position[2] + 0.46),
-                ]
-                radius = 0.74
-                intensity = 8.5
-          """,
-          """    // No detached/fallback tray light: the two physical desk lamps are
-                // the only WRITING hover-light sources. Each pool starts at a shade
-                // opening and lands on one half of the tray stack.
-                sources = lightSources.map((source) => source.clone())
-                targets = [
-                  new THREE.Vector3(position[0] - 0.10, 1.43, position[2] - 0.30),
-                  new THREE.Vector3(position[0] + 0.08, 1.41, position[2] + 0.34),
-                ]
-                radius = 0.88
-                intensity = 9.5
-          """,
-          'make physical desk lamps the only tray lights',
-          )
+          tray_start_marker = "  } else if (id === 'trays') {\n"
+          tray_end_marker = "  } else if (id === 'projector') {\n"
+          tray_start = text.index(tray_start_marker)
+          tray_end = text.index(tray_end_marker, tray_start)
+          tray_branch = """  } else if (id === 'trays') {
+            // No detached/fallback tray light: the two physical desk lamps are
+            // the only WRITING hover-light sources. Each pool starts at a shade
+            // opening and lands on one half of the tray stack.
+            sources = lightSources.map((source) => source.clone())
+            targets = [
+              new THREE.Vector3(position[0] - 0.10, 1.43, position[2] - 0.30),
+              new THREE.Vector3(position[0] + 0.08, 1.41, position[2] + 0.34),
+            ]
+            radius = 0.88
+            intensity = 9.5
+          """
+          text = text[:tray_start] + tray_branch + text[tray_end:]
 
           camera_start_after = text.index(camera_start_marker)
           camera_end_after = text.index(camera_end_marker, camera_start_after)
@@ -156,17 +149,18 @@ jobs:
           if camera_after != camera_before:
               raise SystemExit('camera/zoom transition changed unexpectedly')
 
-          checks = {
-              'map horizontal grid': 'context.beginPath(); context.moveTo(0, y); context.lineTo(canvas.width, y); context.stroke()',
-              'taller shade': 'const shadeBottomY = 2.10',
-              'moved lamp': 'createDeskLamp(scene, -1.68, 0.85',
-              'physical tray sources': 'sources = lightSources.map((source) => source.clone())',
-              'no tray fallback': "id === 'trays'",
-              'paper position': 'deskPapers.position.set(-2.38, 1.305, 0.92)',
-          }
-          for label, needle in checks.items():
-              if needle not in text:
-                  raise SystemExit(f'{label} check failed')
+          if 'context.beginPath(); context.moveTo(0, y); context.lineTo(canvas.width, y); context.stroke()' not in text:
+              raise SystemExit('map horizontal grid regression detected')
+          if 'const shadeBottomY = 2.10' not in text:
+              raise SystemExit('taller lamp geometry missing')
+          if 'createDeskLamp(scene, -1.68, 0.85' not in text:
+              raise SystemExit('right lamp move missing')
+          if 'sources = lightSources.map((source) => source.clone())' not in text:
+              raise SystemExit('physical tray sources missing')
+          if ': [new THREE.Vector3(position[0], 2.0' in text:
+              raise SystemExit('detached tray fallback still present')
+          if 'deskPapers.position.set(-2.38, 1.305, 0.92)' not in text:
+              raise SystemExit('paper move missing')
 
           path.write_text(text)
           PY
