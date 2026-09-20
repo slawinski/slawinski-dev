@@ -668,42 +668,49 @@ const createPhone = (scene: THREE.Scene, x: number, z: number, color: number, ro
 
 const createPostPhoneShelf = (scene: THREE.Scene) => {
   // Reference prop: a small telephone shelf fixed to the timber post nearest
-  // the two doors. The post itself is at x=3.3 / z=-1.9; +Z faces into the room.
+  // the two doors. Mount it on the -X face: that side faces the operations table.
   const postX = 3.3
   const postZ = -1.9
-  const postFrontZ = postZ + 0.31
-  const shelfY = 2.04
+  const postHalfWidth = 0.31
+  const tableFacingX = postX - postHalfWidth
+  const shelfY = 2.34
   const shelfDepth = 0.62
-  const shelfCenterZ = postFrontZ + shelfDepth / 2 - 0.01
+  const shelfWidth = 0.96
+  const shelfCenterX = tableFacingX - shelfDepth / 2 + 0.01
 
   const shelfWood = makeMaterial(0x6e4426, 0.92); shelfWood.flatShading = true
   const bracketWood = makeMaterial(0x4d301d, 0.94); bracketWood.flatShading = true
   const conduit = makeMaterial(0x242927, 0.88); conduit.flatShading = true
   const terminal = makeMaterial(0xbab3a0, 0.92); terminal.flatShading = true
 
-  scene.add(box([0.96, 0.10, shelfDepth], [postX, shelfY, shelfCenterZ], shelfWood))
-  scene.add(box([0.78, 0.28, 0.08], [postX, shelfY - 0.15, postFrontZ + 0.035], bracketWood))
+  scene.add(box([shelfDepth, 0.10, shelfWidth], [shelfCenterX, shelfY, postZ], shelfWood))
+  scene.add(box([0.08, 0.28, 0.78], [tableFacingX - 0.035, shelfY - 0.15, postZ], bracketWood))
   for (const side of [-1, 1]) {
     scene.add(box(
-      [0.075, 0.075, 0.48],
-      [postX + side * 0.31, shelfY - 0.20, shelfCenterZ - 0.06],
+      [0.48, 0.075, 0.075],
+      [shelfCenterX + 0.06, shelfY - 0.20, postZ + side * 0.31],
       bracketWood,
-      [-0.66, 0, 0],
+      [0, 0, 0.66],
     ))
   }
 
-  scene.add(cylinder(0.018, 1.25, [postX, 2.86, postFrontZ + 0.045], conduit, 7))
-  scene.add(box([0.18, 0.26, 0.10], [postX, 2.56, postFrontZ + 0.055], terminal))
-  scene.add(box([0.12, 0.16, 0.025], [postX, 2.56, postFrontZ + 0.118], conduit))
+  const conduitBottomY = shelfY + 0.12
+  const conduitTopY = 6.48
+  const conduitLength = conduitTopY - conduitBottomY
+  const conduitX = tableFacingX - 0.055
+  scene.add(cylinder(0.018, conduitLength, [conduitX, conduitBottomY + conduitLength / 2, postZ], conduit, 7))
+  const terminalY = shelfY + 0.52
+  scene.add(box([0.10, 0.26, 0.18], [tableFacingX - 0.060, terminalY, postZ], terminal))
+  scene.add(box([0.025, 0.16, 0.12], [tableFacingX - 0.118, terminalY, postZ], conduit))
 
   const shelfTop = shelfY + 0.05
-  createPhone(scene, postX, shelfCenterZ + 0.03, PALETTE.red, 0, shelfTop + 0.018, 0.58)
+  createPhone(scene, shelfCenterX - 0.03, postZ, PALETTE.red, -Math.PI / 2, shelfTop + 0.018, 0.58)
 
   const cableCurve = new THREE.CatmullRomCurve3([
-    new THREE.Vector3(postX + 0.05, 2.43, postFrontZ + 0.11),
-    new THREE.Vector3(postX + 0.11, 2.30, postFrontZ + 0.18),
-    new THREE.Vector3(postX + 0.15, 2.18, shelfCenterZ - 0.13),
-    new THREE.Vector3(postX + 0.23, shelfTop + 0.18, shelfCenterZ + 0.02),
+    new THREE.Vector3(tableFacingX - 0.12, terminalY - 0.10, postZ + 0.03),
+    new THREE.Vector3(tableFacingX - 0.22, terminalY - 0.22, postZ + 0.05),
+    new THREE.Vector3(shelfCenterX + 0.08, shelfY + 0.28, postZ + 0.10),
+    new THREE.Vector3(shelfCenterX - 0.03, shelfTop + 0.16, postZ + 0.16),
   ])
   const cable = new THREE.Mesh(new THREE.TubeGeometry(cableCurve, 9, 0.010, 5, false), materials.black)
   cable.castShadow = true
