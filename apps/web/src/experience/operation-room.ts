@@ -1394,6 +1394,97 @@ const createHotspot = (scene: THREE.Scene, id: SectionId, size: [number, number,
   return { id, label: SECTIONS[id].label, href: SECTIONS[id].href, hitbox, highlight, cameraOffset: new THREE.Vector3() } satisfies Hotspot
 }
 
+const createSideWallSconce = (
+  scene: THREE.Scene,
+  mount: THREE.Vector3,
+  source: THREE.Vector3,
+  target: THREE.Vector3,
+) => {
+  // Same period enamel task-light language as the map and closet fixtures,
+  // adapted for a side wall. It deliberately creates no persistent light: the
+  // radio version is powered only by its hover spotlight, while the brown-door
+  // version remains visibly switched off.
+  const aim = target.clone().sub(source).normalize()
+  const wallDirection = Math.sign(source.x - mount.x) || 1
+  const darkMetal = makeMaterial(0x252b27, 0.80); darkMetal.flatShading = true
+  const greenEnamel = new THREE.MeshStandardMaterial({
+    color: 0x354d27,
+    roughness: 0.74,
+    metalness: 0.10,
+    flatShading: true,
+    side: THREE.DoubleSide,
+  })
+  const paleInterior = new THREE.MeshStandardMaterial({
+    color: 0xd6cfad,
+    roughness: 0.90,
+    metalness: 0,
+    emissive: 0x000000,
+    emissiveIntensity: 0,
+    side: THREE.DoubleSide,
+  })
+  const coldBulb = new THREE.MeshStandardMaterial({
+    color: 0xcfc7a7,
+    roughness: 0.48,
+    metalness: 0,
+    emissive: 0x000000,
+    emissiveIntensity: 0,
+  })
+
+  // Side-wall plate: rotate the cylinder axis onto X so its back sits against
+  // the wall rather than against the back-wall Z plane used by the map lamp.
+  scene.add(cylinder(0.16, 0.075, [mount.x, mount.y, mount.z], darkMetal, 12, [0, 0, Math.PI / 2]))
+
+  // Catmull-Rom lets the same fixture work with a short arm over the door and
+  // the deliberately much longer reach needed to put the radio shade above the
+  // middle of the communications desk.
+  const reach = Math.abs(source.x - mount.x)
+  const armCurve = new THREE.CatmullRomCurve3([
+    mount.clone().add(new THREE.Vector3(wallDirection * 0.04, 0, 0)),
+    mount.clone().add(new THREE.Vector3(wallDirection * Math.min(0.42, reach * 0.22), 0, 0)),
+    new THREE.Vector3(source.x - wallDirection * Math.min(0.38, reach * 0.18), source.y + 0.18, source.z),
+    source.clone().addScaledVector(aim, -0.10),
+  ])
+  const arm = new THREE.Mesh(new THREE.TubeGeometry(armCurve, reach > 1.5 ? 18 : 10, 0.033, 7, false), darkMetal)
+  arm.castShadow = true; arm.receiveShadow = true; scene.add(arm)
+
+  const shadeLength = 0.32
+  const shade = new THREE.Mesh(new THREE.ConeGeometry(0.29, shadeLength, 10, 1, true), greenEnamel)
+  shade.position.copy(source).addScaledVector(aim, -shadeLength / 2)
+  shade.quaternion.setFromUnitVectors(new THREE.Vector3(0, -1, 0), aim)
+  shade.castShadow = true; shade.receiveShadow = true; scene.add(shade)
+
+  const reflector = new THREE.Mesh(new THREE.CircleGeometry(0.24, 12), paleInterior)
+  reflector.position.copy(source).addScaledVector(aim, -0.010)
+  reflector.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), aim)
+  scene.add(reflector)
+
+  const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.062, 9, 7), coldBulb)
+  bulb.position.copy(source).addScaledVector(aim, -0.046)
+  bulb.scale.set(0.88, 1.05, 0.88)
+  scene.add(bulb)
+
+  return source.clone()
+}
+
+const createRadioSconce = (scene: THREE.Scene) => {
+  // The radio desk sits beside the left wall. Mount the fixture on that wall
+  // and use a long arm so the shade reaches the desk centre instead of shining
+  // diagonally from the room ceiling.
+  const mount = new THREE.Vector3(-8.68, 5.28, WORLD.radioDesk.z)
+  const source = new THREE.Vector3(WORLD.radioDesk.x, 4.58, WORLD.radioDesk.z)
+  const target = new THREE.Vector3(WORLD.radioDesk.x, 1.70, WORLD.radioDesk.z + 0.02)
+  return createSideWallSconce(scene, mount, source, target)
+}
+
+const createBrownDoorSconce = (scene: THREE.Scene) => {
+  // Decorative matching fixture above the right-wall brown door. It is
+  // intentionally unpowered: no PointLight, SpotLight or emissive bulb.
+  const mount = new THREE.Vector3(6.68, 5.62, -2.95)
+  const source = new THREE.Vector3(6.18, 5.30, -2.95)
+  const target = new THREE.Vector3(6.55, 3.90, -2.95)
+  createSideWallSconce(scene, mount, source, target)
+}
+
 const createMapSconce = (scene: THREE.Scene) => {
   const mount = MAP_SCONCE_MOUNT.clone()
   const source = MAP_SCONCE_SOURCE.clone()
@@ -1560,10 +1651,15 @@ const createHoverTarget = (
   let intensity = 12
 
   if (id === 'radio') {
-    sources = [new THREE.Vector3(WORLD.radioDesk.x, 6.35, WORLD.radioDesk.z - 0.05)]
-    targets = [new THREE.Vector3(WORLD.radioDesk.x, 1.72, WORLD.radioDesk.z)]
-    radius = 2.05
-    intensity = 13
+    // CONTACT hover is lit from the physical wall lamp above the radio desk.
+    // The fixture itself stays dark at rest; this spotlight is the only task
+    // light that switches on when the radio is hovered.
+    sources = lightSources.length > 0
+      ? lightSources.map((source) => source.clone())
+      : [new THREE.Vector3(WORLD.radioDesk.x, 4.58, WORLD.radioDesk.z)]
+    targets = [new THREE.Vector3(WORLD.radioDesk.x, 1.70, WORLD.radioDesk.z + 0.02)]
+    radius = 1.72
+    intensity = 18
   } else if (id === 'trays') {
   // No detached/fallback tray light: the two physical desk lamps are
   // the only WRITING hover-light sources. Each pool starts at a shade
@@ -1626,6 +1722,8 @@ const createScene = (scene: THREE.Scene, camera: THREE.PerspectiveCamera) => {
   createDeskLamp(scene, 0.9, -3.0, 0.82, 0.06)
   createPendant(scene, [-1.35, 5.0, -4.75], 0x5e8a32, 1.4, 5)
   createMapSconce(scene)
+  const radioLampSource = createRadioSconce(scene)
+  createBrownDoorSconce(scene)
   const closetLampSource = createClosetSconce(scene)
   const boardDraw = createHangingBoard(scene)
   const hotspots: Hotspot[] = [
@@ -1641,7 +1739,7 @@ const hoverTargets: HoverTarget[] = [
   // Map → WORK, Radio → CONTACT, Projector → SPEAKING,
   // Trays → WRITING, Back door → ABOUT.
   createHoverTarget(scene, 'map', 'WORK', [8.55, 4.5, 0.12], [WORLD.map.x, WORLD.map.y, WORLD.map.z + 0.18]),
-  createHoverTarget(scene, 'radio', 'CONTACT', [3.9, 1.45, 1.5], [WORLD.radioDesk.x, 1.55, WORLD.radioDesk.z]),
+  createHoverTarget(scene, 'radio', 'CONTACT', [3.9, 1.45, 1.5], [WORLD.radioDesk.x, 1.55, WORLD.radioDesk.z], [0, 0, 0], [radioLampSource]),
   createHoverTarget(scene, 'projector', 'SPEAKING', [1.5, 1.25, 1.6], [-0.6, 2.45, 3.9]),
   createHoverTarget(scene, 'trays', 'WRITING', [1.65, 0.75, 1.25], [-1.95, 1.65, -0.15], [0, 0, 0], [trayLampRear, trayLampFront]),
   createHoverTarget(scene, 'back-door', 'ABOUT', [1.8, 4.85, 0.12], [2.75, 2.45, WORLD.backWallZ + 0.20], [0, 0, 0], [closetLampSource]),
