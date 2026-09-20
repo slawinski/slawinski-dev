@@ -1195,22 +1195,18 @@ const createFolders = (scene: THREE.Scene) => {
   addPaperStack(upperY + 0.045, 9, 0.00, 0.018)
   scene.add(group)
 
-  // A substantial working pile sits on the desk in front of the trays, plus a
-  // couple of loose sheets. This gives the WRITING area the busy, used-in-work
-  // look of the supplied scene instead of an empty prop display.
-  // The working pile occupies the footprint vacated by the right-hand lamp.
-  // Keep it fully on the felt and below the lamp in the rotated WRITING view.
+  // A single working stack sits outside the trays. Its sheets use the same
+  // A4-like footprint as the tray papers, but the whole stack is turned 90°
+  // so it lies perpendicular to the trays. Keep the table free of loose pages.
   const deskPapers = new THREE.Group(); deskPapers.position.set(-2.38, 1.305, 0.92)
   for (let i = 0; i < 11; i += 1) {
     deskPapers.add(box(
-      [0.88 - i * 0.006, 0.011, 0.90 - i * 0.005],
+      [1.22 - i * 0.012, 0.011, 0.76 - i * 0.006],
       [i * 0.006, i * 0.012, i * -0.003],
       i % 4 === 0 ? materials.paper : materials.paperLight,
-      [0, -0.055 + i * 0.008, 0],
+      [0, Math.PI / 2 - 0.055 + i * 0.008, 0],
     ))
   }
-  deskPapers.add(box([0.68, 0.010, 0.68], [-0.42, 0.018, -0.30], materials.paper, [0, 0.14, 0]))
-  deskPapers.add(box([0.76, 0.010, 0.72], [0.43, 0.022, -0.18], materials.paperLight, [0, -0.10, 0]))
   scene.add(deskPapers)
 }
 
