@@ -349,7 +349,7 @@ const createBackCloset = (scene: THREE.Scene) => {
   // A shelf, rail and a couple of low-poly coats give the close-up something
   // recognisably closet-like to inspect without over-detailing the scene.
   scene.add(box([width - 0.24, 0.10, 0.52], [x, 3.72, backZ + 0.40], shelfMaterial))
-  scene.add(cylinder((width - 0.40) / 2, 0.045, [x, 3.35, backZ + 0.58], materials.metalDark, 10, [0, 0, Math.PI / 2]))
+  scene.add(cylinder(0.022, width - 0.40, [x, 3.35, backZ + 0.58], materials.metalDark, 10, [0, 0, Math.PI / 2]))
   scene.add(box([0.52, 1.30, 0.18], [x - 0.36, 2.54, backZ + 0.55], coatMaterial, [0, 0, -0.05]))
   scene.add(box([0.54, 1.16, 0.18], [x + 0.34, 2.61, backZ + 0.57], makeMaterial(0x51483b, 0.96), [0, 0, 0.06]))
   scene.add(box([0.72, 0.42, 0.52], [x, 0.28, backZ + 0.44], shelfMaterial))
