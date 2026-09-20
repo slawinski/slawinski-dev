@@ -903,12 +903,17 @@ const createProjector = (scene: THREE.Scene) => {
 }
 
 const createProjectionScreen = (scene: THREE.Scene) => {
-  const width = WORLD.map.width + 0.42
+  // The projector screen covers only the right half of the map. Its right edge
+  // stays aligned with the map while the left edge is pulled inward, matching
+  // the requested 'shorten from the left' behavior.
+  const width = WORLD.map.width * 0.5
   const height = WORLD.map.height + 0.38
   const topY = Math.min(WORLD.wallHeight - 0.55, WORLD.map.y + WORLD.map.height / 2 + 0.55)
   const z = WORLD.map.z + 0.32
+  const rightEdgeX = WORLD.map.x + WORLD.map.width / 2
+  const screenX = rightEdgeX - width / 2
   const group = new THREE.Group()
-  group.position.set(WORLD.map.x, topY, z)
+  group.position.set(screenX, topY, z)
 
   const housingMaterial = makeMaterial(0x6f716b, 0.74); housingMaterial.flatShading = true
   const screenMaterial = new THREE.MeshStandardMaterial({
@@ -1494,6 +1499,10 @@ export const mountOperationRoom = (root: HTMLElement) => {
   const hoverRaycaster = new THREE.Raycaster()
   const HOME_POSITION = new THREE.Vector3(-5.08, 4.14, 8.58)
   const HOME_TARGET = new THREE.Vector3(-2.15, 2.7, -4.75)
+  const HOME_UP = new THREE.Vector3(0, 1, 0)
+  // Looking straight down while keeping +X at the top of the image is the same
+  // orientation the viewer gets by facing the brown-door wall and tilting down.
+  const TRAYS_UP = new THREE.Vector3(1, 0, 0)
   const MAP_TARGET = new THREE.Vector3(WORLD.map.x, WORLD.map.y, WORLD.map.z + 0.06)
   const RADIO_TARGET = new THREE.Vector3(WORLD.radioDesk.x, 1.92, WORLD.radioDesk.z + 0.04)
   const TRAYS_TARGET = new THREE.Vector3(-1.95, 1.50, -0.15)
@@ -1503,6 +1512,7 @@ export const mountOperationRoom = (root: HTMLElement) => {
   const controls = new OrbitControls(camera, canvas)
   controls.target.copy(HOME_TARGET)
   camera.position.copy(HOME_POSITION)
+  camera.up.copy(HOME_UP)
   controls.enabled = true
   controls.enableDamping = true
   controls.dampingFactor = 0.08
@@ -1526,6 +1536,8 @@ export const mountOperationRoom = (root: HTMLElement) => {
     path: THREE.Curve<THREE.Vector3>
     startTarget: THREE.Vector3
     endTarget: THREE.Vector3
+    startUp: THREE.Vector3
+    endUp: THREE.Vector3
     destination: 'home' | 'map' | 'radio' | 'trays' | 'closet'
   } | null = null
   const FAN_SPEED = 4
@@ -1575,14 +1587,16 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
     return new THREE.Vector3(RADIO_TARGET.x + 0.04, RADIO_TARGET.y + 0.10, RADIO_TARGET.z + distance)
   }
   const getTraysViewPosition = () => {
-    // Human-height inspection shot: the viewer is standing in front of the desk
-    // and looking naturally down at the trays, rather than hovering above them.
-    const aspectCompensation = THREE.MathUtils.clamp(1.15 / Math.max(camera.aspect, 0.72), 0.82, 1.18)
-    return new THREE.Vector3(
-      TRAYS_TARGET.x + 0.12,
-      TRAYS_TARGET.y + 1.28,
-      TRAYS_TARGET.z + 2.70 * aspectCompensation,
-    )
+    // True top-down WRITING view. The camera roll is handled separately with
+    // TRAYS_UP so the top of the image points toward the brown-door wall (+X).
+    const frameWidth = 1.95
+    const frameDepth = 1.55
+    const verticalHalfFov = THREE.MathUtils.degToRad(camera.fov * 0.5)
+    const verticalDistance = (frameDepth * 0.5) / Math.tan(verticalHalfFov)
+    const horizontalHalfFov = Math.atan(Math.tan(verticalHalfFov) * camera.aspect)
+    const horizontalDistance = (frameWidth * 0.5) / Math.tan(horizontalHalfFov)
+    const distance = Math.max(verticalDistance, horizontalDistance) * 1.24
+    return new THREE.Vector3(TRAYS_TARGET.x, TRAYS_TARGET.y + distance, TRAYS_TARGET.z)
   }
   const getClosetViewPosition = () => {
     // Frame almost the entire doorway while aiming slightly into the recess so
@@ -1607,18 +1621,22 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
     if (viewMode === 'map') {
       camera.position.copy(getMapViewPosition())
       cameraTarget.copy(MAP_TARGET)
+      camera.up.copy(HOME_UP)
       controls.target.copy(MAP_TARGET)
     } else if (viewMode === 'radio') {
       camera.position.copy(getRadioViewPosition())
       cameraTarget.copy(RADIO_TARGET)
+      camera.up.copy(HOME_UP)
       controls.target.copy(RADIO_TARGET)
     } else if (viewMode === 'trays') {
       camera.position.copy(getTraysViewPosition())
       cameraTarget.copy(TRAYS_TARGET)
+      camera.up.copy(TRAYS_UP)
       controls.target.copy(TRAYS_TARGET)
     } else if (viewMode === 'closet') {
       camera.position.copy(getClosetViewPosition())
       cameraTarget.copy(CLOSET_TARGET)
+      camera.up.copy(HOME_UP)
       controls.target.copy(CLOSET_TARGET)
     }
   }
@@ -1654,6 +1672,7 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
       camera.position.copy(end)
       cameraTarget.copy(MAP_TARGET)
       controls.target.copy(MAP_TARGET)
+      camera.up.copy(HOME_UP)
       viewMode = 'map'
       settleControls(false)
       setZoomOutVisible(true)
@@ -1670,6 +1689,8 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
       path: new THREE.CatmullRomCurve3([start, firstGuide, secondGuide, end], false, 'catmullrom', 0.42),
       startTarget: controls.target.clone(),
       endTarget: MAP_TARGET.clone(),
+      startUp: camera.up.clone(),
+      endUp: HOME_UP.clone(),
       destination: 'map',
     }
     setZoomOutVisible(false)
@@ -1688,6 +1709,7 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
       camera.position.copy(end)
       cameraTarget.copy(RADIO_TARGET)
       controls.target.copy(RADIO_TARGET)
+      camera.up.copy(HOME_UP)
       viewMode = 'radio'
       settleControls(false)
       setZoomOutVisible(true)
@@ -1707,6 +1729,8 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
       path: new THREE.CubicBezierCurve3(start, controlA, controlB, end),
       startTarget: controls.target.clone(),
       endTarget: RADIO_TARGET.clone(),
+      startUp: camera.up.clone(),
+      endUp: HOME_UP.clone(),
       destination: 'radio',
     }
     setZoomOutVisible(false)
@@ -1725,6 +1749,7 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
       camera.position.copy(end)
       cameraTarget.copy(TRAYS_TARGET)
       controls.target.copy(TRAYS_TARGET)
+      camera.up.copy(TRAYS_UP)
       viewMode = 'trays'
       settleControls(false)
       setZoomOutVisible(true)
@@ -1733,8 +1758,8 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
 
     const start = camera.position.clone()
     const direction = end.clone().sub(start)
-    // Motion-control style move: glide toward the desk, arc over the trays,
-    // then settle into a near-perfect top-down inspection shot.
+    // Motion-control style move: glide toward the desk, arc above the trays,
+    // then settle into the rotated true top-down inspection shot.
     const controlA = start.clone().addScaledVector(direction, 0.28).add(new THREE.Vector3(0.12, 0.55, 0.38))
     const controlB = start.clone().addScaledVector(direction, 0.74).add(new THREE.Vector3(0.08, 0.52, 0.10))
     cameraTransition = {
@@ -1743,6 +1768,8 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
       path: new THREE.CubicBezierCurve3(start, controlA, controlB, end),
       startTarget: controls.target.clone(),
       endTarget: TRAYS_TARGET.clone(),
+      startUp: camera.up.clone(),
+      endUp: TRAYS_UP.clone(),
       destination: 'trays',
     }
     setZoomOutVisible(false)
@@ -1764,6 +1791,7 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
       camera.position.copy(end)
       cameraTarget.copy(CLOSET_TARGET)
       controls.target.copy(CLOSET_TARGET)
+      camera.up.copy(HOME_UP)
       viewMode = 'closet'
       settleControls(false)
       setZoomOutVisible(true)
@@ -1782,6 +1810,8 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
       path: new THREE.CubicBezierCurve3(start, controlA, controlB, end),
       startTarget: controls.target.clone(),
       endTarget: CLOSET_TARGET.clone(),
+      startUp: camera.up.clone(),
+      endUp: HOME_UP.clone(),
       destination: 'closet',
     }
     setZoomOutVisible(false)
@@ -1853,6 +1883,7 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
     setZoomOutVisible(false)
     camera.position.copy(HOME_POSITION)
     cameraTarget.copy(HOME_TARGET)
+    camera.up.copy(HOME_UP)
     settleControls(true)
     clearHoverHighlights()
     selectDefault()
@@ -1877,6 +1908,8 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
       path: new THREE.CubicBezierCurve3(start, firstGuide, secondGuide, HOME_POSITION.clone()),
       startTarget: controls.target.clone(),
       endTarget: HOME_TARGET.clone(),
+      startUp: camera.up.clone(),
+      endUp: HOME_UP.clone(),
       destination: 'home',
     }
     viewMode = 'transition'
@@ -1961,6 +1994,7 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
       const eased = easeMotionControl(progress)
       camera.position.copy(cameraTransition.path.getPoint(eased))
       cameraTarget.lerpVectors(cameraTransition.startTarget, cameraTransition.endTarget, eased)
+      camera.up.lerpVectors(cameraTransition.startUp, cameraTransition.endUp, eased).normalize()
       controls.target.copy(cameraTarget)
       updateCameraReadout()
 
@@ -1968,6 +2002,7 @@ const selectDefault = () => { activeId = 'work'; boardDraw('WORK'); hotspots.for
         const destination = cameraTransition.destination
         camera.position.copy(cameraTransition.path.getPoint(1))
         cameraTarget.copy(cameraTransition.endTarget)
+        camera.up.copy(cameraTransition.endUp)
         controls.target.copy(cameraTransition.endTarget)
         cameraTransition = null
         viewMode = destination
