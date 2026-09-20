@@ -177,6 +177,6 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add apps/web/src/experience/operation-room.ts .github/workflows/refine-writing-lamps-v2.yml
+          git add -A
           git commit -m 'Refine writing desk lamps without changing camera transition'
           git push origin HEAD:rewrite/astro-payload
