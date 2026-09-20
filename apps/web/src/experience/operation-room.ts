@@ -639,13 +639,15 @@ const createDeskLamp = (scene: THREE.Scene, x: number, z: number, scale = 1, rot
   group.add(cylinder(0.145 * scale, 0.070 * scale, [0, 1.115, 0], brassDark, 12))
   group.add(cylinder(0.065 * scale, 0.055 * scale, [0, 1.175, 0], brass, 10))
 
-  group.add(cylinder(0.026 * scale, 0.48 * scale, [0, 1.42, 0], brass, 10))
-  group.add(cylinder(0.052 * scale, 0.055 * scale, [0, 1.64, 0], brassDark, 10))
+  // Taller banker's-lamp stem. The base stays planted on the desk while
+  // the shade is raised enough to clear the paperwork in the top-down view.
+  group.add(cylinder(0.026 * scale, 0.86 * scale, [0, 1.61, 0], brass, 10))
+  group.add(cylinder(0.052 * scale, 0.055 * scale, [0, 2.04, 0], brassDark, 10))
   const neckCurve = new THREE.CatmullRomCurve3([
-    new THREE.Vector3(0, 1.64, 0),
-    new THREE.Vector3(0, 1.70, 0.015),
-    new THREE.Vector3(0, 1.73, 0.075),
-    new THREE.Vector3(0, 1.74, 0.13),
+    new THREE.Vector3(0, 2.04, 0),
+    new THREE.Vector3(0, 2.10, 0.015),
+    new THREE.Vector3(0, 2.13, 0.075),
+    new THREE.Vector3(0, 2.14, 0.13),
   ])
   const neck = new THREE.Mesh(new THREE.TubeGeometry(neckCurve, 8, 0.024 * scale, 7, false), brass)
   neck.castShadow = true; neck.receiveShadow = true; group.add(neck)
@@ -654,8 +656,8 @@ const createDeskLamp = (scene: THREE.Scene, x: number, z: number, scale = 1, rot
   const halfBottomD = 0.19 * scale
   const halfTopW = 0.34 * scale
   const halfTopD = 0.125 * scale
-  const shadeBottomY = 1.70
-  const shadeTopY = 1.86
+  const shadeBottomY = 2.10
+  const shadeTopY = 2.26
   const shadeZ = 0.13
   const shadeGeometry = new THREE.BufferGeometry()
   shadeGeometry.setAttribute('position', new THREE.Float32BufferAttribute([
@@ -690,8 +692,8 @@ const createDeskLamp = (scene: THREE.Scene, x: number, z: number, scale = 1, rot
   group.add(box([0.025 * scale, 0.025 * scale, 0.38 * scale], [halfBottomW, shadeBottomY - 0.005, shadeZ], brassDark))
 
   const chainX = 0.34 * scale
-  group.add(cylinder(0.009 * scale, 0.18 * scale, [chainX, 1.60, shadeZ + 0.10], brassDark, 6))
-  group.add(cylinder(0.026 * scale, 0.035 * scale, [chainX, 1.50, shadeZ + 0.10], brass, 8))
+  group.add(cylinder(0.009 * scale, 0.18 * scale, [chainX, 2.00, shadeZ + 0.10], brassDark, 6))
+  group.add(cylinder(0.026 * scale, 0.035 * scale, [chainX, 1.90, shadeZ + 0.10], brass, 8))
 
   scene.add(group)
 
@@ -1196,17 +1198,19 @@ const createFolders = (scene: THREE.Scene) => {
   // A substantial working pile sits on the desk in front of the trays, plus a
   // couple of loose sheets. This gives the WRITING area the busy, used-in-work
   // look of the supplied scene instead of an empty prop display.
-  const deskPapers = new THREE.Group(); deskPapers.position.set(-1.70, 1.305, 0.92)
+  // The working pile occupies the footprint vacated by the right-hand lamp.
+  // Keep it fully on the felt and below the lamp in the rotated WRITING view.
+  const deskPapers = new THREE.Group(); deskPapers.position.set(-2.38, 1.305, 0.92)
   for (let i = 0; i < 11; i += 1) {
     deskPapers.add(box(
-      [1.34 - i * 0.008, 0.011, 0.90 - i * 0.005],
+      [0.88 - i * 0.006, 0.011, 0.90 - i * 0.005],
       [i * 0.006, i * 0.012, i * -0.003],
       i % 4 === 0 ? materials.paper : materials.paperLight,
       [0, -0.055 + i * 0.008, 0],
     ))
   }
-  deskPapers.add(box([0.92, 0.010, 0.68], [-0.62, 0.018, -0.30], materials.paper, [0, 0.14, 0]))
-  deskPapers.add(box([1.02, 0.010, 0.72], [0.64, 0.022, -0.18], materials.paperLight, [0, -0.10, 0]))
+  deskPapers.add(box([0.68, 0.010, 0.68], [-0.42, 0.018, -0.30], materials.paper, [0, 0.14, 0]))
+  deskPapers.add(box([0.76, 0.010, 0.72], [0.43, 0.022, -0.18], materials.paperLight, [0, -0.10, 0]))
   scene.add(deskPapers)
 }
 
@@ -1390,18 +1394,16 @@ const createHoverTarget = (
     radius = 2.05
     intensity = 13
   } else if (id === 'trays') {
-    // WRITING is lit by the two physical banker's lamps flanking the trays.
-    // Each lamp gets its own pool so papers, tray rails and nearby desk props
-    // cast proper shadows instead of being painted by an overlay cone.
-    sources = lightSources.length > 0
-      ? lightSources.map((source) => source.clone())
-      : [new THREE.Vector3(position[0], 2.0, position[2] - 0.8), new THREE.Vector3(position[0], 2.0, position[2] + 0.8)]
-    targets = [
-      new THREE.Vector3(position[0] - 0.05, 1.42, position[2] - 0.26),
-      new THREE.Vector3(position[0] + 0.12, 1.38, position[2] + 0.46),
-    ]
-    radius = 0.74
-    intensity = 8.5
+  // No detached/fallback tray light: the two physical desk lamps are
+  // the only WRITING hover-light sources. Each pool starts at a shade
+  // opening and lands on one half of the tray stack.
+  sources = lightSources.map((source) => source.clone())
+  targets = [
+    new THREE.Vector3(position[0] - 0.10, 1.43, position[2] - 0.30),
+    new THREE.Vector3(position[0] + 0.08, 1.41, position[2] + 0.34),
+  ]
+  radius = 0.88
+  intensity = 9.5
   } else if (id === 'projector') {
     sources = [new THREE.Vector3(position[0] + 0.05, 6.30, position[2] - 0.06)]
     targets = [new THREE.Vector3(position[0], 2.35, position[2])]
@@ -1445,7 +1447,10 @@ const createScene = (scene: THREE.Scene, camera: THREE.PerspectiveCamera) => {
   createChair(scene, -4.65, 0.65, -1.07); createChair(scene, 2.5, -0.2, 1.91); createChair(scene, 2.5, 3.35, 1.31)
   createPhone(scene, -0.6, -2.0, 0x315b3c, 0); createPhone(scene, -0.6, -1.0, 0xd8ceb0, 1.57); createPhone(scene, -0.6, 0, PALETTE.red, -1.57); createPhone(scene, -0.6, 1.0, 0xd9d1b8, 1.57); createPhone(scene, -0.6, 2.0, 0x315b3c, -1.57)
   const trayLampRear = createDeskLamp(scene, -2.25, -1.15, 0.9, -0.04)
-  const trayLampFront = createDeskLamp(scene, -2.25, 0.85, 0.92, 0.03)
+  // In the rotated top-down WRITING view +X is screen-up. Move the
+  // right-hand lamp upward, but stop before its shade reaches the raised
+  // brown centre box (which begins at x = -1.20).
+  const trayLampFront = createDeskLamp(scene, -1.68, 0.85, 0.92, 0.03)
   createDeskLamp(scene, 0.9, -3.0, 0.82, 0.06)
   createPendant(scene, [-1.35, 5.0, -4.75], 0x5e8a32, 1.4, 5)
   createMapSconce(scene)
