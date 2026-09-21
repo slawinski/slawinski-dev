@@ -57,7 +57,8 @@ const WORLD = {
   mainTable: { x: -0.6, y: 1.16, z: 1.15, width: 4.8, depth: 9.2 },
   radioDesk: { x: -5.9, y: 1.18, z: -2.25, width: 3.7, depth: 1.25 },
   board: { x: -5.85, y: 5.55, z: -1.4, width: 2.9, height: 0.78 },
-  closet: { x: 2.75, width: 1.7, height: 4.9, depth: 1.65 },
+  // Keep the ABOUT door/closet opening at the same visible dimensions as the right-wall brown door.
+  closet: { x: 2.75, width: 1.65, height: 4.90, depth: 1.65 },
 }
 
 // The WORK hover beam is physically anchored to this period wall sconce.
@@ -66,8 +67,10 @@ const WORLD = {
 // down so the visible cone reads like the reference spotlight.
 const MAP_SCONCE_MOUNT = new THREE.Vector3(WORLD.map.x, 6.55, WORLD.backWallZ + 0.18)
 const MAP_SCONCE_SOURCE = new THREE.Vector3(WORLD.map.x, 6.08, WORLD.map.z + 0.55)
-const CLOSET_SCONCE_MOUNT = new THREE.Vector3(WORLD.closet.x, 5.48, WORLD.backWallZ + 0.18)
-const CLOSET_SCONCE_SOURCE = new THREE.Vector3(WORLD.closet.x, 5.10, WORLD.backWallZ + 0.55)
+// Mount the black-door lamp with the same clearance above the door as the
+// brown-door fixture, so future door-height changes keep the sconce aligned.
+const CLOSET_SCONCE_MOUNT = new THREE.Vector3(WORLD.closet.x, WORLD.closet.height + 0.72, WORLD.backWallZ + 0.18)
+const CLOSET_SCONCE_SOURCE = new THREE.Vector3(WORLD.closet.x, WORLD.closet.height + 0.34, WORLD.backWallZ + 0.55)
 
 const makeMaterial = (color: number, roughness = 0.88) =>
   new THREE.MeshStandardMaterial({ color, roughness, metalness: 0.02 })
@@ -347,12 +350,17 @@ const createRoomShell = (scene: THREE.Scene) => {
     scene.add(cylinder(0.030, 0.28, [rightDoorFaceX - 0.112, hingeY, hingeZ - 0.035], materials.metalDark, 8))
   }
 
-  // Brass backplate, lock and lever on the latch side.
+  // Matching period ball knob on the latch side. Both room doors now use
+  // the same brass rosette + short spindle + spherical knob language.
   const handleZ = rightDoorZ + rightDoorWidth / 2 - 0.28
-  scene.add(box([0.040, 0.38, 0.14], [rightDoorFaceX - 0.092, 2.36, handleZ], materials.brass))
-  scene.add(cylinder(0.075, 0.055, [rightDoorFaceX - 0.125, 2.43, handleZ], materials.brass, 12, [0, 0, Math.PI / 2]))
-  scene.add(box([0.060, 0.055, 0.30], [rightDoorFaceX - 0.158, 2.43, handleZ - 0.10], materials.brass))
-  scene.add(cylinder(0.030, 0.045, [rightDoorFaceX - 0.122, 2.22, handleZ], materials.black, 10, [0, 0, Math.PI / 2]))
+  const doorKnobRadius = 0.085
+  scene.add(cylinder(0.095, 0.035, [rightDoorFaceX - 0.086, 2.36, handleZ], materials.brass, 12, [0, 0, Math.PI / 2]))
+  scene.add(cylinder(0.035, 0.070, [rightDoorFaceX - 0.128, 2.36, handleZ], materials.brass, 10, [0, 0, Math.PI / 2]))
+  const brownDoorKnob = new THREE.Mesh(new THREE.SphereGeometry(doorKnobRadius, 10, 8), materials.brass)
+  brownDoorKnob.position.set(rightDoorFaceX - 0.195, 2.36, handleZ)
+  brownDoorKnob.castShadow = true
+  brownDoorKnob.receiveShadow = true
+  scene.add(brownDoorKnob)
 
   // The clock is mounted on the visible face of the front strut. The strut
   // face is at z=-1.41; keep the clock's rear rim just in front of it so the
@@ -410,17 +418,24 @@ const createBackCloset = (scene: THREE.Scene) => {
   scene.add(box([0.54, 1.16, 0.18], [x + 0.34, 2.61, backZ + 0.57], makeMaterial(0x51483b, 0.96), [0, 0, 0.06]))
   scene.add(box([0.72, 0.42, 0.52], [x, 0.28, backZ + 0.44], shelfMaterial))
 
-  // Door pivots at its left jamb. Positive Y rotation sends the free edge into
-  // negative Z, so it genuinely opens inward into the closet during the dolly.
+  // Door pivots at its left jamb. The black leaf now uses the full closet
+  // opening dimensions (1.65 x 4.90), exactly matching the brown door. Positive
+  // Y rotation sends the free edge inward into the closet during the dolly.
   const doorPivot = new THREE.Group()
-  doorPivot.position.set(x - width / 2 + 0.06, 0.08, frontZ + 0.015)
-  const doorWidth = width - 0.12
-  const doorHeight = height - 0.16
+  doorPivot.position.set(x - width / 2, 0, frontZ + 0.015)
+  const doorWidth = width
+  const doorHeight = height
   const door = box([doorWidth, doorHeight, 0.12], [doorWidth / 2, doorHeight / 2, 0], doorMaterial)
   doorPivot.add(door)
   doorPivot.add(box([doorWidth - 0.24, 1.62, 0.035], [doorWidth / 2, 3.63, 0.075], doorInset))
   doorPivot.add(box([doorWidth - 0.24, 1.62, 0.035], [doorWidth / 2, 1.57, 0.075], doorInset))
-  doorPivot.add(cylinder(0.065, 0.10, [doorWidth - 0.18, 2.36, 0.105], materials.brass, 10, [Math.PI / 2, 0, 0]))
+  const blackDoorRosette = cylinder(0.095, 0.035, [doorWidth - 0.18, 2.36, 0.085], materials.brass, 12, [Math.PI / 2, 0, 0])
+  const blackDoorSpindle = cylinder(0.035, 0.070, [doorWidth - 0.18, 2.36, 0.128], materials.brass, 10, [Math.PI / 2, 0, 0])
+  const blackDoorKnob = new THREE.Mesh(new THREE.SphereGeometry(0.085, 10, 8), materials.brass)
+  blackDoorKnob.position.set(doorWidth - 0.18, 2.36, 0.195)
+  blackDoorKnob.castShadow = true
+  blackDoorKnob.receiveShadow = true
+  doorPivot.add(blackDoorRosette, blackDoorSpindle, blackDoorKnob)
   scene.add(doorPivot)
 
   // Soft practical light at the closet ceiling. Its intensity follows the door
