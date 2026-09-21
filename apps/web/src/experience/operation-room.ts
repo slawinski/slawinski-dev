@@ -53,7 +53,7 @@ const WORLD = {
   roomWidth: 18,
   roomDepth: 13,
   wallHeight: 7.25,
-  map: { x: -2.55, y: 3.42, z: -5.79, width: 8.4, height: 4.45 },
+  map: { x: -3.35, y: 3.42, z: -5.79, width: 8.4, height: 4.45 },
   mainTable: { x: -0.6, y: 1.16, z: 1.15, width: 4.8, depth: 9.2 },
   radioDesk: { x: -5.9, y: 1.18, z: -2.25, width: 3.7, depth: 1.25 },
   board: { x: -5.85, y: 5.55, z: -1.4, width: 2.9, height: 0.78 },
@@ -864,6 +864,9 @@ const createDeskLamp = (scene: THREE.Scene, x: number, z: number, scale = 1, rot
   // the shade is raised enough to clear the paperwork in the top-down view.
   group.add(cylinder(0.026 * scale, 0.86 * scale, [0, 1.61, 0], brass, 10))
   group.add(cylinder(0.052 * scale, 0.055 * scale, [0, 2.04, 0], brassDark, 10))
+  // Short collar bridges the stem to the shade assembly; it is intentionally
+  // visible so the lamp reads as one continuous articulated fixture.
+  group.add(cylinder(0.034 * scale, 0.14 * scale, [0, 2.095, 0.02], brass, 9, [0.18, 0, 0]))
   const neckCurve = new THREE.CatmullRomCurve3([
     new THREE.Vector3(0, 2.04, 0),
     new THREE.Vector3(0, 2.10, 0.015),
@@ -923,6 +926,10 @@ const createDeskLamp = (scene: THREE.Scene, x: number, z: number, scale = 1, rot
   const lightSource = new THREE.Vector3(0, shadeBottomY - 0.035, shadeZ + 0.015)
   lightSource.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY)
   lightSource.add(group.position)
+  const lampGlow = new THREE.PointLight(0xffd89a, 0, 1.8, 2)
+  lampGlow.position.copy(lightSource)
+  lampGlow.userData.hoverLamp = 'trays'
+  scene.add(lampGlow)
   return lightSource
 }
 
@@ -1212,7 +1219,9 @@ const createProjectionScreen = (scene: THREE.Scene) => {
   const topY = Math.min(WORLD.wallHeight - 0.55, WORLD.map.y + WORLD.map.height / 2 + 0.55)
   const z = WORLD.map.z + 0.32
   const rightEdgeX = WORLD.map.x + WORLD.map.width / 2
-  const screenX = rightEdgeX - width / 2
+  // The map moved left, but the roll-down screen remains at its original
+  // approved position.
+  const screenX = rightEdgeX - width / 2 + 0.8
   const group = new THREE.Group()
   group.position.set(screenX, topY, z)
 
@@ -1679,6 +1688,18 @@ const createMapSconce = (scene: THREE.Scene) => {
   bulbMaterial.emissiveIntensity = 0
   scene.add(bulb)
 
+  const cableMaterial = makeMaterial(0x171918, 0.9)
+  const cableCurve = new THREE.CurvePath<THREE.Vector3>()
+  const cableStart = source.clone().add(new THREE.Vector3(0.03, 0.02, -0.02))
+  const cableCorner = new THREE.Vector3(source.x, WORLD.wallHeight - 0.28, WORLD.backWallZ + 0.19)
+  const cableLeft = new THREE.Vector3(-8.65, WORLD.wallHeight - 0.28, WORLD.backWallZ + 0.19)
+  cableCurve.add(new THREE.LineCurve3(cableStart, new THREE.Vector3(source.x, source.y + 0.28, cableStart.z)))
+  cableCurve.add(new THREE.LineCurve3(new THREE.Vector3(source.x, source.y + 0.28, cableStart.z), cableCorner))
+  cableCurve.add(new THREE.LineCurve3(cableCorner, cableLeft))
+  const cable = new THREE.Mesh(new THREE.TubeGeometry(cableCurve, 12, 0.018, 6, false), cableMaterial)
+  cable.castShadow = true
+  scene.add(cable)
+
   // A restrained local glow makes the fixture read as the source even before
   // the translucent hover volume becomes visible.
   // Hover spotlight owns the illumination; the fixture stays dark at rest.
@@ -1845,13 +1866,13 @@ const createHoverTarget = (
 const createScene = (scene: THREE.Scene, camera: THREE.PerspectiveCamera) => {
   const updateClock = createRoomShell(scene); const closet = createBackCloset(scene); createTable(scene); createRadioDesk(scene); createMapBoard(scene); const projector = createProjector(scene); createFilmReelStorage(scene); const projectionScreen = createProjectionScreen(scene); createPaperCluster(scene); createFolders(scene); const fanSpinner = createWallFan(scene)
   createChair(scene, -4.65, 0.65, -1.07); createChair(scene, 2.5, -0.2, 1.91); createChair(scene, 2.5, 3.35, 1.31)
-  createRotaryTelephone(scene, -0.6, -2.0, 0x30483b, 0); createRotaryTelephone(scene, -0.6, -1.0, 0xe9dfc2, 1.57); createRotaryTelephone(scene, -0.6, 0, 0xa84428, -1.57); createRotaryTelephone(scene, -0.6, 1.0, 0xe9dfc2, 1.57); createRotaryTelephone(scene, -0.6, 2.0, 0x30483b, -1.57)
+  createRotaryTelephone(scene, -0.6, -2.65, 0x30483b, Math.PI); createRotaryTelephone(scene, -0.6, -1.0, 0xe9dfc2, 1.57); createRotaryTelephone(scene, -0.6, 0, 0xa84428, -1.57); createRotaryTelephone(scene, -0.6, 1.0, 0xe9dfc2, 1.57); createRotaryTelephone(scene, -0.6, 2.0, 0x30483b, -1.57)
   createPostPhoneShelf(scene)
-  const trayLampRear = createDeskLamp(scene, -2.25, -1.15, 0.9, -0.04)
+   const trayLampRear = createDeskLamp(scene, -2.25, -1.15, 0.9, -0.28)
   // In the rotated top-down WRITING view +X is screen-up. Move the
   // right-hand lamp upward, but stop before its shade reaches the raised
   // brown centre box (which begins at x = -1.20).
-  const trayLampFront = createDeskLamp(scene, -1.68, 0.85, 0.92, 0.03)
+   const trayLampFront = createDeskLamp(scene, -1.68, 0.85, 0.92, 0.26)
   createDeskLamp(scene, 0.9, -3.0, 0.82, 0.06)
   createPendant(scene, [-1.35, 5.0, -4.75], 0x5e8a32, 1.4, 5)
   createMapSconce(scene)
@@ -1971,8 +1992,9 @@ export const mountOperationRoom = (root: HTMLElement) => {
     target.material.opacity = 0
     scene.traverse((object) => {
       const bulb = object as THREE.Mesh & { userData: { hoverLamp?: string } }
-      if (bulb.userData?.hoverLamp === target.id && bulb.material instanceof THREE.MeshStandardMaterial) {
-        bulb.material.emissiveIntensity = active ? 0.72 : 0
+      if (bulb.userData?.hoverLamp === target.id) {
+        if (bulb instanceof THREE.Light) bulb.intensity = active ? 0.42 : 0
+        if (bulb.material instanceof THREE.MeshStandardMaterial) bulb.material.emissiveIntensity = active ? 0.72 : 0
       }
     })
   }
