@@ -1,0 +1,67 @@
+name: Fix projector reference rebuild
+
+on:
+  push:
+    branches:
+      - rewrite/astro-payload
+    paths:
+      - .github/workflows/retry2-projector-reference-rebuild.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: rewrite/astro-payload
+          fetch-depth: 0
+
+      - name: Apply projector rebuild
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          import textwrap
+
+          workflow = Path('.github/workflows/rebuild-projector-from-reference.yml').read_text()
+          code = workflow.split("python3 - <<'PY'\n", 1)[1].split("\n          PY", 1)[0]
+          code = textwrap.dedent(code)
+
+          corrected_grid = 'grid = "    for (let y = 0; y < canvas.height; y += 54) {\\n      context.beginPath(); context.moveTo(0, y); context.lineTo(canvas.width, y); context.stroke()\\n    }"'
+          code, count = re.subn(r"grid = '''.*?'''", lambda _: corrected_grid, code, count=1, flags=re.S)
+          if count != 1:
+              raise SystemExit('could not patch protected grid validator')
+
+          exec(compile(code, '<projector-rebuild>', 'exec'))
+          PY
+
+      - name: Validate implementation
+        shell: bash
+        run: |
+          git diff --check
+          grep -q "Fresh low-poly projector model based on the supplied period reference" apps/web/src/experience/operation-room.ts
+          grep -q "mountReel(0.20, 1.29, 0.43, 0.07)" apps/web/src/experience/operation-room.ts
+          grep -q "mountReel(0.18, 0.39, 0.34, -0.12)" apps/web/src/experience/operation-room.ts
+          python3 - <<'PY'
+          from pathlib import Path
+          text = Path('apps/web/src/experience/operation-room.ts').read_text()
+          expected = "    for (let y = 0; y < canvas.height; y += 54) {\n      context.beginPath(); context.moveTo(0, y); context.lineTo(canvas.width, y); context.stroke()\n    }"
+          if expected not in text:
+              raise SystemExit('protected map grid loop changed')
+          PY
+
+      - name: Commit implementation and cleanup
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/rebuild-projector-from-reference.yml
+          git rm .github/workflows/retry-projector-reference-rebuild.yml
+          git rm .github/workflows/retry2-projector-reference-rebuild.yml
+          git add apps/web/src/experience/operation-room.ts
+          git commit -m "Rebuild projector from period reference"
+          git push origin HEAD:rewrite/astro-payload
