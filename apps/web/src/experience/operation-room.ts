@@ -698,9 +698,48 @@ const createRotaryTelephone = (
   dial.add(innerDisc)
   group.add(dial)
 
-  // One central support carries the handset, leaving the receiver visibly
-  // balanced on the case instead of disappearing into two side cheeks.
-  group.add(box([0.16, 0.22, 0.18], [0, 0.37, -0.045], bakeliteDeep))
+  // Period-style handset cradle: one central stem rises from the crown of the
+  // pyramidal case and carries a narrow transverse yoke. Each end of the yoke
+  // terminates in a fork whose two prongs cup the underside of the receiver.
+  // Keeping the cradle rod-built avoids the blocky support pieces used before.
+  const addCradleRod = (
+    from: [number, number, number],
+    to: [number, number, number],
+    radius: number,
+  ) => {
+    const start = new THREE.Vector3(...from)
+    const end = new THREE.Vector3(...to)
+    const direction = end.clone().sub(start)
+    const rod = finish(new THREE.Mesh(
+      new THREE.CylinderGeometry(radius, radius * 1.03, direction.length(), 7),
+      bakeliteDeep,
+    ))
+    rod.position.copy(start).add(end).multiplyScalar(0.5)
+    rod.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.normalize())
+    group.add(rod)
+  }
+
+  const cradleZ = -0.060
+  const crownY = 0.386
+  const yokeY = 0.470
+  const forkBaseY = 0.495
+  const forkTopY = 0.558
+
+  // Single central mounting stem, planted directly on the telephone crown.
+  addCradleRod([0, crownY, cradleZ], [0, yokeY, cradleZ], 0.050)
+
+  // One compact yoke carries both handset-end forks.
+  addCradleRod([-0.355, yokeY, cradleZ], [0.355, yokeY, cradleZ], 0.032)
+
+  // Two U-shaped/fork-shaped supports. The paired prongs straddle the handset
+  // depth around z = -0.06 and rise just into the receiver silhouette so the
+  // handset reads as physically seated in the cradle rather than floating.
+  for (const side of [-1, 1] as const) {
+    const forkX = side * 0.355
+    addCradleRod([forkX, yokeY, cradleZ], [forkX, forkBaseY, cradleZ], 0.028)
+    addCradleRod([forkX, forkBaseY, cradleZ], [forkX, forkTopY, cradleZ - 0.075], 0.022)
+    addCradleRod([forkX, forkBaseY, cradleZ], [forkX, forkTopY, cradleZ + 0.075], 0.022)
+  }
 
   // Broad low-poly handset sweep. Slightly different receiver-end proportions
   // keep it from feeling mechanically mirrored while preserving one clear family.
