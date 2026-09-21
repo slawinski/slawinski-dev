@@ -178,12 +178,6 @@ const createPanelDoorLeaf = ({ leaf, panel, trim }: PanelDoorMaterials) => {
   addPanel(3.62, 1.55)
   addPanel(1.55, 1.62)
 
-  // Identical visible hinge hardware on the hinge edge.
-  for (const hingeY of [0.78, 2.45, 4.12]) {
-    group.add(box([0.13, 0.24, 0.050], [0.055, hingeY, faceZ + 0.082], materials.metalDark))
-    group.add(cylinder(0.030, 0.28, [0.020, hingeY, faceZ + 0.112], materials.metalDark, 8))
-  }
-
   // Identical brass rosette, spindle and ball knob on the latch side.
   const handleX = width - 0.28
   const handleY = 2.36
@@ -1165,16 +1159,16 @@ const createProjector = (scene: THREE.Scene) => {
 }
 
 const createFilmReelStorage = (scene: THREE.Scene) => {
-  // Open film-reel apple box on the green felt immediately beside the raised
-  // brown projector support. Its long side runs along the support and the box
-  // physically touches the support edge at x = -1.20 without overlapping it.
+  // Open cardboard office-storage box on the green felt immediately beside the
+  // raised brown projector support. Its contents remain visible, but the box
+  // now reads as corrugated packing material rather than an apple crate.
   const group = new THREE.Group()
 
-  const crateWood = makeMaterial(0x74502a, 0.90); crateWood.flatShading = true
-  const crateDark = makeMaterial(0x4b3019, 0.94); crateDark.flatShading = true
-  const reelMetal = makeMaterial(0x838a87, 0.72); reelMetal.flatShading = true
-  const reelLight = makeMaterial(0xa1a6a0, 0.68); reelLight.flatShading = true
-  const reelDark = makeMaterial(0x555d5b, 0.82); reelDark.flatShading = true
+  const crateWood = makeMaterial(0x68452e, 0.96); crateWood.flatShading = true
+  const crateDark = makeMaterial(0x3f2b20, 0.96); crateDark.flatShading = true
+  const caseMetal = makeMaterial(0x737975, 0.70); caseMetal.flatShading = true
+  const caseDark = makeMaterial(0x3e4543, 0.82); caseDark.flatShading = true
+  const reelMetal = makeMaterial(0x9aa09a, 0.68); reelMetal.flatShading = true
 
   const addLooseReel = (
     radius: number,
@@ -1216,28 +1210,35 @@ const createFilmReelStorage = (scene: THREE.Scene) => {
   const crateHeight = 0.56
   group.position.set(-1.55, 1.295, 3.90)
 
-  group.add(box([crateWidth, 0.065, crateDepth], [0, 0.035, 0], crateDark))
+  group.add(box([crateWidth, 0.045, crateDepth], [0, 0.025, 0], crateDark))
 
-  // Short end walls at front/back.
+  // Cardboard end walls at front/back.
   for (const z of [-crateDepth / 2 + 0.045, crateDepth / 2 - 0.045]) {
-    group.add(box([crateWidth, crateHeight, 0.09], [0, crateHeight / 2, z], crateWood))
+    group.add(box([crateWidth, crateHeight, 0.055], [0, crateHeight / 2, z], crateWood))
   }
 
-  // Long sides are slatted so the reels remain visible. These are the faces
-  // parallel to the brown support; the +X side is flush against it.
-  for (const y of [0.12, 0.29, 0.46]) {
-    group.add(box([0.075, 0.085, crateDepth - 0.12], [-crateWidth / 2 + 0.035, y, 0], crateWood))
-    group.add(box([0.075, 0.085, crateDepth - 0.12], [crateWidth / 2 - 0.035, y, 0], crateWood))
-  }
-  group.add(box([0.08, 0.07, crateDepth + 0.04], [-crateWidth / 2 + 0.03, crateHeight + 0.01, 0], crateDark))
-  group.add(box([0.08, 0.07, crateDepth + 0.04], [crateWidth / 2 - 0.03, crateHeight + 0.01, 0], crateDark))
+  // Solid corrugated side panels with a dark packing-tape stripe.
+  group.add(box([0.05, crateHeight - 0.04, crateDepth - 0.12], [-crateWidth / 2 + 0.025, crateHeight / 2, 0], crateWood))
+  group.add(box([0.05, crateHeight - 0.04, crateDepth - 0.12], [crateWidth / 2 - 0.025, crateHeight / 2, 0], crateWood))
+  group.add(box([0.06, 0.045, crateDepth - 0.08], [crateWidth / 2 - 0.07, crateHeight * 0.52, 0], crateDark))
+  group.add(box([0.06, 0.045, crateDepth - 0.08], [-crateWidth / 2 + 0.07, crateHeight * 0.52, 0], crateDark))
 
-  // Several reels sit inside the open box at varied angles. No separate shelf
-  // or loose shelf reels remain in the scene.
-  group.add(addLooseReel(0.22, [-0.12, 0.31, -0.25], [-0.42, 0.10, 0.82], reelMetal))
-  group.add(addLooseReel(0.21, [0.10, 0.32, 0.04], [-0.30, -0.18, 1.04], reelLight))
-  group.add(addLooseReel(0.19, [-0.03, 0.23, 0.27], [-0.55, 0.06, 0.70], reelDark))
-  group.add(addLooseReel(0.18, [0.08, 0.20, -0.38], [-0.48, -0.12, 0.92], reelMetal))
+  // Four matching metal film cases, stacked neatly sideways. Each case is a
+  // shallow cylinder with a darker rim and a centered reel face.
+  for (let i = 0; i < 4; i += 1) {
+    const caseGroup = new THREE.Group()
+    caseGroup.position.set(-0.03, 0.16 + i * 0.13, 0)
+    const shell = new THREE.Mesh(new THREE.CylinderGeometry(0.285, 0.285, 0.10, 16), caseMetal)
+    shell.rotation.z = Math.PI / 2
+    shell.castShadow = true; shell.receiveShadow = true; caseGroup.add(shell)
+    const rim = new THREE.Mesh(new THREE.TorusGeometry(0.235, 0.018, 5, 16), caseDark)
+    rim.rotation.y = Math.PI / 2; rim.position.x = 0.055; caseGroup.add(rim)
+    const face = new THREE.Mesh(new THREE.CircleGeometry(0.20, 14), reelMetal)
+    face.rotation.y = Math.PI / 2; face.position.x = 0.062; caseGroup.add(face)
+    const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.055, 0.018, 10), caseDark)
+    hub.rotation.z = Math.PI / 2; hub.position.x = 0.074; caseGroup.add(hub)
+    group.add(caseGroup)
+  }
 
   scene.add(group)
 }
