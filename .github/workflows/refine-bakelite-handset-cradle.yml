@@ -1,0 +1,44 @@
+name: Refine Bakelite handset cradle
+
+on:
+  push:
+    branches:
+      - rewrite/astro-payload
+    paths:
+      - .github/workflows/refine-bakelite-handset-cradle.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: rewrite/astro-payload
+          fetch-depth: 0
+
+      - name: Refine handset cradle
+        shell: bash
+        run: python3 scripts/refine-bakelite-handset-cradle.py
+
+      - name: Validate targeted edit
+        shell: bash
+        run: |
+          grep -q "const addCradleRod" apps/web/src/experience/operation-room.ts
+          grep -q "Single central mounting stem" apps/web/src/experience/operation-room.ts
+          grep -q "Two U-shaped/fork-shaped supports" apps/web/src/experience/operation-room.ts
+          if grep -Fq "group.add(box([0.16, 0.22, 0.18], [0, 0.37, -0.045], bakeliteDeep))" apps/web/src/experience/operation-room.ts; then exit 1; fi
+          git diff --check
+
+      - name: Commit implementation
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm -f .github/workflows/refine-bakelite-handset-cradle.yml scripts/refine-bakelite-handset-cradle.py
+          git add -A
+          git commit -m "Add forked Bakelite handset cradle"
+          git push origin rewrite/astro-payload
