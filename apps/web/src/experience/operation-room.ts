@@ -1038,6 +1038,42 @@ const createRadioDesk = (scene: THREE.Scene) => {
   scene.add(radioGroup)
 }
 
+const createOpenFilmReel = (radius: number, metal: THREE.Material, dark: THREE.Material) => {
+  // Shared low-poly open reel used both on the projector and as loose reels on
+  // the table. Proportions are derived from the loose table reels so scaling
+  // the radius preserves the same stamped-metal construction instead of
+  // switching to a separate projector-only model.
+  const reel = new THREE.Group()
+  const rimTube = radius * 0.094
+  const innerTube = radius * 0.060
+  const spokeThickness = radius * 0.170
+  const spokeDepth = radius * 0.100
+
+  const outer = new THREE.Mesh(new THREE.TorusGeometry(radius, rimTube, 5, 18), metal)
+  outer.castShadow = true
+  outer.receiveShadow = true
+  reel.add(outer)
+
+  const inner = new THREE.Mesh(new THREE.TorusGeometry(radius * 0.38, innerTube, 5, 14), dark)
+  inner.castShadow = true
+  reel.add(inner)
+
+  for (let i = 0; i < 5; i += 1) {
+    const angle = i * Math.PI * 2 / 5 + Math.PI / 10
+    const spokeLength = radius * 0.58
+    const spokeCentre = radius * 0.55
+    reel.add(box(
+      [spokeLength, spokeThickness, spokeDepth],
+      [Math.cos(angle) * spokeCentre, Math.sin(angle) * spokeCentre, 0],
+      metal,
+      [0, 0, angle],
+    ))
+  }
+
+  reel.add(cylinder(radius * 0.15, radius * 0.234, [0, 0, 0], dark, 9, [Math.PI / 2, 0, 0]))
+  return reel
+}
+
 const createProjector = (scene: THREE.Scene) => {
   const group = new THREE.Group(); group.position.set(-0.6, 1.88, 3.9); group.rotation.y = -1.57
 
@@ -1047,7 +1083,9 @@ const createProjector = (scene: THREE.Scene) => {
   // pale die-cast body, open spoke reels, exposed film path and long lens tube.
   const enamel = makeMaterial(0xb8b5a8, 0.74); enamel.flatShading = true
   const enamelDark = makeMaterial(0x747975, 0.78); enamelDark.flatShading = true
-  const reelMetal = makeMaterial(0xc4c0b1, 0.66); reelMetal.flatShading = true
+  // Use the same metal palette as the newly modelled uncased table reels.
+  const openReelMetal = makeMaterial(0x8d948f, 0.68); openReelMetal.flatShading = true
+  const openReelDark = makeMaterial(0x444b48, 0.80); openReelDark.flatShading = true
   const rubber = makeMaterial(0x262928, 0.94)
 
   // Wide cast base with four dark isolation feet.
@@ -1094,32 +1132,21 @@ const createProjector = (scene: THREE.Scene) => {
   group.add(box([0.16, 0.44, 0.10], [0.29, 0.67, 0.31], enamelDark))
   group.add(box([0.08, 0.36, 0.018], [0.39, 0.72, 0.375], materials.black))
 
+  // The projector now mounts the exact same open-reel model used for the two
+  // uncased reels lying beside the storage box. Only radius and mounting angle
+  // differ; there is no second projector-specific reel design.
   const reels: THREE.Group[] = []
   const addReel = (x: number, y: number, radius: number, rotation = 0) => {
-    const reel = new THREE.Group(); reel.position.set(x, y, 0.44); reel.rotation.z = rotation
-
-    const outerRim = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.034, 6, 20), reelMetal)
-    outerRim.castShadow = true; outerRim.receiveShadow = true; reel.add(outerRim)
-    const innerRim = new THREE.Mesh(new THREE.TorusGeometry(radius * 0.72, 0.018, 5, 18), enamelDark)
-    innerRim.castShadow = true; reel.add(innerRim)
-
-    // Five broad spokes are much closer to the stamped aluminium reels in the
-    // reference than the old solid discs, while still staying low-poly.
-    for (let i = 0; i < 5; i += 1) {
-      const angle = i * Math.PI * 2 / 5 + Math.PI / 10
-      const length = radius * 0.68
-      const center = radius * 0.45
-      reel.add(box(
-        [length, 0.060, 0.035],
-        [Math.cos(angle) * center, Math.sin(angle) * center, 0],
-        reelMetal,
-        [0, 0, angle],
-      ))
-    }
-    reel.add(cylinder(radius * 0.15, 0.12, [0, 0, 0], enamelDark, 10, [Math.PI / 2, 0, 0]))
-    reel.add(cylinder(radius * 0.06, 0.15, [0, 0, 0.015], rubber, 8, [Math.PI / 2, 0, 0]))
+    const reel = createOpenFilmReel(radius, openReelMetal, openReelDark)
+    reel.position.set(x, y, 0.44)
+    reel.rotation.z = rotation
     reels.push(reel)
     group.add(reel)
+
+    // Short spindle and retaining cap make the shared reel look mechanically
+    // mounted rather than pasted onto the side of the projector.
+    group.add(cylinder(radius * 0.065, 0.16, [x, y, 0.375], openReelDark, 8, [Math.PI / 2, 0, 0]))
+    group.add(cylinder(radius * 0.035, 0.035, [x, y, 0.515], materials.metalDark, 8, [Math.PI / 2, 0, 0]))
   }
 
   addReel(0.15, 1.18, 0.48, 0.08)
@@ -1263,32 +1290,9 @@ const createFilmReelStorage = (scene: THREE.Scene) => {
     position: [number, number, number],
     rotation: [number, number, number],
   ) => {
-    const reel = new THREE.Group()
+    const reel = createOpenFilmReel(radius, looseReelMetal, looseReelDark)
     reel.position.set(...position)
     reel.rotation.set(...rotation)
-
-    const outer = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.022, 5, 18), looseReelMetal)
-    outer.castShadow = true
-    outer.receiveShadow = true
-    reel.add(outer)
-
-    const inner = new THREE.Mesh(new THREE.TorusGeometry(radius * 0.38, 0.014, 5, 14), looseReelDark)
-    inner.castShadow = true
-    reel.add(inner)
-
-    for (let i = 0; i < 5; i += 1) {
-      const angle = i * Math.PI * 2 / 5 + Math.PI / 10
-      const spokeLength = radius * 0.58
-      const spokeCentre = radius * 0.55
-      reel.add(box(
-        [spokeLength, 0.040, 0.024],
-        [Math.cos(angle) * spokeCentre, Math.sin(angle) * spokeCentre, 0],
-        looseReelMetal,
-        [0, 0, angle],
-      ))
-    }
-
-    reel.add(cylinder(radius * 0.15, 0.055, [0, 0, 0], looseReelDark, 9, [Math.PI / 2, 0, 0]))
     group.add(reel)
   }
 
