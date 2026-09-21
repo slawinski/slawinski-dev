@@ -1075,110 +1075,166 @@ const createOpenFilmReel = (radius: number, metal: THREE.Material, dark: THREE.M
 }
 
 const createProjector = (scene: THREE.Scene) => {
-  const group = new THREE.Group(); group.position.set(-0.6, 1.88, 3.9); group.rotation.y = -1.57
+  const group = new THREE.Group()
+  group.position.set(-0.6, 1.88, 3.9)
+  group.rotation.y = -1.57
 
-  // The projector is deliberately more detailed than the surrounding props,
-  // because it doubles as the ABOUT hotspot. Keep the geometry chunky and
-  // low-poly, but make the silhouette unmistakably a 1930s/40s 16 mm machine:
-  // pale die-cast body, open spoke reels, exposed film path and long lens tube.
-  const enamel = makeMaterial(0xb8b5a8, 0.74); enamel.flatShading = true
-  const enamelDark = makeMaterial(0x747975, 0.78); enamelDark.flatShading = true
-  // Use the same metal palette as the newly modelled uncased table reels.
+  // Fresh low-poly projector model based on the supplied period reference:
+  // a tall cream cast body, large exposed reels on one side, compact lens
+  // projecting from the left, and a broad flared foot. The previous stacked
+  // rectangular projector geometry is intentionally not reused.
+  const castCream = makeMaterial(0xbeb9a9, 0.79); castCream.flatShading = true
+  const castShade = makeMaterial(0x8b8d84, 0.82); castShade.flatShading = true
+  const edgeMetal = makeMaterial(0x696e69, 0.72); edgeMetal.flatShading = true
+  const darkMetal = makeMaterial(0x343936, 0.82); darkMetal.flatShading = true
+  const rubber = makeMaterial(0x242725, 0.95); rubber.flatShading = true
   const openReelMetal = makeMaterial(0x8d948f, 0.68); openReelMetal.flatShading = true
   const openReelDark = makeMaterial(0x444b48, 0.80); openReelDark.flatShading = true
-  const rubber = makeMaterial(0x262928, 0.94)
 
-  // Wide cast base with four dark isolation feet.
-  group.add(box([1.02, 0.10, 0.84], [0, -0.08, 0], enamelDark))
-  group.add(box([0.88, 0.045, 0.72], [0, -0.005, 0], enamel))
-  for (const fx of [-0.38, 0.38]) for (const fz of [-0.29, 0.29]) group.add(box([0.13, 0.08, 0.13], [fx, -0.155, fz], rubber))
+  const extrudedProfile = (
+    points: Array<[number, number]>,
+    depth: number,
+    material: THREE.Material,
+    z = 0,
+  ) => {
+    const shape = new THREE.Shape()
+    shape.moveTo(points[0][0], points[0][1])
+    for (const [x, y] of points.slice(1)) shape.lineTo(x, y)
+    shape.closePath()
+    const geometry = new THREE.ExtrudeGeometry(shape, {
+      depth,
+      bevelEnabled: false,
+      steps: 1,
+      curveSegments: 1,
+    })
+    geometry.translate(0, 0, -depth / 2)
+    const mesh = new THREE.Mesh(geometry, material)
+    mesh.position.z = z
+    mesh.castShadow = true
+    mesh.receiveShadow = true
+    return mesh
+  }
 
-  // Main motor/lamp housing. The stacked boxes create a cast, tapered profile
-  // without introducing a smooth modern-looking shell.
-  group.add(box([0.76, 0.58, 0.64], [0.02, 0.29, 0], enamel))
-  group.add(box([0.64, 0.24, 0.58], [0.00, 0.69, 0], enamel))
-  group.add(box([0.47, 0.22, 0.54], [0.08, 0.87, 0], enamel, [0, 0, -0.10]))
-  group.add(box([0.42, 0.46, 0.035], [-0.02, 0.41, 0.338], enamelDark))
-  group.add(box([0.29, 0.26, 0.025], [-0.03, 0.43, 0.362], materials.black))
+  // Flared pedestal/base like the photographed machine: a wide foot below a
+  // narrower upright casting, with a small dark pad at each corner.
+  const footProfile: Array<[number, number]> = [
+    [-0.54, -0.13], [0.48, -0.13], [0.42, 0.03], [0.31, 0.11],
+    [-0.37, 0.11], [-0.49, 0.02],
+  ]
+  group.add(extrudedProfile(footProfile, 0.72, castCream))
+  group.add(box([0.82, 0.045, 0.62], [-0.03, -0.145, 0], castShade))
+  for (const fx of [-0.36, 0.34]) for (const fz of [-0.25, 0.25]) {
+    group.add(box([0.12, 0.045, 0.11], [fx, -0.18, fz], rubber))
+  }
 
-  // Ribbed ventilation on the visible side panel, plus a small period maker's
-  // plate. These read clearly at the home camera distance without tiny meshes.
-  for (let i = 0; i < 4; i += 1) group.add(box([0.30, 0.026, 0.018], [0.09, 0.12 + i * 0.085, 0.374], materials.black))
-  group.add(box([0.25, 0.11, 0.02], [0.07, 0.63, 0.375], materials.brass))
+  // Main one-piece cast body. The authored polygon is intentionally tall and
+  // back-heavy, matching the distinctive silhouette in the reference rather
+  // than building another generic box projector.
+  const bodyProfile: Array<[number, number]> = [
+    [-0.39, 0.06], [0.39, 0.06], [0.40, 0.42], [0.36, 0.73],
+    [0.32, 1.08], [0.24, 1.31], [0.08, 1.44], [-0.17, 1.47],
+    [-0.34, 1.34], [-0.43, 1.08], [-0.45, 0.60],
+  ]
+  group.add(extrudedProfile(bodyProfile, 0.58, castCream))
 
-  // Lens turret and stepped focusing barrel. The final glass stays slightly
-  // warm, echoing an incandescent projection lamp without turning into a glow.
-  group.add(cylinder(0.19, 0.20, [-0.43, 0.49, 0.01], enamelDark, 10, [0, 0, Math.PI / 2]))
-  group.add(cylinder(0.145, 0.34, [-0.68, 0.49, 0.01], materials.metalDark, 10, [0, 0, Math.PI / 2]))
-  group.add(cylinder(0.16, 0.09, [-0.87, 0.49, 0.01], enamelDark, 10, [0, 0, Math.PI / 2]))
-  group.add(cylinder(0.13, 0.17, [-0.99, 0.49, 0.01], materials.metal, 10, [0, 0, Math.PI / 2]))
+  // Slightly darker side plate follows the cast silhouette and gives the reel
+  // mechanisms a believable mounting surface without hiding the main body.
+  const sideProfile: Array<[number, number]> = [
+    [-0.31, 0.16], [0.31, 0.16], [0.32, 0.55], [0.27, 0.88],
+    [0.22, 1.15], [0.06, 1.31], [-0.18, 1.30], [-0.31, 1.10],
+  ]
+  group.add(extrudedProfile(sideProfile, 0.035, castShade, 0.307))
+
+  // Perforated/vented crown visible on top of the reference projector.
+  group.add(box([0.42, 0.055, 0.50], [-0.08, 1.45, -0.01], castShade, [0, 0, -0.035]))
+  for (let i = 0; i < 6; i += 1) {
+    group.add(box([0.030, 0.025, 0.38], [-0.22 + i * 0.072, 1.486 + i * 0.002, 0.00], darkMetal, [0, 0, -0.035]))
+  }
+
+  // Reference-like circular mechanism plate and film gate on the visible side.
+  group.add(cylinder(0.235, 0.045, [-0.23, 0.91, 0.335], castCream, 16, [Math.PI / 2, 0, 0]))
+  group.add(cylinder(0.190, 0.052, [-0.23, 0.91, 0.363], edgeMetal, 14, [Math.PI / 2, 0, 0]))
+  group.add(cylinder(0.080, 0.060, [-0.23, 0.91, 0.398], darkMetal, 10, [Math.PI / 2, 0, 0]))
+  group.add(box([0.095, 0.34, 0.055], [0.02, 0.83, 0.364], darkMetal, [0, 0, -0.06]))
+  group.add(box([0.050, 0.25, 0.028], [0.055, 0.83, 0.405], materials.black, [0, 0, -0.06]))
+
+  // Short stepped lens tube protruding from the left, as in the supplied image.
+  // Keep the existing light-control material contract so ABOUT activation still
+  // drives the same screen/projection behaviour.
+  group.add(cylinder(0.185, 0.16, [-0.43, 0.94, 0.02], castShade, 12, [0, 0, Math.PI / 2]))
+  group.add(cylinder(0.135, 0.26, [-0.60, 0.94, 0.02], edgeMetal, 12, [0, 0, Math.PI / 2]))
+  group.add(cylinder(0.112, 0.15, [-0.80, 0.94, 0.02], castCream, 12, [0, 0, Math.PI / 2]))
   const lensMaterial = new THREE.MeshStandardMaterial({
-    color: 0x17232b,
+    color: 0x18252b,
     roughness: 0.18,
-    metalness: 0.18,
+    metalness: 0.16,
     emissive: 0xffd58c,
     emissiveIntensity: 0.08,
   })
-  const lensGlass = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.105, 0.105, 0.025, 12),
-    lensMaterial,
-  )
-  lensGlass.position.set(-1.087, 0.49, 0.01); lensGlass.rotation.z = Math.PI / 2; lensGlass.castShadow = true; group.add(lensGlass)
+  const lensGlass = new THREE.Mesh(new THREE.CylinderGeometry(0.092, 0.092, 0.025, 12), lensMaterial)
+  lensGlass.position.set(-0.888, 0.94, 0.02)
+  lensGlass.rotation.z = Math.PI / 2
+  lensGlass.castShadow = true
+  group.add(lensGlass)
 
-  // Reel support mast and film gate. The top arm is intentionally asymmetric,
-  // like period portable projectors, instead of a generic rectangular tower.
-  group.add(box([0.11, 0.55, 0.13], [0.18, 0.94, 0.05], enamelDark, [0, 0, -0.06]))
-  group.add(box([0.50, 0.09, 0.13], [0.03, 1.18, 0.05], enamelDark, [0, 0, 0.06]))
-  group.add(box([0.16, 0.44, 0.10], [0.29, 0.67, 0.31], enamelDark))
-  group.add(box([0.08, 0.36, 0.018], [0.39, 0.72, 0.375], materials.black))
-
-  // The projector now mounts the exact same open-reel model used for the two
-  // uncased reels lying beside the storage box. Only radius and mounting angle
-  // differ; there is no second projector-specific reel design.
+  // The projector mounts the exact same shared open-reel artwork as the two
+  // uncased reels beside the cardboard box. Only size and mounting transform
+  // differ. Upper reel dominates the silhouette; lower reel nests into the
+  // lower side of the body, matching the reference composition.
   const reels: THREE.Group[] = []
-  const addReel = (x: number, y: number, radius: number, rotation = 0) => {
+  const mountReel = (x: number, y: number, radius: number, rotation: number) => {
     const reel = createOpenFilmReel(radius, openReelMetal, openReelDark)
-    reel.position.set(x, y, 0.44)
+    reel.position.set(x, y, 0.40)
     reel.rotation.z = rotation
     reels.push(reel)
     group.add(reel)
 
-    // Short spindle and retaining cap make the shared reel look mechanically
-    // mounted rather than pasted onto the side of the projector.
-    group.add(cylinder(radius * 0.065, 0.16, [x, y, 0.375], openReelDark, 8, [Math.PI / 2, 0, 0]))
-    group.add(cylinder(radius * 0.035, 0.035, [x, y, 0.515], materials.metalDark, 8, [Math.PI / 2, 0, 0]))
+    // Shared reel sits on a short axle and dark retaining cap.
+    group.add(cylinder(radius * 0.070, 0.15, [x, y, 0.325], edgeMetal, 9, [Math.PI / 2, 0, 0]))
+    group.add(cylinder(radius * 0.038, 0.035, [x, y, 0.493], darkMetal, 8, [Math.PI / 2, 0, 0]))
   }
 
-  addReel(0.15, 1.18, 0.48, 0.08)
-  addReel(0.15, 0.35, 0.39, -0.16)
+  mountReel(0.20, 1.29, 0.43, 0.07)
+  mountReel(0.18, 0.39, 0.34, -0.12)
 
-  // Visible film path and guide rollers connect the two reels to the gate so
-  // the model reads as a functioning machine rather than two wheels on a box.
-  group.add(cylinder(0.064, 0.07, [0.37, 0.85, 0.43], materials.brass, 8, [Math.PI / 2, 0, 0]))
-  group.add(cylinder(0.055, 0.07, [0.37, 0.62, 0.43], materials.metalDark, 8, [Math.PI / 2, 0, 0]))
-  group.add(box([0.024, 0.29, 0.018], [0.40, 0.735, 0.47], rubber, [0, 0, -0.03]))
+  // Small exposed rollers and a visible dark film path link both shared reels
+  // through the side gate. This follows the mechanical read of the reference
+  // without turning the prop into a high-detail technical reconstruction.
+  const guideA = new THREE.Vector3(0.37, 1.04, 0.405)
+  const guideB = new THREE.Vector3(0.07, 0.88, 0.415)
+  const guideC = new THREE.Vector3(0.36, 0.69, 0.405)
+  for (const guide of [guideA, guideB, guideC]) {
+    group.add(cylinder(0.050, 0.060, [guide.x, guide.y, guide.z], edgeMetal, 9, [Math.PI / 2, 0, 0]))
+    group.add(cylinder(0.022, 0.070, [guide.x, guide.y, guide.z + 0.012], darkMetal, 8, [Math.PI / 2, 0, 0]))
+  }
+  const filmCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0.30, 1.00, 0.438),
+    guideA.clone().setZ(0.438),
+    guideB.clone().setZ(0.438),
+    guideC.clone().setZ(0.438),
+    new THREE.Vector3(0.30, 0.60, 0.438),
+  ])
+  const film = new THREE.Mesh(new THREE.TubeGeometry(filmCurve, 14, 0.010, 4, false), rubber)
+  film.castShadow = true
+  group.add(film)
 
-  // Large focus/control knobs and a simple folding crank are period cues that
-  // remain legible in silhouette.
-  group.add(cylinder(0.075, 0.075, [-0.18, 0.73, 0.365], materials.brass, 9, [Math.PI / 2, 0, 0]))
-  group.add(cylinder(0.065, 0.075, [0.25, 0.73, 0.365], enamelDark, 9, [Math.PI / 2, 0, 0]))
-  group.add(cylinder(0.035, 0.16, [0.45, 0.28, 0.38], enamelDark, 8, [Math.PI / 2, 0, 0]))
-  group.add(box([0.20, 0.045, 0.045], [0.53, 0.30, 0.43], enamelDark, [0, 0, 0.35]))
-  group.add(cylinder(0.055, 0.09, [0.62, 0.335, 0.45], rubber, 8, [Math.PI / 2, 0, 0]))
+  // Sparse controls on the low front/base area from the reference.
+  group.add(cylinder(0.060, 0.055, [-0.26, 0.16, 0.335], materials.brass, 9, [Math.PI / 2, 0, 0]))
+  group.add(cylinder(0.050, 0.060, [-0.08, 0.15, 0.337], darkMetal, 8, [Math.PI / 2, 0, 0]))
+  group.add(box([0.18, 0.055, 0.045], [0.17, 0.17, 0.338], castShade, [0, 0, 0.10]))
 
-  // Projection light follows the physical lens direction. The projector group
-  // is rotated toward the map, so a local -X spotlight lands on the pull-down
-  // screen without hard-coding a second world-space aiming calculation.
+  // Projection beam originates at the new physical lens tip. The local -X
+  // direction is preserved, so existing screen interaction remains unchanged.
   const projectionLight = new THREE.SpotLight(0xffefbd, 0, 18, 0.22, 0.42, 1.25)
-  projectionLight.position.set(-1.08, 0.49, 0.01)
-  projectionLight.target.position.set(-8, 0.49, 0.01)
+  projectionLight.position.set(-0.89, 0.94, 0.02)
+  projectionLight.target.position.set(-8, 0.94, 0.02)
   projectionLight.castShadow = true
   projectionLight.shadow.mapSize.set(512, 512)
   projectionLight.shadow.bias = -0.0003
   group.add(projectionLight, projectionLight.target)
 
-  const lensFill = new THREE.PointLight(0xffd58c, 0, 1.8, 2)
-  lensFill.position.set(-1.08, 0.49, 0.01)
+  const lensFill = new THREE.PointLight(0xffd58c, 0, 1.6, 2)
+  lensFill.position.set(-0.89, 0.94, 0.02)
   group.add(lensFill)
 
   scene.add(group)
