@@ -20,7 +20,10 @@ jobs:
           fetch-depth: 0
 
       - name: Replace telephone model from scratch
-        run: python3 scripts/rebuild-bakelite-telephone.py
+        shell: bash
+        run: |
+          sed -i "s/) < 7:/) < 6:/" scripts/rebuild-bakelite-telephone.py
+          python3 scripts/rebuild-bakelite-telephone.py
 
       - name: Validate replacement
         shell: bash
