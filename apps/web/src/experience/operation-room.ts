@@ -202,8 +202,6 @@ const createPanelDoorCasing = (trim: THREE.Material) => {
   const group = new THREE.Group()
   const { width, height } = ROOM_DOOR
   const casingZ = ROOM_DOOR.depth / 2 + 0.11
-  const sideX = width / 2 + 0.095
-
   group.add(box([0.16, height + 0.22, 0.18], [-0.095, height / 2, casingZ], materials.woodDark))
   group.add(box([0.16, height + 0.22, 0.18], [width + 0.095, height / 2, casingZ], materials.woodDark))
   group.add(box([width + 0.35, 0.16, 0.18], [width / 2, height + 0.08, casingZ], materials.woodDark))
