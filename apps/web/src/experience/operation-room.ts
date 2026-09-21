@@ -579,18 +579,21 @@ const createRotaryTelephone = (
     roughness: 0.86,
     metalness: 0.015,
     flatShading: true,
+    side: THREE.DoubleSide,
   })
   const bakeliteDeep = new THREE.MeshStandardMaterial({
     color: baseColor.clone().multiplyScalar(0.56),
     roughness: 0.94,
     metalness: 0.01,
     flatShading: true,
+    side: THREE.DoubleSide,
   })
   const bakeliteHandset = new THREE.MeshStandardMaterial({
     color: baseColor.clone().multiplyScalar(0.80),
     roughness: 0.80,
     metalness: 0.02,
     flatShading: true,
+    side: THREE.DoubleSide,
   })
   const ivory = new THREE.MeshStandardMaterial({
     color: 0xd8cfb2,
@@ -629,7 +632,7 @@ const createRotaryTelephone = (
   const hullRings = [
     { y: 0.055, hx: 0.55, back: -0.38, front: 0.40, bevel: 0.115 },
     { y: 0.165, hx: 0.51, back: -0.35, front: 0.36, bevel: 0.105 },
-    { y: 0.385, hx: 0.395, back: -0.255, front: 0.225, bevel: 0.082 },
+     { y: 0.385, hx: 0.31, back: -0.205, front: 0.18, bevel: 0.070 },
   ]
   const hullVertices: number[] = []
   const ringPoints = (ring: (typeof hullRings)[number]) => [
@@ -679,66 +682,25 @@ const createRotaryTelephone = (
     group.add(box([0.13, 0.045, 0.13], [footX, 0.023, footZ], bakeliteDeep))
   }
 
-  // The rotary dial is the strongest front-face cue: pale plate, dark wheel,
-  // eight deliberately oversized recesses, central hub and a restrained stop.
+  // Flush two-disc fingerwheel on the phone's angled front: no outer trim,
+  // holes, hub, or protruding stop.
   const dial = new THREE.Group()
-  dial.position.set(0.008, 0.265, 0.315)
-  dial.rotation.x = -0.19
+  dial.position.set(0.008, 0.265, 0.305)
+  // Match the phone case's sloped front plane so both discs sit flush instead
+  // of presenting a shallow/floating angle against the housing.
+  dial.rotation.x = -0.49
 
-  const dialPlate = finish(new THREE.Mesh(new THREE.CircleGeometry(0.285, 12), ivory))
-  dialPlate.position.z = 0.008
-  dial.add(dialPlate)
-
-  const wheelOuter = finish(new THREE.Mesh(new THREE.TorusGeometry(0.205, 0.031, 6, 12), bakeliteDeep))
-  wheelOuter.position.z = 0.031
-  dial.add(wheelOuter)
-  const wheelInner = finish(new THREE.Mesh(new THREE.TorusGeometry(0.094, 0.020, 5, 10), bakeliteDeep))
-  wheelInner.position.z = 0.034
-  dial.add(wheelInner)
-
-  const openingCount = 8
-  for (let i = 0; i < openingCount; i += 1) {
-    const angle = -Math.PI * 0.12 + i * Math.PI * 2 / openingCount
-    const opening = finish(new THREE.Mesh(new THREE.CircleGeometry(0.034, 7), dark))
-    opening.position.set(Math.cos(angle) * 0.151, Math.sin(angle) * 0.151, 0.041)
-    dial.add(opening)
-  }
-
-  const hub = finish(new THREE.Mesh(new THREE.CylinderGeometry(0.061, 0.061, 0.030, 9), ivoryLight))
-  hub.rotation.x = Math.PI / 2
-  hub.position.z = 0.041
-  dial.add(hub)
-  dial.add(box([0.040, 0.105, 0.038], [0.205, -0.075, 0.048], hardware, [0, 0, -0.30]))
+  const outerDisc = finish(new THREE.Mesh(new THREE.CircleGeometry(0.155, 16), ivory))
+  outerDisc.position.z = 0.006
+  dial.add(outerDisc)
+  const innerDisc = finish(new THREE.Mesh(new THREE.CircleGeometry(0.095, 16), ivoryLight))
+  innerDisc.position.z = 0.014
+  dial.add(innerDisc)
   group.add(dial)
 
-  // Two tapered cradle cheeks remain visibly separate from the body and leave
-  // a dark pause under the handset, making the handset look removable.
-  const makeCradleCheek = (side: -1 | 1) => {
-    const cheekGeometry = new THREE.BufferGeometry()
-    const w0 = 0.105
-    const w1 = 0.072
-    const d0 = 0.15
-    const d1 = 0.105
-    const h = 0.19
-    cheekGeometry.setAttribute('position', new THREE.Float32BufferAttribute([
-      -w0, 0, -d0,  w0, 0, -d0,  w0, 0, d0, -w0, 0, d0,
-      -w1, h, -d1,  w1, h, -d1,  w1, h, d1, -w1, h, d1,
-    ], 3))
-    cheekGeometry.setIndex([
-      0, 2, 1, 0, 3, 2,
-      4, 5, 6, 4, 6, 7,
-      0, 1, 5, 0, 5, 4,
-      1, 2, 6, 1, 6, 5,
-      2, 3, 7, 2, 7, 6,
-      3, 0, 4, 3, 4, 7,
-    ])
-    cheekGeometry.computeVertexNormals()
-    const cheek = finish(new THREE.Mesh(cheekGeometry, bakeliteDeep))
-    cheek.position.set(side * 0.31, 0.35, -0.045)
-    cheek.rotation.z = side * -0.08
-    return cheek
-  }
-  group.add(makeCradleCheek(-1), makeCradleCheek(1))
+  // One central support carries the handset, leaving the receiver visibly
+  // balanced on the case instead of disappearing into two side cheeks.
+  group.add(box([0.16, 0.22, 0.18], [0, 0.37, -0.045], bakeliteDeep))
 
   // Broad low-poly handset sweep. Slightly different receiver-end proportions
   // keep it from feeling mechanically mirrored while preserving one clear family.
@@ -812,7 +774,7 @@ const createPostPhoneShelf = (scene: THREE.Scene) => {
   scene.add(box([0.025, 0.16, 0.12], [tableFacingX - 0.118, terminalY, postZ], conduit))
 
   const shelfTop = shelfY + 0.05
-  createRotaryTelephone(scene, shelfCenterX - 0.03, postZ, 0x633129, -Math.PI / 2, shelfTop, 0.58)
+  createRotaryTelephone(scene, shelfCenterX - 0.03, postZ, 0x30483b, -Math.PI / 2, shelfTop, 0.58)
 
   const cableCurve = new THREE.CatmullRomCurve3([
     new THREE.Vector3(tableFacingX - 0.12, terminalY - 0.10, postZ + 0.03),
@@ -1829,7 +1791,7 @@ const createHoverTarget = (
 const createScene = (scene: THREE.Scene, camera: THREE.PerspectiveCamera) => {
   const updateClock = createRoomShell(scene); const closet = createBackCloset(scene); createTable(scene); createRadioDesk(scene); createMapBoard(scene); const projector = createProjector(scene); createFilmReelStorage(scene); const projectionScreen = createProjectionScreen(scene); createPaperCluster(scene); createFolders(scene); const fanSpinner = createWallFan(scene)
   createChair(scene, -4.65, 0.65, -1.07); createChair(scene, 2.5, -0.2, 1.91); createChair(scene, 2.5, 3.35, 1.31)
-  createRotaryTelephone(scene, -0.6, -2.0, 0x30483b, 0); createRotaryTelephone(scene, -0.6, -1.0, 0x4b3029, 1.57); createRotaryTelephone(scene, -0.6, 0, 0x6a302a, -1.57); createRotaryTelephone(scene, -0.6, 1.0, 0x303637, 1.57); createRotaryTelephone(scene, -0.6, 2.0, 0x30483b, -1.57)
+  createRotaryTelephone(scene, -0.6, -2.0, 0x30483b, 0); createRotaryTelephone(scene, -0.6, -1.0, 0xe9dfc2, 1.57); createRotaryTelephone(scene, -0.6, 0, 0xa84428, -1.57); createRotaryTelephone(scene, -0.6, 1.0, 0xe9dfc2, 1.57); createRotaryTelephone(scene, -0.6, 2.0, 0x30483b, -1.57)
   createPostPhoneShelf(scene)
   const trayLampRear = createDeskLamp(scene, -2.25, -1.15, 0.9, -0.04)
   // In the rotated top-down WRITING view +X is screen-up. Move the
