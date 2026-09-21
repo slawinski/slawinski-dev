@@ -728,17 +728,21 @@ const createRotaryTelephone = (
   // Single central mounting stem, planted directly on the telephone crown.
   addCradleRod([0, crownY, cradleZ], [0, yokeY, cradleZ], 0.050)
 
-  // One compact yoke carries both handset-end forks.
-  addCradleRod([-0.355, yokeY, cradleZ], [0.355, yokeY, cradleZ], 0.032)
+  // Keep the transverse yoke deliberately short. The two fork stems angle
+  // outward from it so the cradle still reaches the handset ends without a
+  // long bar visually competing with the receiver silhouette.
+  const yokeHalfWidth = 0.245
+  const forkX = 0.355
+  addCradleRod([-yokeHalfWidth, yokeY, cradleZ], [yokeHalfWidth, yokeY, cradleZ], 0.032)
 
-  // Two U-shaped/fork-shaped supports. The paired prongs straddle the handset
-  // depth around z = -0.06 and rise just into the receiver silhouette so the
-  // handset reads as physically seated in the cradle rather than floating.
+  // Two U-shaped/fork-shaped supports. Each stem rises outward from the short
+  // central yoke, then splits into paired prongs that cup the receiver end.
   for (const side of [-1, 1] as const) {
-    const forkX = side * 0.355
-    addCradleRod([forkX, yokeY, cradleZ], [forkX, forkBaseY, cradleZ], 0.028)
-    addCradleRod([forkX, forkBaseY, cradleZ], [forkX, forkTopY, cradleZ - 0.075], 0.022)
-    addCradleRod([forkX, forkBaseY, cradleZ], [forkX, forkTopY, cradleZ + 0.075], 0.022)
+    const yokeX = side * yokeHalfWidth
+    const receiverX = side * forkX
+    addCradleRod([yokeX, yokeY, cradleZ], [receiverX, forkBaseY, cradleZ], 0.028)
+    addCradleRod([receiverX, forkBaseY, cradleZ], [receiverX, forkTopY, cradleZ - 0.075], 0.022)
+    addCradleRod([receiverX, forkBaseY, cradleZ], [receiverX, forkTopY, cradleZ + 0.075], 0.022)
   }
 
   // Broad low-poly handset sweep. Slightly different receiver-end proportions
@@ -753,19 +757,21 @@ const createRotaryTelephone = (
   group.add(finish(new THREE.Mesh(new THREE.TubeGeometry(handsetCurve, 8, 0.061, 6, false), bakeliteHandset)))
 
   const addReceiverEnd = (side: -1 | 1, outerRadius: number, faceRadius: number) => {
-    const neck = finish(new THREE.Mesh(new THREE.CylinderGeometry(0.090, 0.075, 0.14, 8), bakeliteHandset))
-    neck.rotation.z = Math.PI / 2
-    neck.position.set(side * 0.445, 0.535, -0.060)
+    // The receiver and transmitter cups point downward toward ear and mouth,
+    // like a real handset held to the face. Their cylinder axes therefore stay
+    // vertical instead of pointing sideways along the handset.
+    const endX = side * 0.425
+
+    const neck = finish(new THREE.Mesh(new THREE.CylinderGeometry(0.074, 0.090, 0.105, 8), bakeliteHandset))
+    neck.position.set(endX, 0.535, -0.060)
     group.add(neck)
 
-    const bell = finish(new THREE.Mesh(new THREE.CylinderGeometry(outerRadius * 0.82, outerRadius, 0.135, 8), bakelite))
-    bell.rotation.z = Math.PI / 2
-    bell.position.set(side * 0.515, 0.525, -0.055)
+    const bell = finish(new THREE.Mesh(new THREE.CylinderGeometry(outerRadius * 0.76, outerRadius, 0.105, 8), bakelite))
+    bell.position.set(endX, 0.468, -0.055)
     group.add(bell)
 
     const face = finish(new THREE.Mesh(new THREE.CylinderGeometry(faceRadius, faceRadius, 0.018, 8), dark))
-    face.rotation.z = Math.PI / 2
-    face.position.set(side * 0.584, 0.525, -0.055)
+    face.position.set(endX, 0.407, -0.055)
     group.add(face)
   }
   addReceiverEnd(-1, 0.145, 0.083)
