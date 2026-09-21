@@ -39,7 +39,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git rm .github/workflows/rebuild-bakelite-telephone.yml scripts/rebuild-bakelite-telephone.py
+          git rm -f .github/workflows/rebuild-bakelite-telephone.yml scripts/rebuild-bakelite-telephone.py
           git add -A
           git commit -m "Rebuild 1940s Bakelite telephone from scratch"
           git push origin rewrite/astro-payload
