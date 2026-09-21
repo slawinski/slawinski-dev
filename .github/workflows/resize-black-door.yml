@@ -1,0 +1,47 @@
+name: Resize black door
+
+on:
+  push:
+    branches:
+      - rewrite/astro-payload
+    paths:
+      - .github/workflows/resize-black-door.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: rewrite/astro-payload
+          fetch-depth: 0
+
+      - name: Resize black door and closet
+        run: python3 scripts/resize-black-door.py
+
+      - name: Validate targeted edit
+        shell: bash
+        run: |
+          git diff --check
+          grep -q "closet: { x: 2.75, width: 1.65, height: 4.90, depth: 1.65 }" apps/web/src/experience/operation-room.ts
+          grep -q "const doorWidth = width" apps/web/src/experience/operation-room.ts
+          grep -q "const doorHeight = height" apps/web/src/experience/operation-room.ts
+          grep -q "brownDoorKnob" apps/web/src/experience/operation-room.ts
+          grep -q "blackDoorKnob" apps/web/src/experience/operation-room.ts
+          grep -q "WORLD.closet.height + 0.72" apps/web/src/experience/operation-room.ts
+          grep -q "camera.position.copy(cameraTransition.path.getPointAt(routeProgress))" apps/web/src/experience/operation-room.ts
+          grep -q "reverse: true" apps/web/src/experience/operation-room.ts
+
+      - name: Commit implementation
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm -f .github/workflows/resize-black-door.yml scripts/resize-black-door.py
+          git add -A
+          git commit -m "Match black door to brown door dimensions"
+          git push origin rewrite/astro-payload
