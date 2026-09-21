@@ -1,0 +1,46 @@
+name: Unify room door models
+
+on:
+  push:
+    branches:
+      - rewrite/astro-payload
+    paths:
+      - .github/workflows/unify-room-door-models.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: rewrite/astro-payload
+          fetch-depth: 0
+
+      - name: Unify door geometry
+        run: python3 scripts/unify-room-door-models.py
+
+      - name: Validate targeted edit
+        shell: bash
+        run: |
+          git diff --check
+          grep -q "const ROOM_DOOR =" apps/web/src/experience/operation-room.ts
+          test "$(grep -c "createPanelDoorLeaf({" apps/web/src/experience/operation-room.ts)" -eq 2
+          grep -q "brownDoor.rotation.y = -Math.PI / 2" apps/web/src/experience/operation-room.ts
+          grep -q "doorPivot = createPanelDoorLeaf" apps/web/src/experience/operation-room.ts
+          grep -q "blackDoorCasing = createPanelDoorCasing" apps/web/src/experience/operation-room.ts
+          grep -q "camera.position.copy(cameraTransition.path.getPointAt(routeProgress))" apps/web/src/experience/operation-room.ts
+          grep -q "reverse: true" apps/web/src/experience/operation-room.ts
+
+      - name: Commit implementation
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm -f .github/workflows/unify-room-door-models.yml scripts/unify-room-door-models.py
+          git add -A
+          git commit -m "Use one shared model for both room doors"
+          git push origin rewrite/astro-payload
