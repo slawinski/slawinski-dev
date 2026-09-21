@@ -731,8 +731,8 @@ const createRotaryTelephone = (
   // Keep the transverse yoke deliberately short. The two fork stems angle
   // outward from it so the cradle still reaches the handset ends without a
   // long bar visually competing with the receiver silhouette.
-  const yokeHalfWidth = 0.245
-  const forkX = 0.355
+  const yokeHalfWidth = 0.17
+  const forkX = 0.30
   addCradleRod([-yokeHalfWidth, yokeY, cradleZ], [yokeHalfWidth, yokeY, cradleZ], 0.032)
 
   // Two U-shaped/fork-shaped supports. Each stem rises outward from the short
@@ -819,7 +819,7 @@ const createPostPhoneShelf = (scene: THREE.Scene) => {
   scene.add(box([0.025, 0.16, 0.12], [tableFacingX - 0.118, terminalY, postZ], conduit))
 
   const shelfTop = shelfY + 0.05
-  createRotaryTelephone(scene, shelfCenterX - 0.03, postZ, 0x30483b, -Math.PI / 2, shelfTop, 0.58)
+  createRotaryTelephone(scene, shelfCenterX - 0.03, postZ, 0xa84428, -Math.PI / 2, shelfTop, 0.58)
 
   const cableCurve = new THREE.CatmullRomCurve3([
     new THREE.Vector3(tableFacingX - 0.12, terminalY - 0.10, postZ + 0.03),
@@ -1523,6 +1523,7 @@ const createSideWallSconce = (
   mount: THREE.Vector3,
   source: THREE.Vector3,
   target: THREE.Vector3,
+  hoverId?: string,
 ) => {
   // Same period enamel task-light language as the map and closet fixtures,
   // adapted for a side wall. It deliberately creates no persistent light: the
@@ -1550,7 +1551,7 @@ const createSideWallSconce = (
     color: 0xcfc7a7,
     roughness: 0.48,
     metalness: 0,
-    emissive: 0x000000,
+    emissive: 0xffc96c,
     emissiveIntensity: 0,
   })
 
@@ -1585,6 +1586,8 @@ const createSideWallSconce = (
   const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.062, 9, 7), coldBulb)
   bulb.position.copy(source).addScaledVector(aim, -0.046)
   bulb.scale.set(0.88, 1.05, 0.88)
+  bulb.userData.hoverLamp = hoverId
+  coldBulb.emissiveIntensity = 0
   scene.add(bulb)
 
   return source.clone()
@@ -1597,7 +1600,7 @@ const createRadioSconce = (scene: THREE.Scene) => {
   const mount = new THREE.Vector3(-8.68, 5.28, WORLD.radioDesk.z)
   const source = new THREE.Vector3(WORLD.radioDesk.x, 4.58, WORLD.radioDesk.z)
   const target = new THREE.Vector3(WORLD.radioDesk.x, 1.70, WORLD.radioDesk.z + 0.02)
-  return createSideWallSconce(scene, mount, source, target)
+  return createSideWallSconce(scene, mount, source, target, 'radio')
 }
 
 const createBrownDoorSconce = (scene: THREE.Scene) => {
@@ -1672,11 +1675,14 @@ const createMapSconce = (scene: THREE.Scene) => {
   const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.075, 9, 7), bulbMaterial)
   bulb.position.copy(source).addScaledVector(aim, -0.055)
   bulb.scale.set(0.88, 1.05, 0.88)
+  bulb.userData.hoverLamp = 'map'
+  bulbMaterial.emissiveIntensity = 0
   scene.add(bulb)
 
   // A restrained local glow makes the fixture read as the source even before
   // the translucent hover volume becomes visible.
-  const glow = new THREE.PointLight(0xffd38a, 0.20, 1.25, 2)
+  // Hover spotlight owns the illumination; the fixture stays dark at rest.
+  const glow = new THREE.PointLight(0xffd38a, 0, 1.25, 2)
   glow.position.copy(source)
   scene.add(glow)
 }
@@ -1731,9 +1737,12 @@ const createClosetSconce = (scene: THREE.Scene) => {
   })
   const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.06, 9, 7), bulbMaterial)
   bulb.position.copy(source).addScaledVector(aim, -0.045)
+  bulb.userData.hoverLamp = 'back-door'
+  bulbMaterial.emissiveIntensity = 0
   scene.add(bulb)
 
-  const glow = new THREE.PointLight(0xffd38a, 0.16, 1.0, 2)
+  // Hover spotlight owns the illumination; the fixture stays dark at rest.
+  const glow = new THREE.PointLight(0xffd38a, 0, 1.0, 2)
   glow.position.copy(source)
   scene.add(glow)
   return source
@@ -1929,7 +1938,7 @@ export const mountOperationRoom = (root: HTMLElement) => {
   let closetProgress = 0
   let closetTargetProgress = 0
   let viewMode: 'home' | 'transition' | 'map' | 'radio' | 'trays' | 'closet' = 'home'
-  let cameraTransition: {
+  type CameraTransition = {
     startTime: number
     duration: number
     path: THREE.Curve<THREE.Vector3>
@@ -1947,8 +1956,9 @@ export const mountOperationRoom = (root: HTMLElement) => {
     traysTilt?: boolean
     reverse?: boolean
     destination: 'home' | 'map' | 'radio' | 'trays' | 'closet'
-  } | null = null
-  let focusRoute: NonNullable<typeof cameraTransition> | null = null
+  }
+  let cameraTransition: CameraTransition | null = null
+  let focusRoute: CameraTransition | null = null
   const FAN_SPEED = 4
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
   const applyMotionPreference = () => { controls.enableDamping = !reducedMotion.matches }
@@ -1959,6 +1969,12 @@ export const mountOperationRoom = (root: HTMLElement) => {
       light.intensity = active ? Number(light.userData.hoverIntensity ?? 12) : 0
     })
     target.material.opacity = 0
+    scene.traverse((object) => {
+      const bulb = object as THREE.Mesh & { userData: { hoverLamp?: string } }
+      if (bulb.userData?.hoverLamp === target.id && bulb.material instanceof THREE.MeshStandardMaterial) {
+        bulb.material.emissiveIntensity = active ? 0.72 : 0
+      }
+    })
   }
   const clearHoverHighlights = () => hoverTargets.forEach((target) => setHoverHighlight(target, false))
 
