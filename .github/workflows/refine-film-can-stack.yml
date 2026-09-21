@@ -1,0 +1,40 @@
+name: Refine film can stack
+
+on:
+  push:
+    branches:
+      - rewrite/astro-payload
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: rewrite/astro-payload
+          fetch-depth: 0
+
+      - name: Refine film can stack
+        run: python3 scripts/refine-film-can-stack.py
+
+      - name: Validate targeted edit
+        run: |
+          git diff --check
+          grep -q "A sideways row of closed metal film cans runs along local Z" apps/web/src/experience/operation-room.ts
+          grep -q "const stackStepZ = 0.14" apps/web/src/experience/operation-room.ts
+          grep -q "can.rotation.x = lean" apps/web/src/experience/operation-room.ts
+          ! grep -q "Four matching metal film cases" apps/web/src/experience/operation-room.ts
+
+      - name: Commit implementation
+        run: |
+          rm scripts/refine-film-can-stack.py
+          rm .github/workflows/refine-film-can-stack.yml
+          git add apps/web/src/experience/operation-room.ts scripts/refine-film-can-stack.py .github/workflows/refine-film-can-stack.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Arrange film cans as a leaning table-aligned stack"
+          git push origin HEAD:rewrite/astro-payload
