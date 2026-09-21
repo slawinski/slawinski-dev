@@ -1,0 +1,246 @@
+name: Rebuild projector from reference
+
+on:
+  push:
+    branches:
+      - rewrite/astro-payload
+    paths:
+      - .github/workflows/rebuild-projector-from-reference.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: rewrite/astro-payload
+          fetch-depth: 0
+
+      - name: Replace projector model
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('apps/web/src/experience/operation-room.ts')
+          text = path.read_text()
+
+          camera_start = text.index('  const getTraysViewPosition = () => {\n')
+          camera_end = text.index('  const setProjectorActive = (active: boolean) => {\n')
+          camera_before = text[camera_start:camera_end]
+
+          grid = '''    for (let y = 0; y < canvas.height; y += 54) {
+              context.beginPath(); context.moveTo(0, y); context.lineTo(canvas.width, y); context.stroke()
+            }'''
+          if grid not in text:
+              raise SystemExit('protected map grid loop not found')
+
+          start = text.index('const createProjector = (scene: THREE.Scene) => {\n')
+          end = text.index('\nconst createFilmReelStorage = (scene: THREE.Scene) => {\n', start)
+
+          replacement = r'''const createProjector = (scene: THREE.Scene) => {
+            const group = new THREE.Group()
+            group.position.set(-0.6, 1.88, 3.9)
+            group.rotation.y = -1.57
+
+            // Fresh low-poly projector model based on the supplied period reference:
+            // a tall cream cast body, large exposed reels on one side, compact lens
+            // projecting from the left, and a broad flared foot. The previous stacked
+            // rectangular projector geometry is intentionally not reused.
+            const castCream = makeMaterial(0xbeb9a9, 0.79); castCream.flatShading = true
+            const castShade = makeMaterial(0x8b8d84, 0.82); castShade.flatShading = true
+            const edgeMetal = makeMaterial(0x696e69, 0.72); edgeMetal.flatShading = true
+            const darkMetal = makeMaterial(0x343936, 0.82); darkMetal.flatShading = true
+            const rubber = makeMaterial(0x242725, 0.95); rubber.flatShading = true
+            const openReelMetal = makeMaterial(0x8d948f, 0.68); openReelMetal.flatShading = true
+            const openReelDark = makeMaterial(0x444b48, 0.80); openReelDark.flatShading = true
+
+            const extrudedProfile = (
+              points: Array<[number, number]>,
+              depth: number,
+              material: THREE.Material,
+              z = 0,
+            ) => {
+              const shape = new THREE.Shape()
+              shape.moveTo(points[0][0], points[0][1])
+              for (const [x, y] of points.slice(1)) shape.lineTo(x, y)
+              shape.closePath()
+              const geometry = new THREE.ExtrudeGeometry(shape, {
+                depth,
+                bevelEnabled: false,
+                steps: 1,
+                curveSegments: 1,
+              })
+              geometry.translate(0, 0, -depth / 2)
+              const mesh = new THREE.Mesh(geometry, material)
+              mesh.position.z = z
+              mesh.castShadow = true
+              mesh.receiveShadow = true
+              return mesh
+            }
+
+            // Flared pedestal/base like the photographed machine: a wide foot below a
+            // narrower upright casting, with a small dark pad at each corner.
+            const footProfile: Array<[number, number]> = [
+              [-0.54, -0.13], [0.48, -0.13], [0.42, 0.03], [0.31, 0.11],
+              [-0.37, 0.11], [-0.49, 0.02],
+            ]
+            group.add(extrudedProfile(footProfile, 0.72, castCream))
+            group.add(box([0.82, 0.045, 0.62], [-0.03, -0.145, 0], castShade))
+            for (const fx of [-0.36, 0.34]) for (const fz of [-0.25, 0.25]) {
+              group.add(box([0.12, 0.045, 0.11], [fx, -0.18, fz], rubber))
+            }
+
+            // Main one-piece cast body. The authored polygon is intentionally tall and
+            // back-heavy, matching the distinctive silhouette in the reference rather
+            // than building another generic box projector.
+            const bodyProfile: Array<[number, number]> = [
+              [-0.39, 0.06], [0.39, 0.06], [0.40, 0.42], [0.36, 0.73],
+              [0.32, 1.08], [0.24, 1.31], [0.08, 1.44], [-0.17, 1.47],
+              [-0.34, 1.34], [-0.43, 1.08], [-0.45, 0.60],
+            ]
+            group.add(extrudedProfile(bodyProfile, 0.58, castCream))
+
+            // Slightly darker side plate follows the cast silhouette and gives the reel
+            // mechanisms a believable mounting surface without hiding the main body.
+            const sideProfile: Array<[number, number]> = [
+              [-0.31, 0.16], [0.31, 0.16], [0.32, 0.55], [0.27, 0.88],
+              [0.22, 1.15], [0.06, 1.31], [-0.18, 1.30], [-0.31, 1.10],
+            ]
+            group.add(extrudedProfile(sideProfile, 0.035, castShade, 0.307))
+
+            // Perforated/vented crown visible on top of the reference projector.
+            group.add(box([0.42, 0.055, 0.50], [-0.08, 1.45, -0.01], castShade, [0, 0, -0.035]))
+            for (let i = 0; i < 6; i += 1) {
+              group.add(box([0.030, 0.025, 0.38], [-0.22 + i * 0.072, 1.486 + i * 0.002, 0.00], darkMetal, [0, 0, -0.035]))
+            }
+
+            // Reference-like circular mechanism plate and film gate on the visible side.
+            group.add(cylinder(0.235, 0.045, [-0.23, 0.91, 0.335], castCream, 16, [Math.PI / 2, 0, 0]))
+            group.add(cylinder(0.190, 0.052, [-0.23, 0.91, 0.363], edgeMetal, 14, [Math.PI / 2, 0, 0]))
+            group.add(cylinder(0.080, 0.060, [-0.23, 0.91, 0.398], darkMetal, 10, [Math.PI / 2, 0, 0]))
+            group.add(box([0.095, 0.34, 0.055], [0.02, 0.83, 0.364], darkMetal, [0, 0, -0.06]))
+            group.add(box([0.050, 0.25, 0.028], [0.055, 0.83, 0.405], materials.black, [0, 0, -0.06]))
+
+            // Short stepped lens tube protruding from the left, as in the supplied image.
+            // Keep the existing light-control material contract so ABOUT activation still
+            // drives the same screen/projection behaviour.
+            group.add(cylinder(0.185, 0.16, [-0.43, 0.94, 0.02], castShade, 12, [0, 0, Math.PI / 2]))
+            group.add(cylinder(0.135, 0.26, [-0.60, 0.94, 0.02], edgeMetal, 12, [0, 0, Math.PI / 2]))
+            group.add(cylinder(0.112, 0.15, [-0.80, 0.94, 0.02], castCream, 12, [0, 0, Math.PI / 2]))
+            const lensMaterial = new THREE.MeshStandardMaterial({
+              color: 0x18252b,
+              roughness: 0.18,
+              metalness: 0.16,
+              emissive: 0xffd58c,
+              emissiveIntensity: 0.08,
+            })
+            const lensGlass = new THREE.Mesh(new THREE.CylinderGeometry(0.092, 0.092, 0.025, 12), lensMaterial)
+            lensGlass.position.set(-0.888, 0.94, 0.02)
+            lensGlass.rotation.z = Math.PI / 2
+            lensGlass.castShadow = true
+            group.add(lensGlass)
+
+            // The projector mounts the exact same shared open-reel artwork as the two
+            // uncased reels beside the cardboard box. Only size and mounting transform
+            // differ. Upper reel dominates the silhouette; lower reel nests into the
+            // lower side of the body, matching the reference composition.
+            const reels: THREE.Group[] = []
+            const mountReel = (x: number, y: number, radius: number, rotation: number) => {
+              const reel = createOpenFilmReel(radius, openReelMetal, openReelDark)
+              reel.position.set(x, y, 0.40)
+              reel.rotation.z = rotation
+              reels.push(reel)
+              group.add(reel)
+
+              // Shared reel sits on a short axle and dark retaining cap.
+              group.add(cylinder(radius * 0.070, 0.15, [x, y, 0.325], edgeMetal, 9, [Math.PI / 2, 0, 0]))
+              group.add(cylinder(radius * 0.038, 0.035, [x, y, 0.493], darkMetal, 8, [Math.PI / 2, 0, 0]))
+            }
+
+            mountReel(0.20, 1.29, 0.43, 0.07)
+            mountReel(0.18, 0.39, 0.34, -0.12)
+
+            // Small exposed rollers and a visible dark film path link both shared reels
+            // through the side gate. This follows the mechanical read of the reference
+            // without turning the prop into a high-detail technical reconstruction.
+            const guideA = new THREE.Vector3(0.37, 1.04, 0.405)
+            const guideB = new THREE.Vector3(0.07, 0.88, 0.415)
+            const guideC = new THREE.Vector3(0.36, 0.69, 0.405)
+            for (const guide of [guideA, guideB, guideC]) {
+              group.add(cylinder(0.050, 0.060, [guide.x, guide.y, guide.z], edgeMetal, 9, [Math.PI / 2, 0, 0]))
+              group.add(cylinder(0.022, 0.070, [guide.x, guide.y, guide.z + 0.012], darkMetal, 8, [Math.PI / 2, 0, 0]))
+            }
+            const filmCurve = new THREE.CatmullRomCurve3([
+              new THREE.Vector3(0.30, 1.00, 0.438),
+              guideA.clone().setZ(0.438),
+              guideB.clone().setZ(0.438),
+              guideC.clone().setZ(0.438),
+              new THREE.Vector3(0.30, 0.60, 0.438),
+            ])
+            const film = new THREE.Mesh(new THREE.TubeGeometry(filmCurve, 14, 0.010, 4, false), rubber)
+            film.castShadow = true
+            group.add(film)
+
+            // Sparse controls on the low front/base area from the reference.
+            group.add(cylinder(0.060, 0.055, [-0.26, 0.16, 0.335], materials.brass, 9, [Math.PI / 2, 0, 0]))
+            group.add(cylinder(0.050, 0.060, [-0.08, 0.15, 0.337], darkMetal, 8, [Math.PI / 2, 0, 0]))
+            group.add(box([0.18, 0.055, 0.045], [0.17, 0.17, 0.338], castShade, [0, 0, 0.10]))
+
+            // Projection beam originates at the new physical lens tip. The local -X
+            // direction is preserved, so existing screen interaction remains unchanged.
+            const projectionLight = new THREE.SpotLight(0xffefbd, 0, 18, 0.22, 0.42, 1.25)
+            projectionLight.position.set(-0.89, 0.94, 0.02)
+            projectionLight.target.position.set(-8, 0.94, 0.02)
+            projectionLight.castShadow = true
+            projectionLight.shadow.mapSize.set(512, 512)
+            projectionLight.shadow.bias = -0.0003
+            group.add(projectionLight, projectionLight.target)
+
+            const lensFill = new THREE.PointLight(0xffd58c, 0, 1.6, 2)
+            lensFill.position.set(-0.89, 0.94, 0.02)
+            group.add(lensFill)
+
+            scene.add(group)
+            return { reels, projectionLight, lensFill, lensMaterial }
+          }
+          '''
+
+          text = text[:start] + replacement + text[end:]
+
+          camera_start_after = text.index('  const getTraysViewPosition = () => {\n')
+          camera_end_after = text.index('  const setProjectorActive = (active: boolean) => {\n')
+          if text[camera_start_after:camera_end_after] != camera_before:
+              raise SystemExit('camera/zoom block changed unexpectedly')
+          if grid not in text:
+              raise SystemExit('map grid loop changed unexpectedly')
+          if text.count('const createProjector = (scene: THREE.Scene) => {') != 1:
+              raise SystemExit('unexpected createProjector count')
+          if 'mountReel(0.20, 1.29, 0.43, 0.07)' not in text:
+              raise SystemExit('new upper reel mount missing')
+          if 'const reel = createOpenFilmReel(radius, openReelMetal, openReelDark)' not in text:
+              raise SystemExit('projector is not using shared open reel model')
+
+          path.write_text(text)
+          PY
+
+      - name: Validate targeted edit
+        shell: bash
+        run: |
+          git diff --check
+          grep -q "Fresh low-poly projector model based on the supplied period reference" apps/web/src/experience/operation-room.ts
+          grep -q "mountReel(0.20, 1.29, 0.43, 0.07)" apps/web/src/experience/operation-room.ts
+          grep -q "mountReel(0.18, 0.39, 0.34, -0.12)" apps/web/src/experience/operation-room.ts
+
+      - name: Commit implementation
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/rebuild-projector-from-reference.yml
+          git add apps/web/src/experience/operation-room.ts
+          git commit -m "Rebuild projector from period reference"
+          git push origin HEAD:rewrite/astro-payload
