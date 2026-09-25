@@ -1,45 +1,22 @@
-node_modules
-/dist
-src/.temp
-*.log
-.cache
-
-# Windows
-$RECYCLE.BIN/
-Desktop.ini
-*.db
-*.autosave
-
-# Linux
-*~
-.directory
-
-# macOS
-.Spotlight-V100/
-.Trashes/
+node_modules/
+.pnpm-store/
 .DS_Store
-._*
 
-# local env files
+# Environment
 .env
 .env.*
+!.env.example
 
-# Log files
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# Astro
+.astro/
+apps/web/dist/
 
-# Editor directories and files
-.idea
-.vscode
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw*
-.settings/
-.project
-nbproject/
+# Next / Payload
+apps/cms/.next/
+apps/cms/data/
+apps/cms/media/
 
-# Local Netlify folder
-.netlify
+# Test/build outputs
+coverage/
+playwright-report/
+test-results/

@@ -1,0 +1,33 @@
+name: Rewrite CI
+
+on:
+  pull_request:
+    paths:
+      - 'apps/**'
+      - 'packages/**'
+      - 'package.json'
+      - 'pnpm-workspace.yaml'
+      - '.github/workflows/rewrite-ci.yml'
+  push:
+    branches:
+      - 'rewrite/**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    env:
+      PAYLOAD_SECRET: ci-only-payload-secret-not-for-production
+      DATABASE_URL: file:./data/ci.db
+      PAYLOAD_PUBLIC_SERVER_URL: http://localhost:3001
+      PUBLIC_CMS_URL: http://localhost:3001
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.15.0
+      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm build

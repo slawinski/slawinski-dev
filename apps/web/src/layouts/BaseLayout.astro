@@ -1,0 +1,37 @@
+---
+import SiteFooter from '@/components/chrome/SiteFooter.astro'
+import SiteHeader from '@/components/chrome/SiteHeader.astro'
+import '@/styles/global.css'
+
+interface Props {
+  title?: string
+  description?: string
+}
+
+const {
+  title = 'Piotr Sławiński — Software Engineer',
+  description = 'Software engineering, projects, writing and talks by Piotr Sławiński.',
+} = Astro.props
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#f0eadf" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>{title}</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#content">Skip to content</a>
+    <div class="site-shell">
+      <SiteHeader currentPath={Astro.url.pathname} />
+      <main id="content">
+        <slot />
+      </main>
+      <SiteFooter />
+    </div>
+  </body>
+</html>
