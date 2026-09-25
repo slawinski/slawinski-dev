@@ -1617,7 +1617,7 @@ const createPaperCluster = (scene: THREE.Scene) => {
 const createFolders = (scene: THREE.Scene) => {
   // Two-tier wartime office letter tray, matching the reference more closely
   // than the previous stack of solid boxes. The open fronts keep the papers
-  // readable from both the home camera and the top-down WRITING view.
+  // readable from both the home camera and the focused WRITING view.
   const group = new THREE.Group(); group.position.set(-1.95, 1.30, -0.15)
   const trayGreen = makeMaterial(0x173b30, 0.82); trayGreen.flatShading = true
   const trayEdge = makeMaterial(0x0f2a22, 0.88); trayEdge.flatShading = true
@@ -2023,9 +2023,8 @@ const createScene = (scene: THREE.Scene, camera: THREE.PerspectiveCamera) => {
   createRotaryTelephone(scene, -0.6, -2.65, 0x30483b, Math.PI); createRotaryTelephone(scene, -0.6, -1.0, 0xe9dfc2, 1.57); createRotaryTelephone(scene, -0.6, 0, 0xa84428, -1.57); createRotaryTelephone(scene, -0.6, 1.0, 0xe9dfc2, 1.57); createRotaryTelephone(scene, -0.6, 2.0, 0x30483b, -1.57)
   createPostPhoneShelf(scene)
    const trayLampRear = createDeskLamp(scene, -2.25, -1.15, 0.9, -0.28)
-  // In the rotated top-down WRITING view +X is screen-up. Move the
-  // right-hand lamp upward, but stop before its shade reaches the raised
-  // brown centre box (which begins at x = -1.20).
+  // Keep the pair of lamps framing the focused writing desk without crowding
+  // the raised brown centre box (which begins at x = -1.20).
    const trayLampFront = createDeskLamp(scene, -1.68, 0.85, 0.92, 0.26)
   createDeskLamp(scene, 0.9, -3.0, 0.82, 0.06)
   createPendant(scene, [-1.35, 5.0, -4.75], 0x5e8a32, 1.4, 5)
@@ -2083,12 +2082,13 @@ export const mountOperationRoom = (root: HTMLElement) => {
   const HOME_POSITION = new THREE.Vector3(-5.08, 4.14, 8.58)
   const HOME_TARGET = new THREE.Vector3(-2.15, 2.7, -4.75)
   const HOME_UP = new THREE.Vector3(0, 1, 0)
-  // Looking straight down while keeping +X at the top of the image is the same
-  // orientation the viewer gets by facing the brown-door wall and tilting down.
+  // The paper reads best with the tray's long edge aligned to the viewport.
+  // This is only used at the end of the WRITING transition; the camera stays
+  // upright while travelling through the room.
   const TRAYS_UP = new THREE.Vector3(1, 0, 0)
   const MAP_TARGET = new THREE.Vector3(WORLD.map.x, WORLD.map.y, WORLD.map.z + 0.06)
   const RADIO_TARGET = new THREE.Vector3(WORLD.radioDesk.x, 1.92, WORLD.radioDesk.z + 0.04)
-  const TRAYS_TARGET = new THREE.Vector3(-1.95, 1.50, -0.15)
+  const TRAYS_TARGET = new THREE.Vector3(-1.95, 1.80, -0.15)
   const CLOSET_TARGET = new THREE.Vector3(WORLD.closet.x, 2.42, WORLD.backWallZ - WORLD.closet.depth * 0.72)
   const TARGET_BOUNDS = { minX: -6, maxX: 4, minY: 0.8, maxY: 5.2, minZ: -5.8, maxZ: 4 }
   const cameraTarget = HOME_TARGET.clone()
@@ -2121,14 +2121,6 @@ export const mountOperationRoom = (root: HTMLElement) => {
     endTarget: THREE.Vector3
     startUp: THREE.Vector3
     endUp: THREE.Vector3
-    traysSequence?: {
-      forwardPosition: THREE.Vector3
-      forwardTarget: THREE.Vector3
-      turnPosition: THREE.Vector3
-      turnTarget: THREE.Vector3
-    }
-    targetPath?: THREE.Curve<THREE.Vector3>
-    traysTilt?: boolean
     reverse?: boolean
     destination: 'home' | 'map' | 'radio' | 'trays' | 'closet'
   }
@@ -2188,16 +2180,17 @@ const selectDefault = () => { activeId = 'work'; boardDraw(''); hotspots.forEach
     return new THREE.Vector3(RADIO_TARGET.x + 0.04, RADIO_TARGET.y + 0.10, RADIO_TARGET.z + distance)
   }
   const getTraysViewPosition = () => {
-    // True top-down WRITING view. The camera roll is handled separately with
-    // TRAYS_UP so the top of the image points toward the brown-door wall (+X).
+    // Land directly above the upper tray so the paper is a real inspection
+    // surface, not a perspective approximation. The distance is responsive
+    // so the full tray remains inside the frame on narrow screens as well.
     const frameWidth = 1.95
     const frameDepth = 1.55
     const verticalHalfFov = THREE.MathUtils.degToRad(camera.fov * 0.5)
     const verticalDistance = (frameDepth * 0.5) / Math.tan(verticalHalfFov)
     const horizontalHalfFov = Math.atan(Math.tan(verticalHalfFov) * camera.aspect)
     const horizontalDistance = (frameWidth * 0.5) / Math.tan(horizontalHalfFov)
-    const distance = Math.max(verticalDistance, horizontalDistance) * 1.24
-    return new THREE.Vector3(TRAYS_TARGET.x, TRAYS_TARGET.y + distance, TRAYS_TARGET.z)
+    const distance = Math.max(verticalDistance, horizontalDistance) * 1.30
+    return TRAYS_TARGET.clone().add(new THREE.Vector3(0, distance, 0))
   }
   const getClosetViewPosition = () => {
     // Frame almost the entire doorway while aiming slightly into the recess so
@@ -2358,49 +2351,22 @@ const selectDefault = () => { activeId = 'work'; boardDraw(''); hotspots.forEach
     }
 
     const start = camera.position.clone()
-    const startTarget = controls.target.clone()
-    const forwardDirection = startTarget.clone().sub(start).normalize()
-
-    // WRITING uses a deliberately staged motion-control move instead of a
-    // single simultaneous arc: first dolly forward while holding the view,
-    // then make a clear right turn toward the brown-door wall, and only
-    // after the turn is established rise over the trays and tilt down.
-    const forwardPosition = start.clone().addScaledVector(forwardDirection, 4.15)
-    const forwardTarget = startTarget.clone().addScaledVector(forwardDirection, 4.15)
-    const turnPosition = new THREE.Vector3(
-      TRAYS_TARGET.x - 2.45,
-      TRAYS_TARGET.y + 1.55,
-      TRAYS_TARGET.z + 0.10,
-    )
-    const turnTarget = new THREE.Vector3(
-      TRAYS_TARGET.x + 0.65,
-      TRAYS_TARGET.y + 0.95,
-      TRAYS_TARGET.z,
-    )
 
     cameraTransition = {
       startTime: performance.now(),
-      duration: 3000,
-      // One continuous centripetal spline passes through the intended beats
-      // (forward, right turn, overhead) without easing to a stop at either
-      // intermediate waypoint. Arc-length sampling keeps translation even.
-      path: new THREE.CatmullRomCurve3(
-        [start, forwardPosition, turnPosition, end],
-        false,
-        'centripetal',
-        0.5,
+      duration: 1900,
+      // One calm arc keeps the camera's orientation legible. The small lateral
+      // settle makes the arrival feel intentional without the old whip-pan.
+      path: new THREE.CubicBezierCurve3(
+        start,
+        start.clone().lerp(end, 0.34).add(new THREE.Vector3(0.14, 0.18, 0.22)),
+        start.clone().lerp(end, 0.76).add(new THREE.Vector3(0.08, 0.10, 0.10)),
+        end,
       ),
-      startTarget,
+      startTarget: controls.target.clone(),
       endTarget: TRAYS_TARGET.clone(),
       startUp: camera.up.clone(),
       endUp: TRAYS_UP.clone(),
-      targetPath: new THREE.CatmullRomCurve3(
-        [startTarget, forwardTarget, turnTarget, TRAYS_TARGET.clone()],
-        false,
-        'centripetal',
-        0.5,
-      ),
-      traysTilt: true,
       destination: 'trays',
     }
     setZoomOutVisible(false)
@@ -2624,22 +2590,12 @@ const selectDefault = () => { activeId = 'work'; boardDraw(''); hotspots.forEach
       const eased = easeMotionControl(progress)
       const routeProgress = cameraTransition.reverse ? 1 - eased : eased
 
-      // A single globally-eased, arc-length-parameterized path prevents the
-      // mid-shot slowdowns caused by separately eased animation phases.
+      // A single globally-eased path prevents the mid-shot slowdowns caused by
+      // separately eased animation phases.
       camera.position.copy(cameraTransition.path.getPointAt(routeProgress))
-      if (cameraTransition.targetPath) {
-        cameraTarget.copy(cameraTransition.targetPath.getPointAt(routeProgress))
-      } else {
-        cameraTarget.lerpVectors(cameraTransition.startTarget, cameraTransition.endTarget, routeProgress)
-      }
+      cameraTarget.lerpVectors(cameraTransition.startTarget, cameraTransition.endTarget, routeProgress)
 
-      // WRITING stays upright through the forward move/right turn and blends
-      // into the top-down roll only on the final leg. This is a pure function
-      // of routeProgress, so playing the route backwards reproduces it exactly.
-      const upProgress = cameraTransition.traysTilt
-        ? easeMotionControl(THREE.MathUtils.clamp((routeProgress - 0.62) / 0.38, 0, 1))
-        : routeProgress
-      camera.up.lerpVectors(cameraTransition.startUp, cameraTransition.endUp, upProgress).normalize()
+      camera.up.lerpVectors(cameraTransition.startUp, cameraTransition.endUp, routeProgress).normalize()
       controls.target.copy(cameraTarget)
       updateCameraReadout()
 
@@ -2659,6 +2615,7 @@ const selectDefault = () => { activeId = 'work'; boardDraw(''); hotspots.forEach
         viewMode = destination
         settleControls(destination === 'home')
         setZoomOutVisible(destination === 'map' || destination === 'radio' || destination === 'trays' || destination === 'closet')
+        if (destination === 'trays' && live) live.textContent = 'Writing close-up ready. Return when finished.'
         if (destination === 'home') selectDefault()
       }
     }
