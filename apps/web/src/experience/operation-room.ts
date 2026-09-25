@@ -1078,6 +1078,7 @@ const createProjector = (scene: THREE.Scene) => {
   const group = new THREE.Group()
   group.position.set(-0.6, 1.88, 3.9)
   group.rotation.y = -1.57
+  group.scale.setScalar(0.8)
 
   // Fresh low-poly projector model based on the supplied period reference:
   // a tall cream cast body, large exposed reels on one side, compact lens
@@ -1194,8 +1195,10 @@ const createProjector = (scene: THREE.Scene) => {
     group.add(cylinder(radius * 0.038, 0.035, [x, y, 0.493], darkMetal, 8, [Math.PI / 2, 0, 0]))
   }
 
-  mountReel(0.20, 1.29, 0.43, 0.07)
-  mountReel(0.18, 0.39, 0.34, -0.12)
+  // After the projector scale is applied these radii resolve to 0.285, the
+  // same diameter as the metal-cased reels stored in the cardboard box.
+  mountReel(0.20, 1.29, 0.356, 0.07)
+  mountReel(0.18, 0.39, 0.356, -0.12)
 
   // Small exposed rollers and a visible dark film path link both shared reels
   // through the side gate. This follows the mechanical read of the reference
