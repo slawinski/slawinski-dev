@@ -55,12 +55,16 @@ export type WritingPostDTO = {
   title: string
   publishedAt: string
   tags: string[]
+  excerpt: string
+  content: unknown
 }
 
 type PayloadPost = {
   slug: string
   title: string
   publishedAt: string
+  excerpt: string
+  content: unknown
   tags?: Array<{ label?: string }>
 }
 
@@ -82,5 +86,7 @@ export async function getPublishedPosts(): Promise<WritingPostDTO[]> {
     title: post.title,
     publishedAt: post.publishedAt,
     tags: post.tags?.map((tag) => tag.label).filter((label): label is string => Boolean(label)) ?? [],
+    excerpt: post.excerpt,
+    content: post.content,
   }))
 }
