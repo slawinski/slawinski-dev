@@ -2234,6 +2234,10 @@ export const mountOperationRoom = (root: HTMLElement) => {
     })
   }
   const clearHoverHighlights = () => hoverTargets.forEach((target) => setHoverHighlight(target, false))
+  const setWritingLightsActive = (active: boolean) => {
+    const traysTarget = hoverTargets.find((target) => target.id === 'trays')
+    if (traysTarget) setHoverHighlight(traysTarget, active)
+  }
 
   const setActive = (id: SectionId) => {
   // Re-entering the same target must restore its cover after a pointer leave.
@@ -2424,6 +2428,7 @@ const selectDefault = () => { activeId = 'work'; boardDraw(''); hotspots.forEach
     controls.enabled = false
 
     clearHoverHighlights()
+    setWritingLightsActive(true)
     hotspots.forEach((hotspot) => { hotspot.highlight.visible = false })
     boardDraw('WRITING')
 
