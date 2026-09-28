@@ -1639,30 +1639,30 @@ const createFolders = (scene: THREE.Scene, posts: WritingPost[]) => {
 
   const visiblePosts = posts.slice(0, 10)
   const papers = visiblePosts.map((post, index) => {
-    const textureState = createCanvasTexture(640, 400, (context, canvas) => {
+    const textureState = createCanvasTexture(480, 680, (context, canvas) => {
       context.fillStyle = index % 3 === 1 ? '#d8c79b' : '#e6d8b6'
       context.fillRect(0, 0, canvas.width, canvas.height)
       context.fillStyle = '#292820'
-      context.font = '700 31px Georgia, serif'
+      context.font = '700 28px Georgia, serif'
       const words = post.title.split(/\s+/)
       const lines: string[] = []
       let line = ''
       for (const word of words) {
         const next = line ? `${line} ${word}` : word
-        if (context.measureText(next).width > 545 && line) { lines.push(line); line = word } else line = next
+        if (context.measureText(next).width > 390 && line) { lines.push(line); line = word } else line = next
       }
       if (line) lines.push(line)
-      lines.slice(0, 3).forEach((value, lineIndex) => context.fillText(value, 45, 72 + lineIndex * 39))
+      lines.slice(0, 4).forEach((value, lineIndex) => context.fillText(value, 45, 72 + lineIndex * 38))
       context.font = '18px ui-monospace, monospace'
       context.fillStyle = '#615d4c'
       const date = new Date(post.publishedAt)
-      context.fillText(Number.isNaN(date.getTime()) ? '' : date.toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: '2-digit' }), 45, 205)
+      context.fillText(Number.isNaN(date.getTime()) ? '' : date.toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: '2-digit' }), 45, 250)
       context.fillStyle = 'rgba(55,52,43,.55)'
-      for (let y = 250; y <= 350; y += 25) context.fillRect(45, y, 500 - ((y / 25) % 3) * 55, 3)
+      for (let y = 310; y <= 610; y += 27) context.fillRect(45, y, 350 - ((y / 27) % 3) * 38, 3)
     })
     const side = new THREE.MeshStandardMaterial({ color: index % 3 === 1 ? PALETTE.paper : PALETTE.paperLight, roughness: 1 })
     const top = new THREE.MeshStandardMaterial({ map: textureState.texture, roughness: 1 })
-    const mesh = new THREE.Mesh(new THREE.BoxGeometry(1.22, 0.014, 0.76), [side, side, top, side, side, side])
+    const mesh = new THREE.Mesh(new THREE.BoxGeometry(0.76, 0.014, 1.22), [side, side, top, side, side, side])
     mesh.castShadow = true; mesh.receiveShadow = true
     mesh.userData.paperIndex = index
     scene.add(mesh)
@@ -1685,7 +1685,7 @@ const createFolders = (scene: THREE.Scene, posts: WritingPost[]) => {
     )
     paper.targetRotation = location === 'tray'
       ? 0.018 + (slot % 4 - 1.5) * 0.008
-      : Math.PI / 2 - 0.055 + (slot % 5 - 2) * 0.012
+      : -0.055 + (slot % 5 - 2) * 0.012
   }
   const syncTargets = () => {
     tray.forEach((index, slot) => setSlot(index, 'tray', slot))
