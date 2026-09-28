@@ -1684,7 +1684,7 @@ const createFolders = (scene: THREE.Scene, posts: WritingPost[]) => {
       center.z + (location === 'tray' ? slot * 0.003 : -slot * 0.003),
     )
     paper.targetRotation = location === 'tray'
-      ? 0.018 + (slot % 4 - 1.5) * 0.008
+      ? Math.PI / 2 + 0.018 + (slot % 4 - 1.5) * 0.008
       : -0.055 + (slot % 5 - 2) * 0.012
   }
   const syncTargets = () => {
