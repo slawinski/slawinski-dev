@@ -1,4 +1,11 @@
+---
+import { getPublishedPosts } from '@/lib/content/client'
+
+const writingPosts = await getPublishedPosts().catch(() => [])
+---
+
 <section class="operation-room" data-operation-room>
+  <script type="application/json" data-operation-room-posts set:html={JSON.stringify(writingPosts).replace(/</g, '\\u003c')}></script>
   <canvas class="operation-room__canvas" data-operation-room-canvas tabindex="0" aria-label="Interactive 3D operations room. Drag to look around, scroll or pinch to zoom, right-drag to pan. Left and right arrow keys select a section, Enter opens it, plus and minus zoom, WASD pans, 0 resets the view."></canvas>
   <div class="operation-room__loading" data-operation-room-loading aria-hidden="true"><span>Preparing operations room…</span></div>
   <div class="operation-room__help" aria-hidden="true"><span class="operation-room__dot"></span><span>Hover to select</span><span>•</span><span>Click to focus</span></div>
