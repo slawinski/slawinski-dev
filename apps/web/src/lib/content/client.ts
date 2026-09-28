@@ -48,3 +48,39 @@ export async function getFeaturedProjects(): Promise<ProjectCardDTO[]> {
         : undefined,
   }))
 }
+
+
+export type WritingPostDTO = {
+  slug: string
+  title: string
+  publishedAt: string
+  tags: string[]
+}
+
+type PayloadPost = {
+  slug: string
+  title: string
+  publishedAt: string
+  tags?: Array<{ label?: string }>
+}
+
+export async function getPublishedPosts(): Promise<WritingPostDTO[]> {
+  if (!CMS_URL) return []
+
+  const url = new URL('/api/posts', CMS_URL)
+  url.searchParams.set('where[_status][equals]', 'published')
+  url.searchParams.set('sort', '-publishedAt')
+  url.searchParams.set('limit', '100')
+  url.searchParams.set('depth', '0')
+
+  const response = await fetch(url)
+  if (!response.ok) throw new Error(`Payload request failed: ${response.status}`)
+
+  const data = (await response.json()) as PayloadList<PayloadPost>
+  return data.docs.map((post) => ({
+    slug: post.slug,
+    title: post.title,
+    publishedAt: post.publishedAt,
+    tags: post.tags?.map((tag) => tag.label).filter((label): label is string => Boolean(label)) ?? [],
+  }))
+}
