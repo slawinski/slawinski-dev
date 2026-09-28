@@ -9,7 +9,7 @@ const writingPosts = await getPublishedPosts().catch(() => [])
   <canvas class="operation-room__canvas" data-operation-room-canvas tabindex="0" aria-label="Interactive 3D operations room. Drag to look around, scroll or pinch to zoom, right-drag to pan. Left and right arrow keys select a section, Enter opens it, plus and minus zoom, WASD pans, 0 resets the view."></canvas>
   <div class="operation-room__reader" data-operation-room-reader aria-hidden="true">
     <button class="operation-room__reader-backdrop" type="button" data-operation-room-reader-close aria-label="Close article"></button>
-    <article class="operation-room__document" data-operation-room-document role="dialog" aria-modal="true" aria-labelledby="operation-room-reader-title">
+    <article class="operation-room__document" data-operation-room-document role="dialog" aria-modal="true" aria-labelledby="operation-room-reader-title" tabindex="-1">
       <button class="operation-room__document-close" type="button" data-operation-room-reader-close aria-label="Return article to desk">×</button>
       <header class="operation-room__document-header">
         <p class="operation-room__document-stamp">FIELD NOTES / WRITING</p>
