@@ -16,11 +16,28 @@ import { SiteSettings } from './globals/SiteSettings'
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 const cmsDir = path.resolve(dirname, '..')
-const defaultDataDir = path.join(cmsDir, 'data')
-const defaultDatabaseURL = `file:${path.join(defaultDataDir, 'slawinski.db')}`
 
-if (!process.env.DATABASE_URL) {
-  mkdirSync(defaultDataDir, { recursive: true })
+const resolveDatabaseURL = () => {
+  const configuredURL = process.env.DATABASE_URL
+
+  if (!configuredURL) {
+    const databasePath = path.join(cmsDir, 'data', 'slawinski.db')
+    mkdirSync(path.dirname(databasePath), { recursive: true })
+    return `file:${databasePath}`
+  }
+
+  if (!configuredURL.startsWith('file:')) {
+    return configuredURL
+  }
+
+  const configuredPath = configuredURL.slice('file:'.length)
+  const databasePath = path.isAbsolute(configuredPath)
+    ? configuredPath
+    : path.resolve(cmsDir, configuredPath)
+
+  mkdirSync(path.dirname(databasePath), { recursive: true })
+
+  return `file:${databasePath}`
 }
 
 export default buildConfig({
@@ -40,7 +57,7 @@ export default buildConfig({
   },
   db: sqliteAdapter({
     client: {
-      url: process.env.DATABASE_URL || defaultDatabaseURL,
+      url: resolveDatabaseURL(),
     },
   }),
   sharp,
