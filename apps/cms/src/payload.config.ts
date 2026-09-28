@@ -1,5 +1,6 @@
 import { sqliteAdapter } from '@payloadcms/db-sqlite'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
+import { mkdirSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { buildConfig } from 'payload'
@@ -14,6 +15,13 @@ import { SiteSettings } from './globals/SiteSettings'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
+const cmsDir = path.resolve(dirname, '..')
+const defaultDataDir = path.join(cmsDir, 'data')
+const defaultDatabaseURL = `file:${path.join(defaultDataDir, 'slawinski.db')}`
+
+if (!process.env.DATABASE_URL) {
+  mkdirSync(defaultDataDir, { recursive: true })
+}
 
 export default buildConfig({
   admin: {
@@ -32,7 +40,7 @@ export default buildConfig({
   },
   db: sqliteAdapter({
     client: {
-      url: process.env.DATABASE_URL || 'file:./data/slawinski.db',
+      url: process.env.DATABASE_URL || defaultDatabaseURL,
     },
   }),
   sharp,
