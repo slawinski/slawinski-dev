@@ -1711,7 +1711,9 @@ const createFolders = (scene: THREE.Scene, posts: WritingPost[]) => {
     const point = new THREE.Vector3()
     if (raycaster.ray.intersectPlane(plane, point)) {
       const paper = papers[dragged.index]
-      paper.mesh.position.set(point.x, 1.72, point.z)
+      // Keep the carried sheet on the same raised drag plane from pickup until
+      // release. Do not let pointer movement push it back into either stack.
+      paper.mesh.position.set(point.x, 1.86, point.z)
       // Preserve the sheet's orientation while it is being carried. Its target
       // rotation changes only after a successful transfer and is animated by update().
     }
