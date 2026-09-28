@@ -1671,7 +1671,7 @@ const createFolders = (scene: THREE.Scene, posts: WritingPost[]) => {
 
   const tray = papers.map((_, index) => index).reverse()
   const pile: number[] = []
-  let dragged: { index: number; origin: 'tray' | 'pile'; start: THREE.Vector2; moved: boolean } | null = null
+  let dragged: { index: number; origin: 'tray' | 'pile'; start: THREE.Vector2; moved: boolean; liftY: number } | null = null
   const trayCenter = new THREE.Vector3(-1.95, 1.30 + upperY + 0.07, -0.15)
   const pileCenter = new THREE.Vector3(-2.38, 1.33, 0.92)
 
@@ -1700,20 +1700,24 @@ const createFolders = (scene: THREE.Scene, posts: WritingPost[]) => {
     if (!hit) return false
     const index = Number(hit.object.userData.paperIndex)
     const origin = tray.at(-1) === index ? 'tray' : 'pile'
-    dragged = { index, origin, start: pointerPosition.clone(), moved: false }
-    papers[index].mesh.position.y += 0.14
+    const highestStackY = papers.reduce((highest, paper, paperIndex) =>
+      paperIndex === index ? highest : Math.max(highest, paper.mesh.position.y, paper.targetPosition.y),
+    0)
+    const liftY = Math.max(papers[index].mesh.position.y, highestStackY) + 0.14
+    dragged = { index, origin, start: pointerPosition.clone(), moved: false, liftY }
+    papers[index].mesh.position.y = liftY
     return true
   }
   const drag = (raycaster: THREE.Raycaster, pointerPosition: THREE.Vector2) => {
     if (!dragged) return false
     if (pointerPosition.distanceTo(dragged.start) > 0.018) dragged.moved = true
-    const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -1.72)
+    const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -dragged.liftY)
     const point = new THREE.Vector3()
     if (raycaster.ray.intersectPlane(plane, point)) {
       const paper = papers[dragged.index]
       // Keep the carried sheet on the same raised drag plane from pickup until
       // release. Do not let pointer movement push it back into either stack.
-      paper.mesh.position.set(point.x, 1.86, point.z)
+      paper.mesh.position.set(point.x, dragged.liftY, point.z)
       // Preserve the sheet's orientation while it is being carried. Its target
       // rotation changes only after a successful transfer and is animated by update().
     }
