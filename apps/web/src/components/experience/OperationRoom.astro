@@ -7,6 +7,22 @@ const writingPosts = await getPublishedPosts().catch(() => [])
 <section class="operation-room" data-operation-room>
   <script type="application/json" data-operation-room-posts set:html={JSON.stringify(writingPosts).replace(/</g, '\\u003c')}></script>
   <canvas class="operation-room__canvas" data-operation-room-canvas tabindex="0" aria-label="Interactive 3D operations room. Drag to look around, scroll or pinch to zoom, right-drag to pan. Left and right arrow keys select a section, Enter opens it, plus and minus zoom, WASD pans, 0 resets the view."></canvas>
+  <div class="operation-room__reader" data-operation-room-reader aria-hidden="true">
+    <button class="operation-room__reader-backdrop" type="button" data-operation-room-reader-close aria-label="Close article"></button>
+    <article class="operation-room__document" data-operation-room-document role="dialog" aria-modal="true" aria-labelledby="operation-room-reader-title">
+      <button class="operation-room__document-close" type="button" data-operation-room-reader-close aria-label="Return article to desk">×</button>
+      <header class="operation-room__document-header">
+        <p class="operation-room__document-stamp">FIELD NOTES / WRITING</p>
+        <h1 id="operation-room-reader-title" data-operation-room-reader-title></h1>
+        <div class="operation-room__document-meta">
+          <time data-operation-room-reader-date></time>
+          <span data-operation-room-reader-tags></span>
+        </div>
+        <p class="operation-room__document-excerpt" data-operation-room-reader-excerpt></p>
+      </header>
+      <div class="operation-room__document-body" data-operation-room-reader-body></div>
+    </article>
+  </div>
   <div class="operation-room__loading" data-operation-room-loading aria-hidden="true"><span>Preparing operations room…</span></div>
   <div class="operation-room__help" aria-hidden="true"><span class="operation-room__dot"></span><span>Hover to select</span><span>•</span><span>Click to focus</span></div>
   <div class="operation-room__controls">
@@ -37,6 +53,112 @@ const writingPosts = await getPublishedPosts().catch(() => [])
     const restoreWallDetailsHook = installOperationRoomWallDetails()
     const disposeRoom = mountOperationRoom(root)
     restoreWallDetailsHook()
+
+    const postsScript = root.querySelector<HTMLScriptElement>('[data-operation-room-posts]')
+    const posts = postsScript ? JSON.parse(postsScript.textContent || '[]') as Array<{
+      slug: string
+      title: string
+      publishedAt: string
+      tags: string[]
+      excerpt: string
+      content: unknown
+    }> : []
+    const reader = root.querySelector<HTMLElement>('[data-operation-room-reader]')
+    const documentPanel = root.querySelector<HTMLElement>('[data-operation-room-document]')
+    const readerTitle = root.querySelector<HTMLElement>('[data-operation-room-reader-title]')
+    const readerDate = root.querySelector<HTMLTimeElement>('[data-operation-room-reader-date]')
+    const readerTags = root.querySelector<HTMLElement>('[data-operation-room-reader-tags]')
+    const readerExcerpt = root.querySelector<HTMLElement>('[data-operation-room-reader-excerpt]')
+    const readerBody = root.querySelector<HTMLElement>('[data-operation-room-reader-body]')
+    const closeButtons = [...root.querySelectorAll<HTMLButtonElement>('[data-operation-room-reader-close]')]
+    let readerOpen = false
+    let previousUrl = window.location.pathname + window.location.search + window.location.hash
+
+    const appendLexical = (parent: HTMLElement, node: any) => {
+      if (!node) return
+      if (node.type === 'text') {
+        let child: Node = document.createTextNode(node.text || '')
+        const wrap = (tag: string) => { const el = document.createElement(tag); el.append(child); child = el }
+        if (node.format & 16) wrap('code')
+        if (node.format & 8) wrap('u')
+        if (node.format & 4) wrap('s')
+        if (node.format & 2) wrap('em')
+        if (node.format & 1) wrap('strong')
+        parent.append(child)
+        return
+      }
+      if (node.type === 'linebreak') { parent.append(document.createElement('br')); return }
+
+      const tags: Record<string, string> = {
+        paragraph: 'p', quote: 'blockquote', heading: node.tag || 'h2',
+        list: node.tag === 'ol' || node.listType === 'number' ? 'ol' : 'ul',
+        listitem: 'li', link: 'a', autolink: 'a', code: 'pre',
+      }
+      const element = document.createElement(tags[node.type] || 'div')
+      if ((node.type === 'link' || node.type === 'autolink') && typeof node.url === 'string') {
+        if (/^(https?:|mailto:|\/)/.test(node.url)) {
+          ;(element as HTMLAnchorElement).href = node.url
+          if (/^https?:/.test(node.url)) {
+            ;(element as HTMLAnchorElement).target = '_blank'
+            ;(element as HTMLAnchorElement).rel = 'noreferrer'
+          }
+        }
+      }
+      if (node.type === 'code' && typeof node.code === 'string') element.textContent = node.code
+      if (Array.isArray(node.children)) node.children.forEach((child: unknown) => appendLexical(element, child))
+      parent.append(element)
+    }
+
+    const renderContent = (content: any) => {
+      if (!readerBody) return
+      readerBody.replaceChildren()
+      const rootNode = content?.root ?? content
+      if (Array.isArray(rootNode?.children)) rootNode.children.forEach((node: unknown) => appendLexical(readerBody, node))
+    }
+
+    const closeReader = (fromHistory = false) => {
+      if (!readerOpen || !reader) return
+      readerOpen = false
+      reader.dataset.open = 'false'
+      reader.setAttribute('aria-hidden', 'true')
+      root.dataset.readerOpen = 'false'
+      document.body.style.overflow = ''
+      if (!fromHistory && window.location.pathname.startsWith('/blog/')) history.back()
+      window.setTimeout(() => root.querySelector<HTMLCanvasElement>('[data-operation-room-canvas]')?.focus(), 320)
+    }
+
+    const openReader = (slug: string) => {
+      const post = posts.find((candidate) => candidate.slug === slug)
+      if (!post || !reader || !readerTitle || !readerDate || !readerTags || !readerExcerpt) return
+      previousUrl = window.location.pathname + window.location.search + window.location.hash
+      readerTitle.textContent = post.title
+      const date = new Date(post.publishedAt)
+      readerDate.dateTime = post.publishedAt
+      readerDate.textContent = Number.isNaN(date.getTime()) ? '' : date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+      readerTags.textContent = post.tags.join(' / ')
+      readerExcerpt.textContent = post.excerpt
+      renderContent(post.content)
+      readerOpen = true
+      root.dataset.readerOpen = 'true'
+      reader.dataset.open = 'true'
+      reader.setAttribute('aria-hidden', 'false')
+      document.body.style.overflow = 'hidden'
+      history.pushState({ operationRoomArticle: slug }, '', `/blog/${slug}`)
+      window.requestAnimationFrame(() => documentPanel?.focus())
+    }
+
+    const onWritingOpen = (event: Event) => openReader((event as CustomEvent<{ slug: string }>).detail.slug)
+    const onReaderClose = () => closeReader()
+    const onReaderKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && readerOpen) { event.preventDefault(); closeReader() }
+    }
+    const onReaderPopState = () => {
+      if (readerOpen && window.location.pathname === previousUrl.split(/[?#]/)[0]) closeReader(true)
+    }
+    root.addEventListener('writing:open', onWritingOpen)
+    closeButtons.forEach((button) => button.addEventListener('click', onReaderClose))
+    window.addEventListener('keydown', onReaderKey)
+    window.addEventListener('popstate', onReaderPopState)
 
     const music = createOperationRoomMusic()
     const musicButton = root.querySelector<HTMLButtonElement>('[data-operation-room-music]')
@@ -94,6 +216,11 @@ const writingPosts = await getPublishedPosts().catch(() => [])
       window.removeEventListener('keydown', onFirstKey)
       musicButton?.removeEventListener('click', onMusicClick)
       window.removeEventListener('keydown', onMusicKey)
+      root.removeEventListener('writing:open', onWritingOpen)
+      closeButtons.forEach((button) => button.removeEventListener('click', onReaderClose))
+      window.removeEventListener('keydown', onReaderKey)
+      window.removeEventListener('popstate', onReaderPopState)
+      document.body.style.overflow = ''
       music.dispose()
       disposeRoom()
     }
@@ -113,6 +240,25 @@ const writingPosts = await getPublishedPosts().catch(() => [])
 <style>
   .operation-room { position: relative; width: 100vw; height: 100dvh; overflow: hidden; background: #202926; }
   .operation-room__canvas { display: block; width: 100%; height: 100%; touch-action: none; outline: none; }
+  .operation-room__reader { position: absolute; z-index: 30; inset: 0; display: grid; place-items: start center; padding: clamp(1rem, 4vh, 3rem) 1rem; overflow: auto; visibility: hidden; opacity: 0; transition: opacity 240ms ease, visibility 240ms; }
+  .operation-room__reader[data-open='true'] { visibility: visible; opacity: 1; }
+  .operation-room__reader-backdrop { position: fixed; inset: 0; width: 100%; height: 100%; padding: 0; border: 0; background: rgb(8 12 10 / .68); backdrop-filter: blur(3px); cursor: zoom-out; }
+  .operation-room__document { position: relative; width: min(46rem, calc(100vw - 2rem)); min-height: min(64rem, calc(100dvh - 4rem)); padding: clamp(2rem, 6vw, 5rem); color: #28261e; background: #e2d3ad; box-shadow: 0 1.5rem 5rem rgb(0 0 0 / .55); transform: translateY(9vh) scale(.72) rotate(-1deg); transform-origin: 50% 70%; transition: transform 320ms cubic-bezier(.2,.8,.2,1); outline: none; }
+  .operation-room__reader[data-open='true'] .operation-room__document { transform: translateY(0) scale(1) rotate(-.15deg); }
+  .operation-room__document::before { content: ''; position: absolute; inset: .7rem; border: 1px solid rgb(69 63 47 / .18); pointer-events: none; }
+  .operation-room__document-close { position: absolute; z-index: 2; top: 1.1rem; right: 1.2rem; width: 2.4rem; height: 2.4rem; border: 1px solid rgb(61 57 44 / .45); color: inherit; background: transparent; font: 1.6rem/1 Georgia, serif; cursor: pointer; }
+  .operation-room__document-stamp { margin: 0 0 1.8rem; font: 700 .68rem/1.2 ui-monospace, monospace; letter-spacing: .16em; opacity: .58; }
+  .operation-room__document h1 { max-width: 15ch; margin: 0 0 1.2rem; font: 700 clamp(2rem, 5vw, 3.5rem)/1.03 Georgia, serif; }
+  .operation-room__document-meta { display: flex; flex-wrap: wrap; gap: .5rem 1.2rem; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid rgb(61 57 44 / .35); font: .72rem/1.4 ui-monospace, monospace; letter-spacing: .04em; text-transform: uppercase; }
+  .operation-room__document-excerpt { margin: 0 0 2.5rem; font: italic 1.08rem/1.6 Georgia, serif; }
+  .operation-room__document-body { font: 1.04rem/1.78 Georgia, serif; }
+  .operation-room__document-body :where(h2,h3,h4) { margin: 2.2em 0 .7em; line-height: 1.18; }
+  .operation-room__document-body p { margin: 0 0 1.35em; }
+  .operation-room__document-body a { color: #294f3d; text-decoration-thickness: 1px; text-underline-offset: .18em; }
+  .operation-room__document-body blockquote { margin: 2em 0; padding: .2em 0 .2em 1.3em; border-left: 3px solid rgb(61 57 44 / .55); font-style: italic; }
+  .operation-room__document-body pre { overflow-x: auto; padding: 1rem; background: rgb(53 49 38 / .09); font: .85rem/1.6 ui-monospace, monospace; }
+  .operation-room__document-body code { font-family: ui-monospace, monospace; font-size: .88em; }
+  .operation-room[data-reader-open='true'] .operation-room__controls, .operation-room[data-reader-open='true'] .operation-room__help { opacity: 0; pointer-events: none; }
   .operation-room__loading { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; color: #efe7c6; background: #202926; font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; transition: opacity 220ms ease; }
   .operation-room__loading[data-ready='true'] { opacity: 0; }
   .operation-room__help { position: absolute; left: 1rem; bottom: .75rem; display: flex; gap: .6rem; align-items: center; padding: .35rem .55rem; color: rgb(240 235 208 / .82); background: rgb(14 20 18 / .42); font-size: .68rem; letter-spacing: .035em; text-transform: uppercase; pointer-events: none; }
@@ -133,6 +279,6 @@ const writingPosts = await getPublishedPosts().catch(() => [])
   .operation-room__noscript { position: absolute; inset: 1rem; display: grid; place-content: center; gap: .75rem; padding: 2rem; color: #f3edcf; background: #202926; text-align: center; }
   .operation-room__noscript a { color: inherit; }
   .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
-  @media (max-width: 700px) { .operation-room__help { font-size: .6rem; } .operation-room__help span:nth-child(n+3):nth-child(-n+4) { display: none; } .operation-room__control { font-size: .6rem; } }
-  @media (prefers-reduced-motion: reduce) { .operation-room__loading, .operation-room__fallback { transition: none; } }
+  @media (max-width: 700px) { .operation-room__reader { padding: 0; } .operation-room__document { width: 100%; min-height: 100dvh; padding: 4.5rem 1.4rem 3rem; transform: translateY(5vh) scale(.94); } .operation-room__document::before { inset: .45rem; } .operation-room__help { font-size: .6rem; } .operation-room__help span:nth-child(n+3):nth-child(-n+4) { display: none; } .operation-room__control { font-size: .6rem; } }
+  @media (prefers-reduced-motion: reduce) { .operation-room__loading, .operation-room__fallback, .operation-room__reader, .operation-room__document { transition: none; } }
 </style>
