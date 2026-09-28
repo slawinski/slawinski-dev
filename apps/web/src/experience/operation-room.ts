@@ -1712,7 +1712,8 @@ const createFolders = (scene: THREE.Scene, posts: WritingPost[]) => {
     if (raycaster.ray.intersectPlane(plane, point)) {
       const paper = papers[dragged.index]
       paper.mesh.position.set(point.x, 1.72, point.z)
-      paper.mesh.rotation.y = THREE.MathUtils.lerp(paper.mesh.rotation.y, 0, 0.18)
+      // Preserve the sheet's orientation while it is being carried. Its target
+      // rotation changes only after a successful transfer and is animated by update().
     }
     return true
   }
