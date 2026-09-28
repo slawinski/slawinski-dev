@@ -3,6 +3,8 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 
 type SectionId = 'work' | 'writing' | 'speaking' | 'about' | 'contact'
 
+type WritingPost = { slug: string; title: string; publishedAt: string; tags: string[] }
+
 type Hotspot = {
   id: SectionId
   label: string
@@ -1614,10 +1616,7 @@ const createPaperCluster = (scene: THREE.Scene) => {
   papers.add(box([1.35, 0.028, 0.95], [0.2, 0.035, 0.13], materials.paper, [0, -0.05, 0])); scene.add(papers)
 }
 
-const createFolders = (scene: THREE.Scene) => {
-  // Two-tier wartime office letter tray, matching the reference more closely
-  // than the previous stack of solid boxes. The open fronts keep the papers
-  // readable from both the home camera and the focused WRITING view.
+const createFolders = (scene: THREE.Scene, posts: WritingPost[]) => {
   const group = new THREE.Group(); group.position.set(-1.95, 1.30, -0.15)
   const trayGreen = makeMaterial(0x173b30, 0.82); trayGreen.flatShading = true
   const trayEdge = makeMaterial(0x0f2a22, 0.88); trayEdge.flatShading = true
@@ -1632,46 +1631,126 @@ const createFolders = (scene: THREE.Scene) => {
 
   const lowerY = 0.035
   const upperY = 0.39
-  addTray(lowerY)
-  addTray(upperY)
-
-  for (const x of [-0.73, 0.73]) {
-    for (const z of [-0.45, 0.45]) {
-      group.add(box([0.045, upperY - lowerY, 0.045], [x, (lowerY + upperY) / 2, z], trayEdge))
-    }
+  addTray(lowerY); addTray(upperY)
+  for (const x of [-0.73, 0.73]) for (const z of [-0.45, 0.45]) {
+    group.add(box([0.045, upperY - lowerY, 0.045], [x, (lowerY + upperY) / 2, z], trayEdge))
   }
-
-  const addPaperStack = (baseY: number, count: number, zOffset: number, skew: number) => {
-    for (let i = 0; i < count; i += 1) {
-      const paperMaterial = i % 3 === 1 ? materials.paper : materials.paperLight
-      group.add(box(
-        [1.22 - i * 0.012, 0.012, 0.76 - i * 0.006],
-        [0.02 + i * 0.006, baseY + i * 0.013, zOffset + i * 0.004],
-        paperMaterial,
-        [0, skew + (i - count / 2) * 0.006, 0],
-      ))
-    }
-  }
-
-  addPaperStack(lowerY + 0.045, 7, 0.01, -0.025)
-  addPaperStack(upperY + 0.045, 9, 0.00, 0.018)
   scene.add(group)
 
-  // A single working stack sits outside the trays. Its sheets use the same
-  // A4-like footprint as the tray papers, but the whole stack is turned 90°
-  // so it lies perpendicular to the trays. Keep the table free of loose pages.
-  const deskPapers = new THREE.Group(); deskPapers.position.set(-2.38, 1.305, 0.92)
-  for (let i = 0; i < 11; i += 1) {
-    deskPapers.add(box(
-      [1.22 - i * 0.012, 0.011, 0.76 - i * 0.006],
-      [i * 0.006, i * 0.012, i * -0.003],
-      i % 4 === 0 ? materials.paper : materials.paperLight,
-      [0, Math.PI / 2 - 0.055 + i * 0.008, 0],
-    ))
-  }
-  scene.add(deskPapers)
-}
+  const visiblePosts = posts.slice(0, 10)
+  const papers = visiblePosts.map((post, index) => {
+    const textureState = createCanvasTexture(640, 400, (context, canvas) => {
+      context.fillStyle = index % 3 === 1 ? '#d8c79b' : '#e6d8b6'
+      context.fillRect(0, 0, canvas.width, canvas.height)
+      context.fillStyle = '#292820'
+      context.font = '700 31px Georgia, serif'
+      const words = post.title.split(/\s+/)
+      const lines: string[] = []
+      let line = ''
+      for (const word of words) {
+        const next = line ? `${line} ${word}` : word
+        if (context.measureText(next).width > 545 && line) { lines.push(line); line = word } else line = next
+      }
+      if (line) lines.push(line)
+      lines.slice(0, 3).forEach((value, lineIndex) => context.fillText(value, 45, 72 + lineIndex * 39))
+      context.font = '18px ui-monospace, monospace'
+      context.fillStyle = '#615d4c'
+      const date = new Date(post.publishedAt)
+      context.fillText(Number.isNaN(date.getTime()) ? '' : date.toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: '2-digit' }), 45, 205)
+      context.fillStyle = 'rgba(55,52,43,.55)'
+      for (let y = 250; y <= 350; y += 25) context.fillRect(45, y, 500 - ((y / 25) % 3) * 55, 3)
+    })
+    const side = new THREE.MeshStandardMaterial({ color: index % 3 === 1 ? PALETTE.paper : PALETTE.paperLight, roughness: 1 })
+    const top = new THREE.MeshStandardMaterial({ map: textureState.texture, roughness: 1 })
+    const mesh = new THREE.Mesh(new THREE.BoxGeometry(1.22, 0.014, 0.76), [side, side, top, side, side, side])
+    mesh.castShadow = true; mesh.receiveShadow = true
+    mesh.userData.paperIndex = index
+    scene.add(mesh)
+    return { mesh, post, targetPosition: new THREE.Vector3(), targetRotation: 0 }
+  })
 
+  const tray = papers.map((_, index) => index).reverse()
+  const pile: number[] = []
+  let dragged: { index: number; origin: 'tray' | 'pile'; start: THREE.Vector2; moved: boolean } | null = null
+  const trayCenter = new THREE.Vector3(-1.95, 1.30 + upperY + 0.07, -0.15)
+  const pileCenter = new THREE.Vector3(-2.38, 1.33, 0.92)
+
+  const setSlot = (index: number, location: 'tray' | 'pile', slot: number) => {
+    const paper = papers[index]
+    const center = location === 'tray' ? trayCenter : pileCenter
+    paper.targetPosition.set(
+      center.x + slot * 0.005,
+      center.y + slot * 0.016,
+      center.z + (location === 'tray' ? slot * 0.003 : -slot * 0.003),
+    )
+    paper.targetRotation = location === 'tray'
+      ? 0.018 + (slot % 4 - 1.5) * 0.008
+      : Math.PI / 2 - 0.055 + (slot % 5 - 2) * 0.012
+  }
+  const syncTargets = () => {
+    tray.forEach((index, slot) => setSlot(index, 'tray', slot))
+    pile.forEach((index, slot) => setSlot(index, 'pile', slot))
+  }
+  syncTargets()
+  papers.forEach((paper) => { paper.mesh.position.copy(paper.targetPosition); paper.mesh.rotation.y = paper.targetRotation })
+
+  const topIndices = () => [tray.at(-1), pile.at(-1)].filter((value): value is number => value !== undefined)
+  const pick = (raycaster: THREE.Raycaster, pointerPosition: THREE.Vector2) => {
+    const hit = raycaster.intersectObjects(topIndices().map((index) => papers[index].mesh), false)[0]
+    if (!hit) return false
+    const index = Number(hit.object.userData.paperIndex)
+    const origin = tray.at(-1) === index ? 'tray' : 'pile'
+    dragged = { index, origin, start: pointerPosition.clone(), moved: false }
+    papers[index].mesh.position.y += 0.14
+    return true
+  }
+  const drag = (raycaster: THREE.Raycaster, pointerPosition: THREE.Vector2) => {
+    if (!dragged) return false
+    if (pointerPosition.distanceTo(dragged.start) > 0.018) dragged.moved = true
+    const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -1.72)
+    const point = new THREE.Vector3()
+    if (raycaster.ray.intersectPlane(plane, point)) {
+      const paper = papers[dragged.index]
+      paper.mesh.position.set(point.x, 1.72, point.z)
+      paper.mesh.rotation.y = THREE.MathUtils.lerp(paper.mesh.rotation.y, 0, 0.18)
+    }
+    return true
+  }
+  const drop = () => {
+    if (!dragged) return { handled: false as const }
+    const state = dragged
+    const paper = papers[state.index]
+    const distanceToTray = new THREE.Vector2(paper.mesh.position.x - trayCenter.x, paper.mesh.position.z - trayCenter.z).length()
+    const distanceToPile = new THREE.Vector2(paper.mesh.position.x - pileCenter.x, paper.mesh.position.z - pileCenter.z).length()
+    let destination: 'tray' | 'pile' | null = null
+    if (distanceToTray < 0.72) destination = 'tray'
+    if (distanceToPile < 0.72 && distanceToPile < distanceToTray) destination = 'pile'
+
+    if (destination && destination !== state.origin) {
+      const source = state.origin === 'tray' ? tray : pile
+      const target = destination === 'tray' ? tray : pile
+      if (source.at(-1) === state.index) { source.pop(); target.push(state.index) }
+    }
+    syncTargets()
+    dragged = null
+    return { handled: true as const, open: !state.moved && (!destination || destination === state.origin) ? paper.post : null }
+  }
+  const update = (dt: number, reduced: boolean) => {
+    papers.forEach((paper, index) => {
+      if (dragged?.index === index) return
+      if (reduced) {
+        paper.mesh.position.copy(paper.targetPosition)
+        paper.mesh.rotation.y = paper.targetRotation
+        return
+      }
+      const alpha = 1 - Math.exp(-14 * dt)
+      paper.mesh.position.lerp(paper.targetPosition, alpha)
+      paper.mesh.rotation.y = THREE.MathUtils.lerp(paper.mesh.rotation.y, paper.targetRotation, alpha)
+    })
+  }
+
+  return { pick, drag, drop, update, isDragging: () => Boolean(dragged), hasPapers: () => papers.length > 0 }
+}
 const createHotspot = (scene: THREE.Scene, id: SectionId, size: [number, number, number], position: [number, number, number]) => {
   const hitbox = box(size, position, new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }))
   hitbox.userData.hotspot = id; hitbox.castShadow = false; hitbox.receiveShadow = false
@@ -2017,8 +2096,8 @@ const createHoverTarget = (
   return { id, label, mesh, material, lights }
 }
 
-const createScene = (scene: THREE.Scene, camera: THREE.PerspectiveCamera) => {
-  const updateClock = createRoomShell(scene); const closet = createBackCloset(scene); createTable(scene); createRadioDesk(scene); createMapBoard(scene); const projector = createProjector(scene); createFilmReelStorage(scene); const projectionScreen = createProjectionScreen(scene); createPaperCluster(scene); createFolders(scene); const fanSpinner = createWallFan(scene)
+const createScene = (scene: THREE.Scene, camera: THREE.PerspectiveCamera, posts: WritingPost[]) => {
+  const updateClock = createRoomShell(scene); const closet = createBackCloset(scene); createTable(scene); createRadioDesk(scene); createMapBoard(scene); const projector = createProjector(scene); createFilmReelStorage(scene); const projectionScreen = createProjectionScreen(scene); createPaperCluster(scene); const writingPapers = createFolders(scene, posts); const fanSpinner = createWallFan(scene)
   createChair(scene, -4.65, 0.65, -1.07); createChair(scene, 2.5, -0.2, 1.91); createChair(scene, 2.5, 3.35, 1.31)
   createRotaryTelephone(scene, -0.6, -2.65, 0x30483b, Math.PI); createRotaryTelephone(scene, -0.6, -1.0, 0xe9dfc2, 1.57); createRotaryTelephone(scene, -0.6, 0, 0xa84428, -1.57); createRotaryTelephone(scene, -0.6, 1.0, 0xe9dfc2, 1.57); createRotaryTelephone(scene, -0.6, 2.0, 0x30483b, -1.57)
   createPostPhoneShelf(scene)
@@ -2052,7 +2131,7 @@ const hoverTargets: HoverTarget[] = [
   createHoverTarget(scene, 'back-door', 'ABOUT', [1.8, 4.85, 0.12], [2.75, 2.45, WORLD.backWallZ + 0.20], [0, 0, 0], [closetLampSource]),
 ]
   camera.position.set(-4.08, 4.47, 10.34); camera.lookAt(-2.15, 2.7, -4.75)
-  return { hotspots, hoverTargets, boardDraw, fanSpinner, updateClock, projector, projectionScreen, closet }
+  return { hotspots, hoverTargets, boardDraw, fanSpinner, updateClock, projector, projectionScreen, closet, writingPapers }
 }
 
 export const mountOperationRoom = (root: HTMLElement) => {
@@ -2076,7 +2155,10 @@ export const mountOperationRoom = (root: HTMLElement) => {
   const warmFill = new THREE.DirectionalLight(0xffd599, 1.15); warmFill.position.set(-4, 7, 7); warmFill.castShadow = true; warmFill.shadow.mapSize.set(1024, 1024); scene.add(warmFill)
   const coolFill = new THREE.DirectionalLight(0xb8d0cb, 0.45); coolFill.position.set(7, 5, -1); scene.add(coolFill)
 
-  const { hotspots, hoverTargets, boardDraw, fanSpinner, updateClock, projector, projectionScreen, closet } = createScene(scene, camera)
+  const postsNode = root.querySelector<HTMLScriptElement>('[data-operation-room-posts]')
+  let writingPosts: WritingPost[] = []
+  try { writingPosts = postsNode?.textContent ? JSON.parse(postsNode.textContent) as WritingPost[] : [] } catch { writingPosts = [] }
+  const { hotspots, hoverTargets, boardDraw, fanSpinner, updateClock, projector, projectionScreen, closet, writingPapers } = createScene(scene, camera, writingPosts)
   const pointer = new THREE.Vector2(2, 2)
   const hoverRaycaster = new THREE.Raycaster()
   const HOME_POSITION = new THREE.Vector3(-5.08, 4.14, 8.58)
@@ -2424,7 +2506,24 @@ const selectDefault = () => { activeId = 'work'; boardDraw(''); hotspots.forEach
       projector.lensMaterial.emissiveIntensity = active ? 3.6 : 0.08
     }
   }
+  const onPointerDown = (event: PointerEvent) => {
+    if (viewMode !== 'trays' || !writingPapers.hasPapers()) return
+    updatePointer(event)
+    hoverRaycaster.setFromCamera(pointer, camera)
+    if (writingPapers.pick(hoverRaycaster, pointer)) {
+      canvas.setPointerCapture?.(event.pointerId)
+      canvas.style.cursor = 'grabbing'
+      event.preventDefault()
+    }
+  }
   const onPointerUp = (event: PointerEvent) => {
+    if (viewMode === 'trays' && writingPapers.isDragging()) {
+      const result = writingPapers.drop()
+      canvas.releasePointerCapture?.(event.pointerId)
+      canvas.style.cursor = 'grab'
+      if (result.open) window.location.href = `/blog/${result.open.slug}`
+      return
+    }
     if (viewMode !== 'home') return
     updatePointer(event)
     hoverRaycaster.setFromCamera(pointer, camera)
@@ -2445,6 +2544,16 @@ const selectDefault = () => { activeId = 'work'; boardDraw(''); hotspots.forEach
     if (target.id === 'back-door') startClosetDolly()
   }
   const onPointerMove = (event: PointerEvent) => {
+    if (viewMode === 'trays') {
+      updatePointer(event)
+      hoverRaycaster.setFromCamera(pointer, camera)
+      if (writingPapers.drag(hoverRaycaster, pointer)) {
+        canvas.style.cursor = 'grabbing'
+        return
+      }
+      canvas.style.cursor = writingPapers.hasPapers() ? 'grab' : 'default'
+      return
+    }
     // Desktop interaction is hover-only: moving the pointer over a menu region
     // immediately updates both the cover highlight and the hanging board.
     if (event.pointerType === 'touch' || viewMode !== 'home') return
@@ -2542,6 +2651,7 @@ const selectDefault = () => { activeId = 'work'; boardDraw(''); hotspots.forEach
     lastTime = now
     if (!reducedMotion.matches) fanSpinner.rotation.z -= dt * FAN_SPEED
     updateClock()
+    writingPapers.update(dt, reducedMotion.matches)
 
     if (reducedMotion.matches) {
       closetProgress = closetTargetProgress
@@ -2680,7 +2790,7 @@ const selectDefault = () => { activeId = 'work'; boardDraw(''); hotspots.forEach
 
   resize(); selectDefault(); updateCameraReadout(); loading?.setAttribute('data-ready', 'true')
   controls.addEventListener('change', updateCameraReadout)
-  canvas.addEventListener('pointermove', onPointerMove); canvas.addEventListener('pointerup', onPointerUp); canvas.addEventListener('keydown', onKeyDown); canvas.addEventListener('webglcontextlost', onContextLost); resetButton?.addEventListener('click', onResetClick); zoomOutButton?.addEventListener('click', onZoomOutClick); copyCameraButton?.addEventListener('click', onCopyCameraClick)
+  canvas.addEventListener('pointerdown', onPointerDown); canvas.addEventListener('pointermove', onPointerMove); canvas.addEventListener('pointerup', onPointerUp); canvas.addEventListener('keydown', onKeyDown); canvas.addEventListener('webglcontextlost', onContextLost); resetButton?.addEventListener('click', onResetClick); zoomOutButton?.addEventListener('click', onZoomOutClick); copyCameraButton?.addEventListener('click', onCopyCameraClick)
   if (typeof reducedMotion.addEventListener === 'function') reducedMotion.addEventListener('change', applyMotionPreference)
   window.addEventListener('resize', resize)
   frame = requestAnimationFrame(render)
@@ -2689,7 +2799,7 @@ const selectDefault = () => { activeId = 'work'; boardDraw(''); hotspots.forEach
     disposed = true; cancelAnimationFrame(frame)
     controls.removeEventListener('change', updateCameraReadout)
     cameraReadout.remove()
-    canvas.removeEventListener('pointermove', onPointerMove); canvas.removeEventListener('pointerup', onPointerUp); canvas.removeEventListener('keydown', onKeyDown); canvas.removeEventListener('webglcontextlost', onContextLost); resetButton?.removeEventListener('click', onResetClick); zoomOutButton?.removeEventListener('click', onZoomOutClick); copyCameraButton?.removeEventListener('click', onCopyCameraClick)
+    canvas.removeEventListener('pointerdown', onPointerDown); canvas.removeEventListener('pointermove', onPointerMove); canvas.removeEventListener('pointerup', onPointerUp); canvas.removeEventListener('keydown', onKeyDown); canvas.removeEventListener('webglcontextlost', onContextLost); resetButton?.removeEventListener('click', onResetClick); zoomOutButton?.removeEventListener('click', onZoomOutClick); copyCameraButton?.removeEventListener('click', onCopyCameraClick)
     if (typeof reducedMotion.removeEventListener === 'function') reducedMotion.removeEventListener('change', applyMotionPreference)
     window.removeEventListener('resize', resize); controls.dispose(); renderer.dispose()
     scene.traverse((object) => {
