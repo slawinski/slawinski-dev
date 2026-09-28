@@ -2234,9 +2234,9 @@ export const mountOperationRoom = (root: HTMLElement) => {
     })
   }
   const clearHoverHighlights = () => hoverTargets.forEach((target) => setHoverHighlight(target, false))
-  const setWritingLightsActive = (active: boolean) => {
-    const traysTarget = hoverTargets.find((target) => target.id === 'trays')
-    if (traysTarget) setHoverHighlight(traysTarget, active)
+  const setAreaHighlightActive = (id: string, active: boolean) => {
+    const target = hoverTargets.find((candidate) => candidate.id === id)
+    if (target) setHoverHighlight(target, active)
   }
 
   const setActive = (id: SectionId) => {
@@ -2351,6 +2351,7 @@ const selectDefault = () => { activeId = 'work'; boardDraw(''); hotspots.forEach
     controls.enabled = false
 
     clearHoverHighlights()
+    setAreaHighlightActive('map', true)
     hotspots.forEach((hotspot) => { hotspot.highlight.visible = false })
     boardDraw('WORK')
 
@@ -2388,6 +2389,7 @@ const selectDefault = () => { activeId = 'work'; boardDraw(''); hotspots.forEach
     controls.enabled = false
 
     clearHoverHighlights()
+    setAreaHighlightActive('radio', true)
     hotspots.forEach((hotspot) => { hotspot.highlight.visible = false })
     boardDraw('CONTACT')
 
@@ -2428,7 +2430,7 @@ const selectDefault = () => { activeId = 'work'; boardDraw(''); hotspots.forEach
     controls.enabled = false
 
     clearHoverHighlights()
-    setWritingLightsActive(true)
+    setAreaHighlightActive('trays', true)
     hotspots.forEach((hotspot) => { hotspot.highlight.visible = false })
     boardDraw('WRITING')
 
@@ -2471,6 +2473,7 @@ const selectDefault = () => { activeId = 'work'; boardDraw(''); hotspots.forEach
     controls.enabled = false
 
     clearHoverHighlights()
+    setAreaHighlightActive('back-door', true)
     hotspots.forEach((hotspot) => { hotspot.highlight.visible = false })
     boardDraw('ABOUT')
     closetTargetProgress = 1
