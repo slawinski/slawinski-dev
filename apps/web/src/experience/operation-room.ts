@@ -2528,7 +2528,9 @@ const selectDefault = () => { activeId = 'work'; boardDraw(''); hotspots.forEach
       const result = writingPapers.drop()
       canvas.releasePointerCapture?.(event.pointerId)
       canvas.style.cursor = 'grab'
-      if (result.open) window.location.href = `/blog/${result.open.slug}`
+      if (result.open) {
+        root.dispatchEvent(new CustomEvent('writing:open', { detail: { slug: result.open.slug } }))
+      }
       return
     }
     if (viewMode !== 'home') return
