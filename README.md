@@ -27,7 +27,9 @@ Payload's current requirements drive the repo baseline:
 ## Start locally
 
 ```bash
-cp .env.example .env
+cp apps/cms/.env.example apps/cms/.env
+cp apps/web/.env.example apps/web/.env
+# Replace PAYLOAD_SECRET in apps/cms/.env with: openssl rand -hex 32
 pnpm install
 pnpm dev
 ```
