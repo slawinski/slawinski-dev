@@ -9,7 +9,8 @@
     "payload": "cross-env NODE_OPTIONS=--no-deprecation payload",
     "generate:types": "cross-env NODE_OPTIONS=--no-deprecation payload generate:types",
     "generate:importmap": "cross-env NODE_OPTIONS=--no-deprecation payload generate:importmap",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "import:blog": "cross-env NODE_OPTIONS=--no-deprecation payload run src/import-blog.ts"
   },
   "dependencies": {
     "@payloadcms/db-sqlite": "3.89.0",
