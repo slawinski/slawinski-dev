@@ -168,7 +168,6 @@ export type TalkDTO = {
   videoUrl: string
   slidesUrl?: string
   eventUrl?: string
-  sortOrder: number
 }
 
 type PayloadTalk = {
@@ -180,7 +179,6 @@ type PayloadTalk = {
   videoUrl?: string
   slidesUrl?: string
   eventUrl?: string
-  sortOrder?: number
 }
 
 export async function getPublishedTalks(): Promise<TalkDTO[]> {
@@ -188,7 +186,9 @@ export async function getPublishedTalks(): Promise<TalkDTO[]> {
 
   const url = new URL('/api/talks', CMS_URL)
   url.searchParams.set('where[videoUrl][exists]', 'true')
-  url.searchParams.set('sort', 'sortOrder')
+  // Preserve the order in which talks are managed/imported in Payload without
+  // introducing a new SQLite column solely for projector ordering.
+  url.searchParams.set('sort', 'createdAt')
   url.searchParams.set('limit', '50')
   url.searchParams.set('depth', '0')
 
@@ -207,7 +207,6 @@ export async function getPublishedTalks(): Promise<TalkDTO[]> {
           videoUrl: talk.videoUrl,
           slidesUrl: talk.slidesUrl,
           eventUrl: talk.eventUrl,
-          sortOrder: talk.sortOrder ?? 100,
         }]
       : [],
   )
