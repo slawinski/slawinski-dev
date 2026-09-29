@@ -11,11 +11,25 @@ type PayloadProject = {
   status?: ProjectCardDTO['status']
   role?: string
   tags?: Array<{ label?: string }>
+  links?: Array<{ label?: string; url?: string }>
+  caseStudy?: unknown
   cover?: number | PayloadMedia | null
 }
 type PayloadList<T> = { docs: T[] }
 
-export async function getFeaturedProjects(): Promise<ProjectCardDTO[]> {
+export type FeaturedProjectDTO = {
+  slug: string
+  title: string
+  summary: string
+  year?: number
+  status?: ProjectCardDTO['status']
+  role?: string
+  tags: string[]
+  links: Array<{ label: string; url: string }>
+  caseStudy?: unknown
+}
+
+const fetchFeaturedProjectDocs = async (): Promise<PayloadProject[]> => {
   if (!CMS_URL) return []
 
   const url = new URL('/api/projects', CMS_URL)
@@ -27,9 +41,13 @@ export async function getFeaturedProjects(): Promise<ProjectCardDTO[]> {
 
   const response = await fetch(url)
   if (!response.ok) throw new Error(`Payload request failed: ${response.status}`)
-
   const data = (await response.json()) as PayloadList<PayloadProject>
-  return data.docs.map((project) => ({
+  return data.docs
+}
+
+export async function getFeaturedProjects(): Promise<ProjectCardDTO[]> {
+  const docs = await fetchFeaturedProjectDocs()
+  return docs.map((project) => ({
     slug: project.slug,
     title: project.title,
     summary: project.summary,
@@ -49,6 +67,23 @@ export async function getFeaturedProjects(): Promise<ProjectCardDTO[]> {
   }))
 }
 
+export async function getFeaturedProjectDetails(): Promise<FeaturedProjectDTO[]> {
+  const docs = await fetchFeaturedProjectDocs()
+  return docs.map((project) => ({
+    slug: project.slug,
+    title: project.title,
+    summary: project.summary,
+    year: project.year,
+    status: project.status,
+    role: project.role,
+    tags: project.tags?.map((tag) => tag.label).filter((label): label is string => Boolean(label)) ?? [],
+    links:
+      project.links?.flatMap((link) =>
+        link.label && link.url ? [{ label: link.label, url: link.url }] : [],
+      ) ?? [],
+    caseStudy: project.caseStudy,
+  }))
+}
 
 export type WritingPostDTO = {
   slug: string
