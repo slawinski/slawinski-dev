@@ -4,14 +4,15 @@
   "type": "module",
   "scripts": {
     "dev": "cross-env PORT=3001 NODE_OPTIONS=--no-deprecation payload generate:importmap && cross-env PORT=3001 NODE_OPTIONS=--no-deprecation next dev",
-    "build": "cross-env NODE_OPTIONS=\"--no-deprecation --max-old-space-size=4096\" payload build",
+    "build": "cross-env NODE_OPTIONS=\"--no-deprecation --max-old-space-size=4096\" next build",
     "start": "cross-env PORT=3001 NODE_OPTIONS=--no-deprecation next start",
     "payload": "cross-env NODE_OPTIONS=--no-deprecation payload",
     "generate:types": "cross-env NODE_OPTIONS=--no-deprecation payload generate:types",
     "generate:importmap": "cross-env NODE_OPTIONS=--no-deprecation payload generate:importmap",
     "typecheck": "tsc --noEmit",
     "import:blog": "cross-env NODE_OPTIONS=--no-deprecation payload run src/import-blog.ts",
-    "import:projects": "cross-env NODE_OPTIONS=--no-deprecation payload run src/import-projects.ts"
+    "import:projects": "cross-env NODE_OPTIONS=--no-deprecation payload run src/import-projects.ts",
+    "import:talks": "cross-env NODE_OPTIONS=--no-deprecation payload run src/import-talks.ts"
   },
   "dependencies": {
     "@payloadcms/db-sqlite": "3.89.0",
