@@ -1,4 +1,8 @@
 import * as THREE from 'three'
+import {
+  createOperationRoomMapProjects,
+  installOperationRoomMapProjectInteraction,
+} from './operation-room-map-projects'
 
 const material = (color: number, roughness = 0.86, metalness = 0.02) =>
   new THREE.MeshStandardMaterial({ color, roughness, metalness, flatShading: true })
@@ -33,26 +37,12 @@ const cylinder = (
   return mesh
 }
 
-const tube = (
-  points: Array<[number, number, number]>,
-  radius: number,
-  meshMaterial: THREE.Material,
-) => {
-  const curve = new THREE.CatmullRomCurve3(points.map((point) => new THREE.Vector3(...point)), false, 'catmullrom', 0.1)
-  const mesh = new THREE.Mesh(new THREE.TubeGeometry(curve, 10, radius, 5, false), meshMaterial)
-  mesh.castShadow = true
-  mesh.receiveShadow = true
-  return mesh
-}
-
 const createWallDetails = () => {
   const group = new THREE.Group()
   group.name = 'operation-room-wall-details'
 
   const pipeBrown = material(0x58351f, 0.72, 0.18)
   const pipeDark = material(0x30251e, 0.82, 0.12)
-  const pipeHighlight = material(0x754a2b, 0.68, 0.16)
-  const hookMetal = material(0x353735, 0.72, 0.28)
   const boardWood = material(0x84643e, 0.94)
   const cork = material(0xb58c51, 0.98)
   const paper = material(0xdacba2, 0.98)
@@ -106,6 +96,7 @@ const createWallDetails = () => {
 export const installOperationRoomWallDetails = () => {
   const scenePrototype = THREE.Scene.prototype
   const originalAdd = scenePrototype.add
+  const mapProjects = installOperationRoomMapProjectInteraction()
   let installed = false
 
   scenePrototype.add = function (...objects: THREE.Object3D[]) {
@@ -113,6 +104,8 @@ export const installOperationRoomWallDetails = () => {
     if (!installed) {
       installed = true
       originalAdd.call(this, createWallDetails())
+      originalAdd.call(this, createOperationRoomMapProjects())
+      mapProjects.registerScene(this)
       scenePrototype.add = originalAdd
     }
     return result
@@ -120,5 +113,6 @@ export const installOperationRoomWallDetails = () => {
 
   return () => {
     if (scenePrototype.add !== originalAdd) scenePrototype.add = originalAdd
+    mapProjects.restore()
   }
 }
