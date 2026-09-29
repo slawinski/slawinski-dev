@@ -8,11 +8,10 @@ type PayloadProject = {
   year?: number
   role?: string
   status?: 'live' | 'prototype' | 'archived'
-  tags?: Array<{ label?: string }>
+  tags?: string[]
   links?: ProjectLink[]
   caseStudy?: unknown
 }
-type PayloadList<T> = { docs: T[] }
 type NoteLayout = { x: number; y: number; rotation: number }
 type ProjectDefinition = PayloadProject & {
   id: string
@@ -21,7 +20,6 @@ type ProjectDefinition = PayloadProject & {
   note: NoteLayout
 }
 
-const CMS_URL = import.meta.env.PUBLIC_CMS_URL
 const MAP = { x: -3.35, y: 3.42, z: -5.79 } as const
 const MAP_FACE_Z = MAP.z + 0.06
 const PROJECT_LAYER_Z = MAP_FACE_Z + 0.075
@@ -51,20 +49,11 @@ const getRepoLabel = (github: string | undefined, slug: string) => {
 }
 
 const loadFeaturedProjects = async (): Promise<ProjectDefinition[]> => {
-  if (!CMS_URL) return []
+  const response = await fetch('/api/featured-projects.json')
+  if (!response.ok) throw new Error(`Featured projects request failed: ${response.status}`)
+  const projects = (await response.json()) as PayloadProject[]
 
-  const url = new URL('/api/projects', CMS_URL)
-  url.searchParams.set('where[featured][equals]', 'true')
-  url.searchParams.set('where[_status][equals]', 'published')
-  url.searchParams.set('sort', 'sortOrder')
-  url.searchParams.set('limit', String(NOTE_LAYOUTS.length))
-  url.searchParams.set('depth', '0')
-
-  const response = await fetch(url)
-  if (!response.ok) throw new Error(`Payload projects request failed: ${response.status}`)
-  const data = (await response.json()) as PayloadList<PayloadProject>
-
-  return data.docs.map((project, index) => {
+  return projects.map((project, index) => {
     const github = getGithubLink(project)
     return {
       ...project,
@@ -376,7 +365,7 @@ const attachInteraction = (scene: THREE.Scene, camera: THREE.PerspectiveCamera, 
 
     setHovered(project.id)
     readerTitle.textContent = project.title
-    const metadata = [project.role, project.year ? String(project.year) : undefined, project.status, ...(project.tags?.map((tag) => tag.label).filter(Boolean) ?? [])]
+    const metadata = [project.role, project.year ? String(project.year) : undefined, project.status, ...(project.tags ?? [])]
     readerTags.textContent = metadata.filter(Boolean).join(' / ')
     readerExcerpt.textContent = project.summary
     if (readerDate) {
