@@ -53,7 +53,6 @@ const importTalks = async () => {
       title,
       slug,
       event: 'WarsawJS',
-      sortOrder: (index + 1) * 10,
       videoUrl,
     }
 
