@@ -1,24 +1,14 @@
 import * as THREE from 'three'
 
-type ProjectLink = { label?: string; url?: string }
-type PayloadProject = {
-  slug: string
-  title: string
-  summary: string
-  year?: number
-  role?: string
-  status?: 'live' | 'prototype' | 'archived'
-  tags?: string[]
-  links?: ProjectLink[]
-  caseStudy?: unknown
-}
-type NoteLayout = { x: number; y: number; rotation: number }
-type ProjectDefinition = PayloadProject & {
+import { createProjectDossier, type ProjectDossierData } from './operation-room-project-dossier'
+
+type ProjectDefinition = ProjectDossierData & {
   id: string
   github?: string
   repoLabel: string
   note: NoteLayout
 }
+type NoteLayout = { x: number; y: number; rotation: number }
 
 const MAP = { x: -3.35, y: 3.42, z: -5.79 } as const
 const MAP_FACE_Z = MAP.z + 0.06
@@ -36,7 +26,7 @@ const NOTE_LAYOUTS: NoteLayout[] = [
   { x: -0.54, y: 2.62, rotation: -0.052 },
 ]
 
-const getGithubLink = (project: PayloadProject) =>
+const getGithubLink = (project: ProjectDossierData) =>
   project.links?.find((link) => link.url?.includes('github.com'))?.url
 
 const getRepoLabel = (github: string | undefined, slug: string) => {
@@ -51,7 +41,7 @@ const getRepoLabel = (github: string | undefined, slug: string) => {
 const loadFeaturedProjects = async (): Promise<ProjectDefinition[]> => {
   const response = await fetch('/api/featured-projects.json')
   if (!response.ok) throw new Error(`Featured projects request failed: ${response.status}`)
-  const projects = (await response.json()) as PayloadProject[]
+  const projects = (await response.json()) as ProjectDossierData[]
 
   return projects.map((project, index) => {
     const github = getGithubLink(project)
@@ -206,53 +196,6 @@ const hideLegacyMapNotes = (scene: THREE.Scene) => {
 
 let activeInteractionCleanup: (() => void) | null = null
 
-const appendLexical = (parent: HTMLElement, node: any) => {
-  if (!node) return
-  if (node.type === 'text') {
-    let child: Node = document.createTextNode(node.text || '')
-    const wrap = (tag: string) => {
-      const element = document.createElement(tag)
-      element.append(child)
-      child = element
-    }
-    if (node.format & 16) wrap('code')
-    if (node.format & 8) wrap('u')
-    if (node.format & 4) wrap('s')
-    if (node.format & 2) wrap('em')
-    if (node.format & 1) wrap('strong')
-    parent.append(child)
-    return
-  }
-  if (node.type === 'linebreak') {
-    parent.append(document.createElement('br'))
-    return
-  }
-
-  const tags: Record<string, string> = {
-    paragraph: 'p',
-    quote: 'blockquote',
-    heading: node.tag || 'h2',
-    list: node.tag === 'ol' || node.listType === 'number' ? 'ol' : 'ul',
-    listitem: 'li',
-    link: 'a',
-    autolink: 'a',
-    code: 'pre',
-  }
-  const element = document.createElement(tags[node.type] || 'div')
-  if ((node.type === 'link' || node.type === 'autolink') && typeof node.url === 'string') {
-    if (/^(https?:|mailto:|\/)/.test(node.url)) {
-      ;(element as HTMLAnchorElement).href = node.url
-      if (/^https?:/.test(node.url)) {
-        ;(element as HTMLAnchorElement).target = '_blank'
-        ;(element as HTMLAnchorElement).rel = 'noreferrer'
-      }
-    }
-  }
-  if (node.type === 'code' && typeof node.code === 'string') element.textContent = node.code
-  if (Array.isArray(node.children)) node.children.forEach((child: unknown) => appendLexical(element, child))
-  parent.append(element)
-}
-
 const attachInteraction = (scene: THREE.Scene, camera: THREE.PerspectiveCamera, canvas: HTMLCanvasElement) => {
   activeInteractionCleanup?.()
   hideLegacyMapNotes(scene)
@@ -261,16 +204,7 @@ const attachInteraction = (scene: THREE.Scene, camera: THREE.PerspectiveCamera, 
   if (!projectRoot) return
 
   const root = canvas.closest<HTMLElement>('[data-operation-room]')
-  const reader = root?.querySelector<HTMLElement>('[data-operation-room-reader]') ?? null
-  const documentPanel = root?.querySelector<HTMLElement>('[data-operation-room-document]') ?? null
-  const readerTitle = root?.querySelector<HTMLElement>('[data-operation-room-reader-title]') ?? null
-  const readerDate = root?.querySelector<HTMLTimeElement>('[data-operation-room-reader-date]') ?? null
-  const readerTags = root?.querySelector<HTMLElement>('[data-operation-room-reader-tags]') ?? null
-  const readerExcerpt = root?.querySelector<HTMLElement>('[data-operation-room-reader-excerpt]') ?? null
-  const readerBody = root?.querySelector<HTMLElement>('[data-operation-room-reader-body]') ?? null
-  const readerStamp = root?.querySelector<HTMLElement>('.operation-room__document-stamp') ?? null
-  const closeButtons = root ? [...root.querySelectorAll<HTMLButtonElement>('[data-operation-room-reader-close]')] : []
-  const originalStamp = readerStamp?.textContent ?? 'FIELD NOTES / WRITING'
+  const dossier = root ? createProjectDossier(root, canvas) : null
 
   const raycaster = new THREE.Raycaster()
   const pointer = new THREE.Vector2(2, 2)
@@ -279,7 +213,6 @@ const attachInteraction = (scene: THREE.Scene, camera: THREE.PerspectiveCamera, 
   const toMap = new THREE.Vector3()
   const zoomOutButton = root?.querySelector<HTMLButtonElement>('[data-operation-room-zoom-out]') ?? null
   let hoveredId: string | null = null
-  let projectReaderOpen = false
 
   const updatePointer = (event: PointerEvent) => {
     const bounds = canvas.getBoundingClientRect()
@@ -288,7 +221,7 @@ const attachInteraction = (scene: THREE.Scene, camera: THREE.PerspectiveCamera, 
   }
 
   const isFocusedMapView = () => {
-    if (!zoomOutButton || zoomOutButton.hidden || projectReaderOpen) return false
+    if (!zoomOutButton || zoomOutButton.hidden || dossier?.isOpen) return false
     if (Math.abs(camera.position.x - MAP.x) > 0.10 || Math.abs(camera.position.y - MAP.y) > 0.10) return false
     camera.getWorldDirection(cameraDirection)
     toMap.copy(mapTarget).sub(camera.position).normalize()
@@ -324,66 +257,6 @@ const attachInteraction = (scene: THREE.Scene, camera: THREE.PerspectiveCamera, 
     return hit?.userData.mapProjectId as string | undefined
   }
 
-  const renderCaseStudy = (project: ProjectDefinition) => {
-    if (!readerBody) return
-    readerBody.replaceChildren()
-    const rootNode = (project.caseStudy as any)?.root ?? project.caseStudy
-    if (Array.isArray(rootNode?.children)) {
-      rootNode.children.forEach((node: unknown) => appendLexical(readerBody, node))
-    } else {
-      const paragraph = document.createElement('p')
-      paragraph.textContent = project.summary
-      readerBody.append(paragraph)
-    }
-
-    if (project.github) {
-      const actions = document.createElement('p')
-      const githubLink = document.createElement('a')
-      githubLink.href = project.github
-      githubLink.target = '_blank'
-      githubLink.rel = 'noreferrer'
-      githubLink.textContent = 'View project on GitHub ↗'
-      actions.append(githubLink)
-      readerBody.append(actions)
-    }
-  }
-
-  const closeProjectReader = () => {
-    if (!projectReaderOpen || !reader || !root) return
-    projectReaderOpen = false
-    reader.dataset.open = 'false'
-    reader.setAttribute('aria-hidden', 'true')
-    root.dataset.readerOpen = 'false'
-    document.body.style.overflow = ''
-    if (readerStamp) readerStamp.textContent = originalStamp
-    if (readerDate) readerDate.hidden = false
-    window.setTimeout(() => canvas.focus(), 320)
-  }
-
-  const openProjectReader = (project: ProjectDefinition) => {
-    if (!reader || !root || !readerTitle || !readerTags || !readerExcerpt || !readerBody) return
-
-    setHovered(project.id)
-    readerTitle.textContent = project.title
-    const metadata = [project.role, project.year ? String(project.year) : undefined, project.status, ...(project.tags ?? [])]
-    readerTags.textContent = metadata.filter(Boolean).join(' / ')
-    readerExcerpt.textContent = project.summary
-    if (readerDate) {
-      readerDate.textContent = ''
-      readerDate.removeAttribute('datetime')
-      readerDate.hidden = true
-    }
-    if (readerStamp) readerStamp.textContent = 'CASE FILE / WORK'
-    renderCaseStudy(project)
-
-    projectReaderOpen = true
-    root.dataset.readerOpen = 'true'
-    reader.dataset.open = 'true'
-    reader.setAttribute('aria-hidden', 'false')
-    document.body.style.overflow = 'hidden'
-    window.requestAnimationFrame(() => documentPanel?.focus())
-  }
-
   const onPointerMove = (event: PointerEvent) => {
     if (event.pointerType === 'touch') return
     if (!isFocusedMapView()) {
@@ -403,36 +276,26 @@ const attachInteraction = (scene: THREE.Scene, camera: THREE.PerspectiveCamera, 
     if (!projectId) return
     const projects = projectRoot.userData.mapProjects as Map<string, ProjectDefinition>
     const project = projects.get(projectId)
-    if (!project) return
+    if (!project || !dossier) return
     event.preventDefault()
-    openProjectReader(project)
+    setHovered(project.id)
+    dossier.open(project)
   }
 
   const onPointerLeave = () => {
-    if (!projectReaderOpen) setHovered(null)
+    if (!dossier?.isOpen) setHovered(null)
     if (isFocusedMapView()) canvas.style.cursor = 'default'
-  }
-
-  const onReaderClose = () => closeProjectReader()
-  const onReaderKey = (event: KeyboardEvent) => {
-    if (event.key !== 'Escape' || !projectReaderOpen) return
-    event.preventDefault()
-    closeProjectReader()
   }
 
   canvas.addEventListener('pointermove', onPointerMove)
   canvas.addEventListener('pointerup', onPointerUp)
   canvas.addEventListener('pointerleave', onPointerLeave)
-  closeButtons.forEach((button) => button.addEventListener('click', onReaderClose))
-  window.addEventListener('keydown', onReaderKey)
 
   const cleanup = () => {
     canvas.removeEventListener('pointermove', onPointerMove)
     canvas.removeEventListener('pointerup', onPointerUp)
     canvas.removeEventListener('pointerleave', onPointerLeave)
-    closeButtons.forEach((button) => button.removeEventListener('click', onReaderClose))
-    window.removeEventListener('keydown', onReaderKey)
-    if (projectReaderOpen) closeProjectReader()
+    dossier?.dispose()
     setHovered(null)
     activeInteractionCleanup = null
   }
