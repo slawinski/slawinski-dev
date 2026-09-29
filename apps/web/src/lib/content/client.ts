@@ -14,8 +14,17 @@ type PayloadProject = {
   links?: Array<{ label?: string; url?: string }>
   caseStudy?: unknown
   cover?: number | PayloadMedia | null
+  gallery?: Array<{ image?: number | PayloadMedia | null; caption?: string }>
 }
 type PayloadList<T> = { docs: T[] }
+
+export type FeaturedProjectMediaDTO = {
+  url: string
+  alt?: string
+  width?: number
+  height?: number
+  caption?: string
+}
 
 export type FeaturedProjectDTO = {
   slug: string
@@ -27,6 +36,24 @@ export type FeaturedProjectDTO = {
   tags: string[]
   links: Array<{ label: string; url: string }>
   caseStudy?: unknown
+  cover?: FeaturedProjectMediaDTO
+  gallery: FeaturedProjectMediaDTO[]
+}
+
+const resolveMediaURL = (url: string) => {
+  if (!CMS_URL || /^https?:\/\//.test(url)) return url
+  return new URL(url, CMS_URL).toString()
+}
+
+const toMediaDTO = (media: number | PayloadMedia | null | undefined, caption?: string): FeaturedProjectMediaDTO | undefined => {
+  if (!media || typeof media !== 'object' || !media.url) return undefined
+  return {
+    url: resolveMediaURL(media.url),
+    alt: media.alt,
+    width: media.width,
+    height: media.height,
+    caption,
+  }
 }
 
 const fetchFeaturedProjectDocs = async (): Promise<PayloadProject[]> => {
@@ -58,7 +85,7 @@ export async function getFeaturedProjects(): Promise<ProjectCardDTO[]> {
     cover:
       project.cover && typeof project.cover === 'object' && project.cover.url && project.cover.alt
         ? {
-            url: project.cover.url,
+            url: resolveMediaURL(project.cover.url),
             alt: project.cover.alt,
             width: project.cover.width,
             height: project.cover.height,
@@ -82,6 +109,12 @@ export async function getFeaturedProjectDetails(): Promise<FeaturedProjectDTO[]>
         link.label && link.url ? [{ label: link.label, url: link.url }] : [],
       ) ?? [],
     caseStudy: project.caseStudy,
+    cover: toMediaDTO(project.cover),
+    gallery:
+      project.gallery?.flatMap((item) => {
+        const media = toMediaDTO(item.image, item.caption)
+        return media ? [media] : []
+      }) ?? [],
   }))
 }
 
