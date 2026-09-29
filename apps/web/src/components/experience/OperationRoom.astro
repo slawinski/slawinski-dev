@@ -1,11 +1,15 @@
 ---
-import { getPublishedPosts } from '@/lib/content/client'
+import { getPublishedPosts, getPublishedTalks } from '@/lib/content/client'
 
-const writingPosts = await getPublishedPosts().catch(() => [])
+const [writingPosts, talks] = await Promise.all([
+  getPublishedPosts().catch(() => []),
+  getPublishedTalks().catch(() => []),
+])
 ---
 
 <section class="operation-room" data-operation-room>
   <script type="application/json" data-operation-room-posts set:html={JSON.stringify(writingPosts).replace(/</g, '\\u003c')}></script>
+  <script type="application/json" data-operation-room-talks set:html={JSON.stringify(talks).replace(/</g, '\\u003c')}></script>
   <canvas class="operation-room__canvas" data-operation-room-canvas tabindex="0" aria-label="Interactive 3D operations room. Drag to look around, scroll or pinch to zoom, right-drag to pan. Left and right arrow keys select a section, Enter opens it, plus and minus zoom, WASD pans, 0 resets the view."></canvas>
   <div class="operation-room__reader" data-operation-room-reader aria-hidden="true">
     <button class="operation-room__reader-backdrop" type="button" data-operation-room-reader-close aria-label="Close article"></button>
@@ -23,6 +27,43 @@ const writingPosts = await getPublishedPosts().catch(() => [])
       <div class="operation-room__document-body" data-operation-room-reader-body></div>
     </article>
   </div>
+
+  <section class="operation-room__projector-library" data-operation-room-projector-library data-mode="title" aria-hidden="true" aria-label="Speaking film library">
+    <div class="operation-room__projector-surface">
+      <div class="operation-room__projector-title-card" data-projector-title-card>
+        <p class="operation-room__projector-kicker">SIGNAL CORPS</p>
+        <div class="operation-room__projector-rule"></div>
+        <h2>TECHNICAL FILM LIBRARY</h2>
+        <p class="operation-room__projector-subject">P. SŁAWIŃSKI</p>
+        <p class="operation-room__projector-available"><span data-projector-count>0</span> FILMS AVAILABLE</p>
+        <button class="operation-room__projector-enter" type="button" data-projector-view-films>VIEW FILMS</button>
+        <p class="operation-room__projector-empty" data-projector-empty hidden>NO FILMS IN ARCHIVE</p>
+      </div>
+
+      <div class="operation-room__projector-player" data-projector-player hidden>
+        <header class="operation-room__projector-header">
+          <div>
+            <p class="operation-room__projector-kicker">TECHNICAL BRIEFING</p>
+            <h2 data-projector-title></h2>
+            <p class="operation-room__projector-meta" data-projector-meta></p>
+          </div>
+          <p class="operation-room__projector-reel" data-projector-reel-counter></p>
+        </header>
+        <div class="operation-room__projector-video-shell">
+          <iframe
+            class="operation-room__projector-video"
+            data-projector-iframe
+            src="about:blank"
+            title="Selected speaking video"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen
+          ></iframe>
+        </div>
+        <div class="operation-room__filmstrip" data-projector-filmstrip aria-label="Film reels"></div>
+      </div>
+    </div>
+  </section>
+
   <div class="operation-room__loading" data-operation-room-loading aria-hidden="true"><span>Preparing operations room…</span></div>
   <div class="operation-room__help" aria-hidden="true"><span class="operation-room__dot"></span><span>Hover to select</span><span>•</span><span>Click to focus</span></div>
   <div class="operation-room__controls">
@@ -42,6 +83,7 @@ const writingPosts = await getPublishedPosts().catch(() => [])
 <script>
   import { mountOperationRoom } from '@/experience/operation-room'
   import { createOperationRoomMusic } from '@/experience/operation-room-audio'
+  import { installOperationRoomProjectorLibrary } from '@/experience/operation-room-projector-library'
   import { installOperationRoomWallDetails } from '@/experience/operation-room-wall-details'
 
   let disposeCurrentRoom: (() => void) | undefined
@@ -53,6 +95,7 @@ const writingPosts = await getPublishedPosts().catch(() => [])
     const restoreWallDetailsHook = installOperationRoomWallDetails()
     const disposeRoom = mountOperationRoom(root)
     restoreWallDetailsHook()
+    const disposeProjectorLibrary = installOperationRoomProjectorLibrary(root)
 
     const postsScript = root.querySelector<HTMLScriptElement>('[data-operation-room-posts]')
     const posts = postsScript ? JSON.parse(postsScript.textContent || '[]') as Array<{
@@ -221,6 +264,7 @@ const writingPosts = await getPublishedPosts().catch(() => [])
       window.removeEventListener('keydown', onReaderKey)
       window.removeEventListener('popstate', onReaderPopState)
       document.body.style.overflow = ''
+      disposeProjectorLibrary()
       music.dispose()
       disposeRoom()
     }
@@ -239,7 +283,10 @@ const writingPosts = await getPublishedPosts().catch(() => [])
 
 <style>
   .operation-room { position: relative; width: 100vw; height: 100dvh; overflow: hidden; background: #202926; }
-  .operation-room__canvas { display: block; width: 100%; height: 100%; touch-action: none; outline: none; }
+  .operation-room__canvas { display: block; width: 100%; height: 100%; touch-action: none; outline: none; transform-origin: 59% 33%; transition: transform 1650ms cubic-bezier(.2,.78,.18,1), filter 900ms ease; will-change: transform; }
+  .operation-room[data-projector-view='deploying'] .operation-room__canvas,
+  .operation-room[data-projector-view='open'] .operation-room__canvas { transform: scale(1.68); filter: brightness(.68) saturate(.78); pointer-events: none; }
+  .operation-room[data-projector-view='closing'] .operation-room__canvas { transform: scale(1); filter: none; pointer-events: none; transition-duration: 460ms; }
   .operation-room__reader { position: absolute; z-index: 30; inset: 0; display: grid; place-items: start center; padding: clamp(1rem, 4vh, 3rem) 1rem; overflow: auto; visibility: hidden; opacity: 0; transition: opacity 240ms ease, visibility 240ms; }
   .operation-room__reader[data-open='true'] { visibility: visible; opacity: 1; }
   .operation-room__reader-backdrop { position: fixed; inset: 0; width: 100%; height: 100%; padding: 0; border: 0; background: rgb(8 12 10 / .68); backdrop-filter: blur(3px); cursor: zoom-out; }
@@ -259,17 +306,53 @@ const writingPosts = await getPublishedPosts().catch(() => [])
   .operation-room__document-body pre { overflow-x: auto; padding: 1rem; background: rgb(53 49 38 / .09); font: .85rem/1.6 ui-monospace, monospace; }
   .operation-room__document-body code { font-family: ui-monospace, monospace; font-size: .88em; }
   .operation-room[data-reader-open='true'] .operation-room__controls, .operation-room[data-reader-open='true'] .operation-room__help { opacity: 0; pointer-events: none; }
+
+  .operation-room__projector-library { position: absolute; z-index: 24; left: 54%; top: 49%; width: min(64rem, 70vw); height: min(84dvh, 56rem); transform: translate(-50%, -50%) scale(.96); visibility: hidden; opacity: 0; pointer-events: none; transition: opacity 260ms ease, transform 420ms cubic-bezier(.2,.8,.2,1), visibility 420ms; }
+  .operation-room[data-projector-view='open'] .operation-room__projector-library { visibility: visible; opacity: 1; transform: translate(-50%, -50%) scale(1); pointer-events: auto; }
+  .operation-room__projector-surface { position: relative; width: 100%; height: 100%; overflow: hidden; color: #26271e; background: linear-gradient(100deg, rgb(234 229 203 / .98), rgb(211 207 182 / .97)); border: 1px solid rgb(90 87 68 / .42); box-shadow: 0 0 2.8rem rgb(245 225 156 / .16), inset 0 0 5rem rgb(101 91 58 / .12); }
+  .operation-room__projector-surface::before { content: ''; position: absolute; z-index: 5; inset: 0; opacity: .15; pointer-events: none; background-image: repeating-radial-gradient(circle at 20% 30%, rgb(30 28 18 / .38) 0 1px, transparent 1px 4px); mix-blend-mode: multiply; animation: projector-grain 260ms steps(2) infinite; }
+  .operation-room__projector-surface::after { content: ''; position: absolute; z-index: 4; inset: 0; pointer-events: none; box-shadow: inset 0 0 4rem rgb(36 32 20 / .28); }
+  .operation-room__projector-title-card { position: relative; z-index: 2; display: grid; place-content: center; justify-items: center; width: 100%; height: 100%; padding: clamp(2rem, 5vw, 5rem); text-align: center; }
+  .operation-room__projector-kicker { margin: 0; font: 700 clamp(.65rem, 1vw, .9rem)/1.2 ui-monospace, monospace; letter-spacing: .28em; text-transform: uppercase; }
+  .operation-room__projector-rule { width: min(24rem, 70%); height: 2px; margin: 1.2rem 0 1.6rem; background: currentColor; opacity: .58; }
+  .operation-room__projector-title-card h2 { max-width: 14ch; margin: 0; font: 800 clamp(2rem, 5.1vw, 5.2rem)/.92 Georgia, serif; letter-spacing: .035em; }
+  .operation-room__projector-subject { margin: 1.35rem 0 0; font: 700 clamp(1rem, 2vw, 1.45rem)/1.2 ui-monospace, monospace; letter-spacing: .22em; }
+  .operation-room__projector-available { margin: 2.6rem 0 1.1rem; font: 700 .78rem/1.2 ui-monospace, monospace; letter-spacing: .18em; }
+  .operation-room__projector-enter { padding: .72rem 1.2rem; color: inherit; background: transparent; border: 2px solid currentColor; font: 700 .72rem/1 ui-monospace, monospace; letter-spacing: .16em; cursor: pointer; }
+  .operation-room__projector-enter:hover, .operation-room__projector-enter:focus-visible { outline: 2px solid rgb(38 39 30 / .3); outline-offset: 4px; background: rgb(38 39 30 / .08); }
+  .operation-room__projector-empty { margin: 1rem 0 0; font: 700 .72rem/1.2 ui-monospace, monospace; letter-spacing: .12em; }
+  .operation-room__projector-player { position: relative; z-index: 2; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: .75rem; width: 100%; height: 100%; padding: clamp(1rem, 2.5vw, 2rem); }
+  .operation-room__projector-player[hidden], .operation-room__projector-title-card[hidden] { display: none; }
+  .operation-room__projector-header { display: flex; gap: 1.5rem; align-items: end; justify-content: space-between; min-height: 4rem; border-bottom: 2px solid rgb(38 39 30 / .6); padding-bottom: .7rem; }
+  .operation-room__projector-header h2 { max-width: 28ch; margin: .2rem 0 0; overflow: hidden; font: 800 clamp(1rem, 2.2vw, 1.8rem)/1.05 Georgia, serif; text-overflow: ellipsis; white-space: nowrap; }
+  .operation-room__projector-meta, .operation-room__projector-reel { margin: .32rem 0 0; font: 700 .64rem/1.3 ui-monospace, monospace; letter-spacing: .12em; text-transform: uppercase; }
+  .operation-room__projector-reel { flex: none; text-align: right; }
+  .operation-room__projector-video-shell { position: relative; min-height: 0; overflow: hidden; background: #11120e; border: 3px solid rgb(38 39 30 / .72); box-shadow: inset 0 0 2rem #000; }
+  .operation-room__projector-video-shell::after { content: ''; position: absolute; inset: 0; pointer-events: none; border: 1px solid rgb(240 229 188 / .22); box-shadow: inset 0 0 1.4rem rgb(0 0 0 / .48); }
+  .operation-room__projector-video { width: 100%; height: 100%; border: 0; filter: sepia(.13) saturate(.86) contrast(1.04) brightness(.96); }
+  .operation-room__filmstrip { display: grid; grid-auto-columns: minmax(7rem, 1fr); grid-auto-flow: column; gap: .35rem; min-height: 6.6rem; overflow-x: auto; overflow-y: hidden; padding: .55rem .45rem; background: #26261f; border-block: 2px solid #151610; scrollbar-width: thin; }
+  .operation-room__film-frame { position: relative; display: grid; grid-template-rows: .55rem 1fr .55rem; min-width: 0; padding: 0; overflow: hidden; color: #2b2a20; background: #cfc7a5; border: 1px solid #6d6956; font: inherit; cursor: pointer; opacity: .72; transition: opacity 120ms ease, transform 120ms ease; }
+  .operation-room__film-frame:hover, .operation-room__film-frame:focus-visible, .operation-room__film-frame[aria-current='true'] { opacity: 1; outline: none; transform: translateY(-2px); }
+  .operation-room__film-frame[aria-current='true'] { box-shadow: inset 0 0 0 2px #2c3427; }
+  .operation-room__film-sprockets { display: block; background: repeating-linear-gradient(90deg, #24251e 0 .42rem, transparent .42rem .84rem); }
+  .operation-room__film-number { position: absolute; left: .5rem; top: 1rem; font: 800 .82rem/1 ui-monospace, monospace; }
+  .operation-room__film-label { align-self: end; min-width: 0; padding: 1.1rem .5rem .48rem; overflow: hidden; font: 700 .66rem/1.12 ui-monospace, monospace; text-align: left; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
+  .operation-room[data-projector-view] .operation-room__help,
+  .operation-room[data-projector-view] .operation-room__camera-readout,
+  .operation-room[data-projector-view] [data-operation-room-reset],
+  .operation-room[data-projector-view] [data-operation-room-copy-camera] { opacity: 0; pointer-events: none; }
+
   .operation-room__loading { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; color: #efe7c6; background: #202926; font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; transition: opacity 220ms ease; }
   .operation-room__loading[data-ready='true'] { opacity: 0; }
-  .operation-room__help { position: absolute; left: 1rem; bottom: .75rem; display: flex; gap: .6rem; align-items: center; padding: .35rem .55rem; color: rgb(240 235 208 / .82); background: rgb(14 20 18 / .42); font-size: .68rem; letter-spacing: .035em; text-transform: uppercase; pointer-events: none; }
+  .operation-room__help { position: absolute; left: 1rem; bottom: .75rem; display: flex; gap: .6rem; align-items: center; padding: .35rem .55rem; color: rgb(240 235 208 / .82); background: rgb(14 20 18 / .42); font-size: .68rem; letter-spacing: .035em; text-transform: uppercase; pointer-events: none; transition: opacity 180ms ease; }
   .operation-room__dot { width: .42rem; height: .42rem; border-radius: 50%; background: #89c76c; box-shadow: 0 0 .5rem rgb(137 199 108 / .5); }
-  .operation-room__controls { position: absolute; right: 1rem; bottom: .75rem; display: flex; gap: .45rem; align-items: center; }
-  .operation-room__control { padding: .45rem .7rem; color: #f3edcf; background: rgb(14 20 18 / .6); border: 1px solid #718461; font: inherit; font-size: .68rem; letter-spacing: .035em; text-transform: uppercase; cursor: pointer; }
+  .operation-room__controls { position: absolute; z-index: 28; right: 1rem; bottom: .75rem; display: flex; gap: .45rem; align-items: center; }
+  .operation-room__control { padding: .45rem .7rem; color: #f3edcf; background: rgb(14 20 18 / .6); border: 1px solid #718461; font: inherit; font-size: .68rem; letter-spacing: .035em; text-transform: uppercase; cursor: pointer; transition: opacity 180ms ease; }
   .operation-room__control:hover, .operation-room__control:focus-visible { outline: none; background: #36572f; border-color: #9cb97d; }
   .operation-room__control[aria-pressed='true'] { color: #eef3cf; background: #36572f; border-color: #9cb97d; box-shadow: inset 0 0 0 1px rgb(156 185 125 / .18); }
   .operation-room__control[hidden] { display: none; }
   .operation-room__zoom-out { border-color: #b0c991; background: rgb(54 87 47 / .88); }
-  .operation-room__camera-readout { position: absolute; left: 1rem; top: .75rem; max-width: calc(100vw - 2rem); padding: .35rem .55rem; color: rgb(240 235 208 / .88); background: rgb(14 20 18 / .68); border: 1px solid rgb(113 132 97 / .65); font: .68rem ui-monospace, SFMono-Regular, Menlo, monospace; white-space: nowrap; pointer-events: none; }
+  .operation-room__camera-readout { position: absolute; left: 1rem; top: .75rem; max-width: calc(100vw - 2rem); padding: .35rem .55rem; color: rgb(240 235 208 / .88); background: rgb(14 20 18 / .68); border: 1px solid rgb(113 132 97 / .65); font: .68rem ui-monospace, SFMono-Regular, Menlo, monospace; white-space: nowrap; pointer-events: none; transition: opacity 180ms ease; }
   .operation-room__fallback { position: fixed; z-index: 20; left: 50%; bottom: 1rem; display: flex; gap: .25rem; align-items: center; max-width: calc(100vw - 2rem); padding: .4rem; transform: translate(-50%, calc(100% + 3rem)); color: #f3edcf; background: rgb(13 17 15 / .96); border: 1px solid #718461; box-shadow: 0 .5rem 2rem rgb(0 0 0 / .32); transition: transform 140ms ease; }
   .operation-room__fallback:focus-within, .operation-room__fallback:target, .operation-room[data-webgl='failed'] .operation-room__fallback { transform: translate(-50%, 0); }
   .operation-room__fallback p { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
@@ -279,6 +362,34 @@ const writingPosts = await getPublishedPosts().catch(() => [])
   .operation-room__noscript { position: absolute; inset: 1rem; display: grid; place-content: center; gap: .75rem; padding: 2rem; color: #f3edcf; background: #202926; text-align: center; }
   .operation-room__noscript a { color: inherit; }
   .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
-  @media (max-width: 700px) { .operation-room__reader { padding: 0; } .operation-room__document { width: 100%; min-height: 100dvh; padding: 4.5rem 1.4rem 3rem; transform: translateY(5vh) scale(.94); } .operation-room__document::before { inset: .45rem; } .operation-room__help { font-size: .6rem; } .operation-room__help span:nth-child(n+3):nth-child(-n+4) { display: none; } .operation-room__control { font-size: .6rem; } }
-  @media (prefers-reduced-motion: reduce) { .operation-room__loading, .operation-room__fallback, .operation-room__reader, .operation-room__document { transition: none; } }
+
+  @keyframes projector-grain {
+    0% { transform: translate(0, 0); }
+    25% { transform: translate(-1px, 1px); }
+    50% { transform: translate(1px, 0); }
+    75% { transform: translate(0, -1px); }
+    100% { transform: translate(0, 0); }
+  }
+
+  @media (max-width: 700px) {
+    .operation-room__reader { padding: 0; }
+    .operation-room__document { width: 100%; min-height: 100dvh; padding: 4.5rem 1.4rem 3rem; transform: translateY(5vh) scale(.94); }
+    .operation-room__document::before { inset: .45rem; }
+    .operation-room__help { font-size: .6rem; }
+    .operation-room__help span:nth-child(n+3):nth-child(-n+4) { display: none; }
+    .operation-room__control { font-size: .6rem; }
+    .operation-room[data-projector-view='deploying'] .operation-room__canvas,
+    .operation-room[data-projector-view='open'] .operation-room__canvas { transform: scale(1.28); }
+    .operation-room__projector-library { left: 50%; top: 47%; width: 94vw; height: 78dvh; }
+    .operation-room__projector-player { padding: .8rem; }
+    .operation-room__projector-header { align-items: start; }
+    .operation-room__projector-header h2 { max-width: 18ch; }
+    .operation-room__projector-reel { font-size: .55rem; }
+    .operation-room__filmstrip { grid-auto-columns: 7rem; min-height: 5.8rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .operation-room__loading, .operation-room__fallback, .operation-room__reader, .operation-room__document, .operation-room__canvas, .operation-room__projector-library, .operation-room__film-frame { transition: none; }
+    .operation-room__projector-surface::before { animation: none; }
+  }
 </style>
