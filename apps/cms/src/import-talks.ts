@@ -1,3 +1,7 @@
+import { existsSync } from 'node:fs'
+import path from 'node:path'
+import { DatabaseSync } from 'node:sqlite'
+import { fileURLToPath } from 'node:url'
 import { getPayload } from 'payload'
 
 import config from './payload.config'
@@ -8,6 +12,38 @@ const TALK_URLS = [
   'https://youtu.be/nF0RzMIgzfg?start=467',
   'https://youtu.be/e6Oj4F-OWos',
 ] as const
+
+const cmsDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
+
+const getLocalDatabasePath = () => {
+  const configuredURL = process.env.DATABASE_URL
+
+  if (!configuredURL) return path.join(cmsDir, 'data', 'slawinski.db')
+  if (!configuredURL.startsWith('file:')) return null
+
+  const configuredPath = configuredURL.slice('file:'.length)
+  return path.isAbsolute(configuredPath) ? configuredPath : path.resolve(cmsDir, configuredPath)
+}
+
+const repairInterruptedTalkSchemaPush = () => {
+  const databasePath = getLocalDatabasePath()
+  if (!databasePath || !existsSync(databasePath)) return
+
+  const database = new DatabaseSync(databasePath)
+
+  try {
+    // A failed Payload/Drizzle SQLite table rebuild can leave its temporary
+    // table or named indexes behind. Payload recreates these indexes from the
+    // collection schema during the following initialization.
+    database.exec(`
+      DROP TABLE IF EXISTS "__new_talks";
+      DROP INDEX IF EXISTS "talks_slug_idx";
+      DROP INDEX IF EXISTS "talks_date_idx";
+    `)
+  } finally {
+    database.close()
+  }
+}
 
 const getVideoId = (value: string) => {
   const url = new URL(value)
@@ -39,6 +75,8 @@ const fetchYouTubeTitle = async (videoUrl: string, fallback: string) => {
 }
 
 const importTalks = async () => {
+  repairInterruptedTalkSchemaPush()
+
   const payload = await getPayload({ config })
   let created = 0
   let updated = 0
