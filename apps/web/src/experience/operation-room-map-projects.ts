@@ -1,98 +1,80 @@
 import * as THREE from 'three'
 
-type ProjectDefinition = {
-  id: string
+type ProjectLink = { label?: string; url?: string }
+type PayloadProject = {
+  slug: string
   title: string
-  repo: string
-  url: string
-  note: [number, number]
-  noteRotation: number
   summary: string
-  overview: string
-  highlights: string[]
-  stack: string[]
+  year?: number
+  role?: string
+  status?: 'live' | 'prototype' | 'archived'
+  tags?: Array<{ label?: string }>
+  links?: ProjectLink[]
+  caseStudy?: unknown
+}
+type PayloadList<T> = { docs: T[] }
+type NoteLayout = { x: number; y: number; rotation: number }
+type ProjectDefinition = PayloadProject & {
+  id: string
+  github?: string
+  repoLabel: string
+  note: NoteLayout
 }
 
-const MAP = {
-  x: -3.35,
-  y: 3.42,
-  z: -5.79,
-} as const
-
+const CMS_URL = import.meta.env.PUBLIC_CMS_URL
+const MAP = { x: -3.35, y: 3.42, z: -5.79 } as const
 const MAP_FACE_Z = MAP.z + 0.06
 const PROJECT_LAYER_Z = MAP_FACE_Z + 0.075
 const PROJECT_GROUP_NAME = 'operation-room-map-projects'
 
-const PROJECTS: ProjectDefinition[] = [
-  {
-    id: 'g-log',
-    title: 'G-LOG',
-    repo: 'slawinski/glock-log',
-    url: 'https://github.com/slawinski/glock-log',
-    note: [-6.62, 5.02],
-    noteRotation: -0.055,
-    summary: 'A mobile firearm inventory and shooting log with a deliberately retro terminal interface.',
-    overview: 'G-LOG (TriggerNote) is a React Native app for keeping firearm inventory, ammunition, range visits and shooting statistics together in one local-first tool. The project treats the logbook as an operational utility rather than a generic collection app.',
-    highlights: [
-      'Firearm inventory with specifications, purchase details and photos.',
-      'Ammunition stock and consumption tracking across range visits.',
-      'Per-firearm round counts, collection statistics and usage history.',
-      'Local persistence and a green-on-black terminal-inspired visual system.',
-    ],
-    stack: ['React Native', 'TypeScript', 'Expo', 'MMKV', 'React Hook Form', 'Zod'],
-  },
-  {
-    id: 'eggspedition',
-    title: 'EGGSPEDITION',
-    repo: 'slawinski/eggspedition',
-    url: 'https://github.com/slawinski/eggspedition',
-    note: [-6.57, 1.79],
-    noteRotation: 0.045,
-    summary: 'A household grocery-list app built around quick capture, shared lists and mobile-first use.',
-    overview: 'Eggspedition is a shared household grocery application. Signed-in users work with a household-scoped list, categories, stores and activity history, while the interface is designed around fast additions and a compact mobile workflow.',
-    highlights: [
-      'Shared household model with onboarding and join flows.',
-      'Fast grocery-item capture with categories and stores.',
-      'Grouped smart views and household activity history.',
-      'Custom claymorphism-inspired UI built without utility-first CSS.',
-    ],
-    stack: ['TanStack Start', 'React', 'TanStack Router', 'TanStack Query', 'TypeScript', 'CSS Modules'],
-  },
-  {
-    id: 'spray-and-pray',
-    title: 'SPRAY & PRAY',
-    repo: 'slawinski/spray-and-pray',
-    url: 'https://github.com/slawinski/spray-and-pray',
-    note: [-0.20, 5.00],
-    noteRotation: 0.052,
-    summary: 'A local-first job-application engine that turns job hunting into a trackable terminal workflow.',
-    overview: 'Spray & Pray is a single-user job-search system that captures job descriptions, tailors CVs and cover letters, tracks application state, supports interview preparation and turns weak areas into learning material. The core workflow stays local, with external calls limited to configured LLM providers.',
-    highlights: [
-      'ATS-oriented CV and cover-letter generation from a master CV.',
-      'Application pipeline with status history and Sankey visualisation.',
-      'Browser-extension capture plus a terminal-native dashboard.',
-      'Mock interviews, evaluation and generated deep-dive lessons.',
-    ],
-    stack: ['Python', 'FastAPI', 'Textual', 'SQLite', 'OpenAI-compatible APIs', 'Vanilla JS'],
-  },
-  {
-    id: 'podklajdal',
-    title: 'PODKŁAJDAL',
-    repo: 'slawinski/podklajdal',
-    url: 'https://github.com/slawinski/podklajdal',
-    note: [-0.20, 1.82],
-    noteRotation: -0.042,
-    summary: 'A one-command local CLI that turns a YouTube video into vocal and instrumental MP3 tracks.',
-    overview: 'Podkłajdal is intentionally narrow: paste one YouTube URL and receive two local files — vocals and instrumental. Downloading, audio preparation, source separation and encoding are handled as one staged workflow so the user does not need to understand the tools underneath it.',
-    highlights: [
-      'Single-command YouTube-to-stems workflow.',
-      'Local audio processing and AI source separation.',
-      'Stage-based progress, diagnostics and actionable failures.',
-      'Apple Silicon macOS as the primary target with cached separation models.',
-    ],
-    stack: ['Python 3.12', 'Typer', 'Rich', 'yt-dlp', 'FFmpeg', 'python-audio-separator'],
-  },
+// Deliberately irregular rather than a tidy grid. These positions keep notes
+// inside the framed map while making them feel like papers left on a working map.
+const NOTE_LAYOUTS: NoteLayout[] = [
+  { x: -5.96, y: 4.78, rotation: -0.072 },
+  { x: -3.68, y: 2.14, rotation: 0.048 },
+  { x: -1.18, y: 4.08, rotation: 0.031 },
+  { x: -5.08, y: 3.16, rotation: -0.036 },
+  { x: -2.14, y: 1.72, rotation: 0.061 },
+  { x: -0.54, y: 2.62, rotation: -0.052 },
 ]
+
+const getGithubLink = (project: PayloadProject) =>
+  project.links?.find((link) => link.url?.includes('github.com'))?.url
+
+const getRepoLabel = (github: string | undefined, slug: string) => {
+  if (!github) return slug
+  try {
+    return new URL(github).pathname.replace(/^\//, '').replace(/\/$/, '') || slug
+  } catch {
+    return slug
+  }
+}
+
+const loadFeaturedProjects = async (): Promise<ProjectDefinition[]> => {
+  if (!CMS_URL) return []
+
+  const url = new URL('/api/projects', CMS_URL)
+  url.searchParams.set('where[featured][equals]', 'true')
+  url.searchParams.set('where[_status][equals]', 'published')
+  url.searchParams.set('sort', 'sortOrder')
+  url.searchParams.set('limit', String(NOTE_LAYOUTS.length))
+  url.searchParams.set('depth', '0')
+
+  const response = await fetch(url)
+  if (!response.ok) throw new Error(`Payload projects request failed: ${response.status}`)
+  const data = (await response.json()) as PayloadList<PayloadProject>
+
+  return data.docs.map((project, index) => {
+    const github = getGithubLink(project)
+    return {
+      ...project,
+      id: project.slug,
+      github,
+      repoLabel: getRepoLabel(github, project.slug),
+      note: NOTE_LAYOUTS[index % NOTE_LAYOUTS.length],
+    }
+  })
+}
 
 const createTexture = (
   width: number,
@@ -113,38 +95,40 @@ const createTexture = (
   return texture
 }
 
-const createNoteTexture = (project: ProjectDefinition) => createTexture(768, 352, (context, canvas) => {
-  context.fillStyle = '#ded0aa'
-  context.fillRect(0, 0, canvas.width, canvas.height)
+const createNoteTexture = (project: ProjectDefinition) =>
+  createTexture(768, 352, (context, canvas) => {
+    context.fillStyle = '#ded0aa'
+    context.fillRect(0, 0, canvas.width, canvas.height)
 
-  context.strokeStyle = 'rgba(86, 67, 42, .22)'
-  context.lineWidth = 3
-  context.strokeRect(18, 18, canvas.width - 36, canvas.height - 36)
+    context.strokeStyle = 'rgba(86, 67, 42, .22)'
+    context.lineWidth = 3
+    context.strokeRect(18, 18, canvas.width - 36, canvas.height - 36)
 
-  context.fillStyle = '#8a3527'
-  context.font = '700 24px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace'
-  context.textAlign = 'left'
-  context.fillText('CASE FILE / FEATURED PROJECT', 42, 58)
+    context.fillStyle = '#8a3527'
+    context.font = '700 24px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace'
+    context.textAlign = 'left'
+    context.fillText('CASE FILE / FEATURED PROJECT', 42, 58)
 
-  context.fillStyle = '#2f2a20'
-  context.font = '700 47px Georgia, serif'
-  context.fillText(project.title, 42, 132)
+    context.fillStyle = '#2f2a20'
+    const titleSize = project.title.length > 13 ? 38 : project.title.length > 10 ? 43 : 47
+    context.font = `700 ${titleSize}px Georgia, serif`
+    context.fillText(project.title, 42, 132)
 
-  context.strokeStyle = 'rgba(66, 53, 35, .32)'
-  context.lineWidth = 2
-  context.beginPath()
-  context.moveTo(42, 164)
-  context.lineTo(canvas.width - 42, 164)
-  context.stroke()
+    context.strokeStyle = 'rgba(66, 53, 35, .32)'
+    context.lineWidth = 2
+    context.beginPath()
+    context.moveTo(42, 164)
+    context.lineTo(canvas.width - 42, 164)
+    context.stroke()
 
-  context.fillStyle = '#544a38'
-  context.font = '600 25px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace'
-  context.fillText(project.repo, 42, 220)
+    context.fillStyle = '#544a38'
+    context.font = '600 25px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace'
+    context.fillText(project.repoLabel, 42, 220)
 
-  context.fillStyle = '#746750'
-  context.font = 'italic 25px Georgia, serif'
-  context.fillText('Open dossier', 42, 276)
-})
+    context.fillStyle = '#746750'
+    context.font = 'italic 25px Georgia, serif'
+    context.fillText('Open dossier', 42, 276)
+  })
 
 const tagProjectObject = (object: THREE.Object3D, projectId: string, role: string) => {
   object.userData.mapProjectId = projectId
@@ -154,8 +138,8 @@ const tagProjectObject = (object: THREE.Object3D, projectId: string, role: strin
 
 const createNote = (project: ProjectDefinition, hitMaterial: THREE.Material) => {
   const group = new THREE.Group()
-  group.position.set(project.note[0], project.note[1], 0)
-  group.rotation.z = project.noteRotation
+  group.position.set(project.note.x, project.note.y, 0)
+  group.rotation.z = project.note.rotation
 
   const width = 1.56
   const height = 0.78
@@ -190,6 +174,7 @@ const createNote = (project: ProjectDefinition, hitMaterial: THREE.Material) => 
 export const createOperationRoomMapProjects = () => {
   const group = new THREE.Group()
   group.name = PROJECT_GROUP_NAME
+  group.userData.mapProjects = new Map<string, ProjectDefinition>()
 
   const hitMaterial = new THREE.MeshBasicMaterial({
     transparent: true,
@@ -198,7 +183,16 @@ export const createOperationRoomMapProjects = () => {
     colorWrite: false,
   })
 
-  for (const project of PROJECTS) group.add(createNote(project, hitMaterial))
+  void loadFeaturedProjects()
+    .then((projects) => {
+      const projectMap = group.userData.mapProjects as Map<string, ProjectDefinition>
+      projects.forEach((project) => {
+        projectMap.set(project.id, project)
+        group.add(createNote(project, hitMaterial))
+      })
+    })
+    .catch((error) => console.warn('Unable to load featured projects from Payload.', error))
+
   return group
 }
 
@@ -223,6 +217,53 @@ const hideLegacyMapNotes = (scene: THREE.Scene) => {
 
 let activeInteractionCleanup: (() => void) | null = null
 
+const appendLexical = (parent: HTMLElement, node: any) => {
+  if (!node) return
+  if (node.type === 'text') {
+    let child: Node = document.createTextNode(node.text || '')
+    const wrap = (tag: string) => {
+      const element = document.createElement(tag)
+      element.append(child)
+      child = element
+    }
+    if (node.format & 16) wrap('code')
+    if (node.format & 8) wrap('u')
+    if (node.format & 4) wrap('s')
+    if (node.format & 2) wrap('em')
+    if (node.format & 1) wrap('strong')
+    parent.append(child)
+    return
+  }
+  if (node.type === 'linebreak') {
+    parent.append(document.createElement('br'))
+    return
+  }
+
+  const tags: Record<string, string> = {
+    paragraph: 'p',
+    quote: 'blockquote',
+    heading: node.tag || 'h2',
+    list: node.tag === 'ol' || node.listType === 'number' ? 'ol' : 'ul',
+    listitem: 'li',
+    link: 'a',
+    autolink: 'a',
+    code: 'pre',
+  }
+  const element = document.createElement(tags[node.type] || 'div')
+  if ((node.type === 'link' || node.type === 'autolink') && typeof node.url === 'string') {
+    if (/^(https?:|mailto:|\/)/.test(node.url)) {
+      ;(element as HTMLAnchorElement).href = node.url
+      if (/^https?:/.test(node.url)) {
+        ;(element as HTMLAnchorElement).target = '_blank'
+        ;(element as HTMLAnchorElement).rel = 'noreferrer'
+      }
+    }
+  }
+  if (node.type === 'code' && typeof node.code === 'string') element.textContent = node.code
+  if (Array.isArray(node.children)) node.children.forEach((child: unknown) => appendLexical(element, child))
+  parent.append(element)
+}
+
 const attachInteraction = (scene: THREE.Scene, camera: THREE.PerspectiveCamera, canvas: HTMLCanvasElement) => {
   activeInteractionCleanup?.()
   hideLegacyMapNotes(scene)
@@ -241,11 +282,6 @@ const attachInteraction = (scene: THREE.Scene, camera: THREE.PerspectiveCamera, 
   const readerStamp = root?.querySelector<HTMLElement>('.operation-room__document-stamp') ?? null
   const closeButtons = root ? [...root.querySelectorAll<HTMLButtonElement>('[data-operation-room-reader-close]')] : []
   const originalStamp = readerStamp?.textContent ?? 'FIELD NOTES / WRITING'
-
-  const hitboxes: THREE.Mesh[] = []
-  projectRoot.traverse((object) => {
-    if (object instanceof THREE.Mesh && object.userData.mapProjectHit) hitboxes.push(object)
-  })
 
   const raycaster = new THREE.Raycaster()
   const pointer = new THREE.Vector2(2, 2)
@@ -281,7 +317,6 @@ const attachInteraction = (scene: THREE.Scene, camera: THREE.PerspectiveCamera, 
       if (!id || !role) return
       const active = id === projectId
       const objectMaterials = Array.isArray(object.material) ? object.material : [object.material]
-
       objectMaterials.forEach((material) => {
         if (!(material instanceof THREE.MeshStandardMaterial)) return
         if (role === 'paper') material.color.setHex(active ? 0xfff0c3 : 0xffffff)
@@ -291,31 +326,37 @@ const attachInteraction = (scene: THREE.Scene, camera: THREE.PerspectiveCamera, 
   }
 
   const projectAtPointer = () => {
+    const hitboxes: THREE.Mesh[] = []
+    projectRoot.traverse((object) => {
+      if (object instanceof THREE.Mesh && object.userData.mapProjectHit) hitboxes.push(object)
+    })
     raycaster.setFromCamera(pointer, camera)
     const hit = raycaster.intersectObjects(hitboxes, false)[0]?.object
     return hit?.userData.mapProjectId as string | undefined
   }
 
-  const appendHeading = (text: string) => {
-    const heading = document.createElement('h2')
-    heading.textContent = text
-    readerBody?.append(heading)
-  }
+  const renderCaseStudy = (project: ProjectDefinition) => {
+    if (!readerBody) return
+    readerBody.replaceChildren()
+    const rootNode = (project.caseStudy as any)?.root ?? project.caseStudy
+    if (Array.isArray(rootNode?.children)) {
+      rootNode.children.forEach((node: unknown) => appendLexical(readerBody, node))
+    } else {
+      const paragraph = document.createElement('p')
+      paragraph.textContent = project.summary
+      readerBody.append(paragraph)
+    }
 
-  const appendParagraph = (text: string) => {
-    const paragraph = document.createElement('p')
-    paragraph.textContent = text
-    readerBody?.append(paragraph)
-  }
-
-  const appendList = (items: string[]) => {
-    const list = document.createElement('ul')
-    items.forEach((item) => {
-      const listItem = document.createElement('li')
-      listItem.textContent = item
-      list.append(listItem)
-    })
-    readerBody?.append(list)
+    if (project.github) {
+      const actions = document.createElement('p')
+      const githubLink = document.createElement('a')
+      githubLink.href = project.github
+      githubLink.target = '_blank'
+      githubLink.rel = 'noreferrer'
+      githubLink.textContent = 'View project on GitHub ↗'
+      actions.append(githubLink)
+      readerBody.append(actions)
+    }
   }
 
   const closeProjectReader = () => {
@@ -335,7 +376,8 @@ const attachInteraction = (scene: THREE.Scene, camera: THREE.PerspectiveCamera, 
 
     setHovered(project.id)
     readerTitle.textContent = project.title
-    readerTags.textContent = `FEATURED PROJECT / ${project.repo}`
+    const metadata = [project.role, project.year ? String(project.year) : undefined, project.status, ...(project.tags?.map((tag) => tag.label).filter(Boolean) ?? [])]
+    readerTags.textContent = metadata.filter(Boolean).join(' / ')
     readerExcerpt.textContent = project.summary
     if (readerDate) {
       readerDate.textContent = ''
@@ -343,23 +385,7 @@ const attachInteraction = (scene: THREE.Scene, camera: THREE.PerspectiveCamera, 
       readerDate.hidden = true
     }
     if (readerStamp) readerStamp.textContent = 'CASE FILE / WORK'
-
-    readerBody.replaceChildren()
-    appendHeading('Overview')
-    appendParagraph(project.overview)
-    appendHeading('Selected capabilities')
-    appendList(project.highlights)
-    appendHeading('Stack')
-    appendParagraph(project.stack.join(' / '))
-
-    const actions = document.createElement('p')
-    const githubLink = document.createElement('a')
-    githubLink.href = project.url
-    githubLink.target = '_blank'
-    githubLink.rel = 'noreferrer'
-    githubLink.textContent = 'View project on GitHub ↗'
-    actions.append(githubLink)
-    readerBody.append(actions)
+    renderCaseStudy(project)
 
     projectReaderOpen = true
     root.dataset.readerOpen = 'true'
@@ -386,7 +412,8 @@ const attachInteraction = (scene: THREE.Scene, camera: THREE.PerspectiveCamera, 
     updatePointer(event)
     const projectId = projectAtPointer()
     if (!projectId) return
-    const project = PROJECTS.find((candidate) => candidate.id === projectId)
+    const projects = projectRoot.userData.mapProjects as Map<string, ProjectDefinition>
+    const project = projects.get(projectId)
     if (!project) return
     event.preventDefault()
     openProjectReader(project)
