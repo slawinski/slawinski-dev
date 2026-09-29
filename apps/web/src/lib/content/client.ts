@@ -158,3 +158,57 @@ export async function getPublishedPosts(): Promise<WritingPostDTO[]> {
     content: post.content,
   }))
 }
+
+export type TalkDTO = {
+  slug: string
+  title: string
+  event: string
+  date?: string
+  description?: string
+  videoUrl: string
+  slidesUrl?: string
+  eventUrl?: string
+  sortOrder: number
+}
+
+type PayloadTalk = {
+  slug: string
+  title: string
+  event: string
+  date?: string
+  description?: string
+  videoUrl?: string
+  slidesUrl?: string
+  eventUrl?: string
+  sortOrder?: number
+}
+
+export async function getPublishedTalks(): Promise<TalkDTO[]> {
+  if (!CMS_URL) return []
+
+  const url = new URL('/api/talks', CMS_URL)
+  url.searchParams.set('where[videoUrl][exists]', 'true')
+  url.searchParams.set('sort', 'sortOrder')
+  url.searchParams.set('limit', '50')
+  url.searchParams.set('depth', '0')
+
+  const response = await fetch(url)
+  if (!response.ok) throw new Error(`Payload request failed: ${response.status}`)
+
+  const data = (await response.json()) as PayloadList<PayloadTalk>
+  return data.docs.flatMap((talk) =>
+    talk.videoUrl
+      ? [{
+          slug: talk.slug,
+          title: talk.title,
+          event: talk.event,
+          date: talk.date,
+          description: talk.description,
+          videoUrl: talk.videoUrl,
+          slidesUrl: talk.slidesUrl,
+          eventUrl: talk.eventUrl,
+          sortOrder: talk.sortOrder ?? 100,
+        }]
+      : [],
+  )
+}
