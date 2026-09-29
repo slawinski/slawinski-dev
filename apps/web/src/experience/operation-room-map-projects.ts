@@ -5,19 +5,18 @@ type ProjectDefinition = {
   title: string
   repo: string
   url: string
-  pin: [number, number]
   note: [number, number]
   noteRotation: number
-  labelSide: 'left' | 'right'
-  stringBend: [number, number]
+  summary: string
+  overview: string
+  highlights: string[]
+  stack: string[]
 }
 
 const MAP = {
   x: -3.35,
   y: 3.42,
   z: -5.79,
-  width: 8.4,
-  height: 4.45,
 } as const
 
 const MAP_FACE_Z = MAP.z + 0.06
@@ -30,44 +29,68 @@ const PROJECTS: ProjectDefinition[] = [
     title: 'G-LOG',
     repo: 'slawinski/glock-log',
     url: 'https://github.com/slawinski/glock-log',
-    pin: [-5.72, 4.12],
     note: [-6.62, 5.02],
     noteRotation: -0.055,
-    labelSide: 'right',
-    stringBend: [-0.18, 0.12],
+    summary: 'A mobile firearm inventory and shooting log with a deliberately retro terminal interface.',
+    overview: 'G-LOG (TriggerNote) is a React Native app for keeping firearm inventory, ammunition, range visits and shooting statistics together in one local-first tool. The project treats the logbook as an operational utility rather than a generic collection app.',
+    highlights: [
+      'Firearm inventory with specifications, purchase details and photos.',
+      'Ammunition stock and consumption tracking across range visits.',
+      'Per-firearm round counts, collection statistics and usage history.',
+      'Local persistence and a green-on-black terminal-inspired visual system.',
+    ],
+    stack: ['React Native', 'TypeScript', 'Expo', 'MMKV', 'React Hook Form', 'Zod'],
   },
   {
     id: 'eggspedition',
     title: 'EGGSPEDITION',
     repo: 'slawinski/eggspedition',
     url: 'https://github.com/slawinski/eggspedition',
-    pin: [-4.75, 2.52],
     note: [-6.57, 1.79],
     noteRotation: 0.045,
-    labelSide: 'right',
-    stringBend: [-0.12, -0.12],
+    summary: 'A household grocery-list app built around quick capture, shared lists and mobile-first use.',
+    overview: 'Eggspedition is a shared household grocery application. Signed-in users work with a household-scoped list, categories, stores and activity history, while the interface is designed around fast additions and a compact mobile workflow.',
+    highlights: [
+      'Shared household model with onboarding and join flows.',
+      'Fast grocery-item capture with categories and stores.',
+      'Grouped smart views and household activity history.',
+      'Custom claymorphism-inspired UI built without utility-first CSS.',
+    ],
+    stack: ['TanStack Start', 'React', 'TanStack Router', 'TanStack Query', 'TypeScript', 'CSS Modules'],
   },
   {
     id: 'spray-and-pray',
     title: 'SPRAY & PRAY',
     repo: 'slawinski/spray-and-pray',
     url: 'https://github.com/slawinski/spray-and-pray',
-    pin: [-1.62, 4.08],
     note: [-0.20, 5.00],
     noteRotation: 0.052,
-    labelSide: 'left',
-    stringBend: [0.12, 0.13],
+    summary: 'A local-first job-application engine that turns job hunting into a trackable terminal workflow.',
+    overview: 'Spray & Pray is a single-user job-search system that captures job descriptions, tailors CVs and cover letters, tracks application state, supports interview preparation and turns weak areas into learning material. The core workflow stays local, with external calls limited to configured LLM providers.',
+    highlights: [
+      'ATS-oriented CV and cover-letter generation from a master CV.',
+      'Application pipeline with status history and Sankey visualisation.',
+      'Browser-extension capture plus a terminal-native dashboard.',
+      'Mock interviews, evaluation and generated deep-dive lessons.',
+    ],
+    stack: ['Python', 'FastAPI', 'Textual', 'SQLite', 'OpenAI-compatible APIs', 'Vanilla JS'],
   },
   {
     id: 'podklajdal',
     title: 'PODKŁAJDAL',
     repo: 'slawinski/podklajdal',
     url: 'https://github.com/slawinski/podklajdal',
-    pin: [-2.34, 2.33],
     note: [-0.20, 1.82],
     noteRotation: -0.042,
-    labelSide: 'right',
-    stringBend: [0.10, -0.13],
+    summary: 'A one-command local CLI that turns a YouTube video into vocal and instrumental MP3 tracks.',
+    overview: 'Podkłajdal is intentionally narrow: paste one YouTube URL and receive two local files — vocals and instrumental. Downloading, audio preparation, source separation and encoding are handled as one staged workflow so the user does not need to understand the tools underneath it.',
+    highlights: [
+      'Single-command YouTube-to-stems workflow.',
+      'Local audio processing and AI source separation.',
+      'Stage-based progress, diagnostics and actionable failures.',
+      'Apple Silicon macOS as the primary target with cached separation models.',
+    ],
+    stack: ['Python 3.12', 'Typer', 'Rich', 'yt-dlp', 'FFmpeg', 'python-audio-separator'],
   },
 ]
 
@@ -89,20 +112,6 @@ const createTexture = (
   texture.anisotropy = 4
   return texture
 }
-
-const createLabelTexture = (title: string) => createTexture(640, 128, (context, canvas) => {
-  context.clearRect(0, 0, canvas.width, canvas.height)
-  context.fillStyle = '#d9c89f'
-  context.fillRect(0, 10, canvas.width, canvas.height - 20)
-  context.strokeStyle = 'rgba(78, 58, 35, .48)'
-  context.lineWidth = 5
-  context.strokeRect(8, 18, canvas.width - 16, canvas.height - 36)
-  context.fillStyle = '#362d21'
-  context.font = '700 49px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace'
-  context.textAlign = 'center'
-  context.textBaseline = 'middle'
-  context.fillText(title, canvas.width / 2, canvas.height / 2 + 1)
-})
 
 const createNoteTexture = (project: ProjectDefinition) => createTexture(768, 352, (context, canvas) => {
   context.fillStyle = '#ded0aa'
@@ -134,90 +143,13 @@ const createNoteTexture = (project: ProjectDefinition) => createTexture(768, 352
 
   context.fillStyle = '#746750'
   context.font = 'italic 25px Georgia, serif'
-  context.fillText('GitHub repository', 42, 276)
-})
-
-const makePaperMaterial = (texture?: THREE.Texture) => new THREE.MeshStandardMaterial({
-  color: 0xdac89f,
-  map: texture ?? null,
-  roughness: 1,
-  metalness: 0,
-  side: THREE.DoubleSide,
+  context.fillText('Open dossier', 42, 276)
 })
 
 const tagProjectObject = (object: THREE.Object3D, projectId: string, role: string) => {
   object.userData.mapProjectId = projectId
   object.userData.mapProjectRole = role
   return object
-}
-
-const createString = (project: ProjectDefinition) => {
-  const start = new THREE.Vector3(project.pin[0], project.pin[1], PROJECT_LAYER_Z + 0.018)
-  const end = new THREE.Vector3(project.note[0], project.note[1], PROJECT_LAYER_Z + 0.018)
-  const midpoint = start.clone().lerp(end, 0.52)
-  midpoint.x += project.stringBend[0]
-  midpoint.y += project.stringBend[1]
-  const quarter = start.clone().lerp(midpoint, 0.50)
-  quarter.y -= 0.035
-  const threeQuarter = midpoint.clone().lerp(end, 0.50)
-  threeQuarter.y -= 0.025
-  const curve = new THREE.CatmullRomCurve3([start, quarter, midpoint, threeQuarter, end], false, 'catmullrom', 0.18)
-  const material = new THREE.MeshStandardMaterial({ color: 0x6a3025, roughness: 0.98, metalness: 0 })
-  const mesh = new THREE.Mesh(new THREE.TubeGeometry(curve, 18, 0.014, 5, false), material)
-  mesh.castShadow = true
-  mesh.receiveShadow = true
-  return tagProjectObject(mesh, project.id, 'string')
-}
-
-const createPin = (project: ProjectDefinition, hitMaterial: THREE.Material) => {
-  const group = new THREE.Group()
-  group.position.set(project.pin[0], project.pin[1], 0)
-
-  const stemMaterial = new THREE.MeshStandardMaterial({ color: 0x51473b, roughness: 0.56, metalness: 0.48 })
-  const pinMaterial = new THREE.MeshStandardMaterial({
-    color: 0x8b3426,
-    roughness: 0.66,
-    metalness: 0.06,
-    emissive: 0x000000,
-    emissiveIntensity: 0,
-  })
-
-  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.16, 8), stemMaterial)
-  stem.position.set(0, 0, PROJECT_LAYER_Z + 0.075)
-  stem.rotation.x = Math.PI / 2
-  stem.castShadow = true
-  group.add(stem)
-
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.095, 12, 8), pinMaterial)
-  head.position.set(0, 0, PROJECT_LAYER_Z + 0.175)
-  head.castShadow = true
-  group.add(tagProjectObject(head, project.id, 'pin'))
-
-  const labelWidth = THREE.MathUtils.clamp(0.58 + project.title.length * 0.073, 0.92, 1.62)
-  const labelOffset = project.labelSide === 'right' ? 0.18 + labelWidth / 2 : -0.18 - labelWidth / 2
-  const labelTexture = createLabelTexture(project.title)
-  const labelMaterial = new THREE.MeshStandardMaterial({
-    color: 0xffffff,
-    map: labelTexture,
-    roughness: 1,
-    metalness: 0,
-    transparent: true,
-    side: THREE.DoubleSide,
-  })
-  const label = new THREE.Mesh(new THREE.PlaneGeometry(labelWidth, 0.30), labelMaterial)
-  label.position.set(labelOffset, 0.015, PROJECT_LAYER_Z + 0.055)
-  label.castShadow = true
-  group.add(tagProjectObject(label, project.id, 'label'))
-
-  const minX = Math.min(-0.18, labelOffset - labelWidth / 2)
-  const maxX = Math.max(0.18, labelOffset + labelWidth / 2)
-  const hitbox = new THREE.Mesh(new THREE.BoxGeometry(maxX - minX + 0.14, 0.48, 0.34), hitMaterial)
-  hitbox.position.set((minX + maxX) / 2, 0, PROJECT_LAYER_Z + 0.13)
-  hitbox.userData.mapProjectHit = true
-  hitbox.userData.mapProjectId = project.id
-  group.add(hitbox)
-
-  return group
 }
 
 const createNote = (project: ProjectDefinition, hitMaterial: THREE.Material) => {
@@ -234,19 +166,19 @@ const createNote = (project: ProjectDefinition, hitMaterial: THREE.Material) => 
   backing.receiveShadow = true
   group.add(tagProjectObject(backing, project.id, 'paper-backing'))
 
-  const noteMaterial = makePaperMaterial(createNoteTexture(project))
+  const noteMaterial = new THREE.MeshStandardMaterial({
+    color: 0xffffff,
+    map: createNoteTexture(project),
+    roughness: 1,
+    metalness: 0,
+    side: THREE.DoubleSide,
+  })
   const face = new THREE.Mesh(new THREE.PlaneGeometry(width - 0.025, height - 0.025), noteMaterial)
   face.position.z = PROJECT_LAYER_Z + 0.036
   face.castShadow = true
   group.add(tagProjectObject(face, project.id, 'paper'))
 
-  const tackMaterial = new THREE.MeshStandardMaterial({ color: 0x3d3428, roughness: 0.56, metalness: 0.25 })
-  const tack = new THREE.Mesh(new THREE.SphereGeometry(0.043, 9, 6), tackMaterial)
-  tack.position.set(-width * 0.32, height * 0.34, PROJECT_LAYER_Z + 0.075)
-  tack.castShadow = true
-  group.add(tack)
-
-  const hitbox = new THREE.Mesh(new THREE.BoxGeometry(width + 0.06, height + 0.06, 0.30), hitMaterial)
+  const hitbox = new THREE.Mesh(new THREE.BoxGeometry(width + 0.08, height + 0.08, 0.30), hitMaterial)
   hitbox.position.z = PROJECT_LAYER_Z + 0.10
   hitbox.userData.mapProjectHit = true
   hitbox.userData.mapProjectId = project.id
@@ -266,12 +198,7 @@ export const createOperationRoomMapProjects = () => {
     colorWrite: false,
   })
 
-  for (const project of PROJECTS) {
-    group.add(createString(project))
-    group.add(createPin(project, hitMaterial))
-    group.add(createNote(project, hitMaterial))
-  }
-
+  for (const project of PROJECTS) group.add(createNote(project, hitMaterial))
   return group
 }
 
@@ -303,6 +230,18 @@ const attachInteraction = (scene: THREE.Scene, camera: THREE.PerspectiveCamera, 
   const projectRoot = scene.getObjectByName(PROJECT_GROUP_NAME)
   if (!projectRoot) return
 
+  const root = canvas.closest<HTMLElement>('[data-operation-room]')
+  const reader = root?.querySelector<HTMLElement>('[data-operation-room-reader]') ?? null
+  const documentPanel = root?.querySelector<HTMLElement>('[data-operation-room-document]') ?? null
+  const readerTitle = root?.querySelector<HTMLElement>('[data-operation-room-reader-title]') ?? null
+  const readerDate = root?.querySelector<HTMLTimeElement>('[data-operation-room-reader-date]') ?? null
+  const readerTags = root?.querySelector<HTMLElement>('[data-operation-room-reader-tags]') ?? null
+  const readerExcerpt = root?.querySelector<HTMLElement>('[data-operation-room-reader-excerpt]') ?? null
+  const readerBody = root?.querySelector<HTMLElement>('[data-operation-room-reader-body]') ?? null
+  const readerStamp = root?.querySelector<HTMLElement>('.operation-room__document-stamp') ?? null
+  const closeButtons = root ? [...root.querySelectorAll<HTMLButtonElement>('[data-operation-room-reader-close]')] : []
+  const originalStamp = readerStamp?.textContent ?? 'FIELD NOTES / WRITING'
+
   const hitboxes: THREE.Mesh[] = []
   projectRoot.traverse((object) => {
     if (object instanceof THREE.Mesh && object.userData.mapProjectHit) hitboxes.push(object)
@@ -313,8 +252,9 @@ const attachInteraction = (scene: THREE.Scene, camera: THREE.PerspectiveCamera, 
   const mapTarget = new THREE.Vector3(MAP.x, MAP.y, MAP_FACE_Z)
   const cameraDirection = new THREE.Vector3()
   const toMap = new THREE.Vector3()
-  const zoomOutButton = document.querySelector<HTMLButtonElement>('[data-operation-room-zoom-out]')
+  const zoomOutButton = root?.querySelector<HTMLButtonElement>('[data-operation-room-zoom-out]') ?? null
   let hoveredId: string | null = null
+  let projectReaderOpen = false
 
   const updatePointer = (event: PointerEvent) => {
     const bounds = canvas.getBoundingClientRect()
@@ -323,7 +263,7 @@ const attachInteraction = (scene: THREE.Scene, camera: THREE.PerspectiveCamera, 
   }
 
   const isFocusedMapView = () => {
-    if (!zoomOutButton || zoomOutButton.hidden) return false
+    if (!zoomOutButton || zoomOutButton.hidden || projectReaderOpen) return false
     if (Math.abs(camera.position.x - MAP.x) > 0.10 || Math.abs(camera.position.y - MAP.y) > 0.10) return false
     camera.getWorldDirection(cameraDirection)
     toMap.copy(mapTarget).sub(camera.position).normalize()
@@ -344,14 +284,8 @@ const attachInteraction = (scene: THREE.Scene, camera: THREE.PerspectiveCamera, 
 
       objectMaterials.forEach((material) => {
         if (!(material instanceof THREE.MeshStandardMaterial)) return
-        if (role === 'pin') {
-          material.emissive.setHex(active ? 0x5f1d12 : 0x000000)
-          material.emissiveIntensity = active ? 0.95 : 0
-        }
-        if (role === 'string') material.color.setHex(active ? 0xb44a34 : 0x6a3025)
-        if (role === 'paper') material.color.setHex(active ? 0xfff2c9 : 0xffffff)
-        if (role === 'paper-backing') material.color.setHex(active ? 0xd8c79e : 0xc9b68d)
-        if (role === 'label') material.color.setHex(active ? 0xfff2ca : 0xffffff)
+        if (role === 'paper') material.color.setHex(active ? 0xfff0c3 : 0xffffff)
+        if (role === 'paper-backing') material.color.setHex(active ? 0xd7c497 : 0xc9b68d)
       })
     })
   }
@@ -360,6 +294,79 @@ const attachInteraction = (scene: THREE.Scene, camera: THREE.PerspectiveCamera, 
     raycaster.setFromCamera(pointer, camera)
     const hit = raycaster.intersectObjects(hitboxes, false)[0]?.object
     return hit?.userData.mapProjectId as string | undefined
+  }
+
+  const appendHeading = (text: string) => {
+    const heading = document.createElement('h2')
+    heading.textContent = text
+    readerBody?.append(heading)
+  }
+
+  const appendParagraph = (text: string) => {
+    const paragraph = document.createElement('p')
+    paragraph.textContent = text
+    readerBody?.append(paragraph)
+  }
+
+  const appendList = (items: string[]) => {
+    const list = document.createElement('ul')
+    items.forEach((item) => {
+      const listItem = document.createElement('li')
+      listItem.textContent = item
+      list.append(listItem)
+    })
+    readerBody?.append(list)
+  }
+
+  const closeProjectReader = () => {
+    if (!projectReaderOpen || !reader || !root) return
+    projectReaderOpen = false
+    reader.dataset.open = 'false'
+    reader.setAttribute('aria-hidden', 'true')
+    root.dataset.readerOpen = 'false'
+    document.body.style.overflow = ''
+    if (readerStamp) readerStamp.textContent = originalStamp
+    if (readerDate) readerDate.hidden = false
+    window.setTimeout(() => canvas.focus(), 320)
+  }
+
+  const openProjectReader = (project: ProjectDefinition) => {
+    if (!reader || !root || !readerTitle || !readerTags || !readerExcerpt || !readerBody) return
+
+    setHovered(project.id)
+    readerTitle.textContent = project.title
+    readerTags.textContent = `FEATURED PROJECT / ${project.repo}`
+    readerExcerpt.textContent = project.summary
+    if (readerDate) {
+      readerDate.textContent = ''
+      readerDate.removeAttribute('datetime')
+      readerDate.hidden = true
+    }
+    if (readerStamp) readerStamp.textContent = 'CASE FILE / WORK'
+
+    readerBody.replaceChildren()
+    appendHeading('Overview')
+    appendParagraph(project.overview)
+    appendHeading('Selected capabilities')
+    appendList(project.highlights)
+    appendHeading('Stack')
+    appendParagraph(project.stack.join(' / '))
+
+    const actions = document.createElement('p')
+    const githubLink = document.createElement('a')
+    githubLink.href = project.url
+    githubLink.target = '_blank'
+    githubLink.rel = 'noreferrer'
+    githubLink.textContent = 'View project on GitHub ↗'
+    actions.append(githubLink)
+    readerBody.append(actions)
+
+    projectReaderOpen = true
+    root.dataset.readerOpen = 'true'
+    reader.dataset.open = 'true'
+    reader.setAttribute('aria-hidden', 'false')
+    document.body.style.overflow = 'hidden'
+    window.requestAnimationFrame(() => documentPanel?.focus())
   }
 
   const onPointerMove = (event: PointerEvent) => {
@@ -381,24 +388,35 @@ const attachInteraction = (scene: THREE.Scene, camera: THREE.PerspectiveCamera, 
     if (!projectId) return
     const project = PROJECTS.find((candidate) => candidate.id === projectId)
     if (!project) return
-    setHovered(projectId)
     event.preventDefault()
-    window.open(project.url, '_blank', 'noopener,noreferrer')
+    openProjectReader(project)
   }
 
   const onPointerLeave = () => {
-    setHovered(null)
+    if (!projectReaderOpen) setHovered(null)
     if (isFocusedMapView()) canvas.style.cursor = 'default'
+  }
+
+  const onReaderClose = () => closeProjectReader()
+  const onReaderKey = (event: KeyboardEvent) => {
+    if (event.key !== 'Escape' || !projectReaderOpen) return
+    event.preventDefault()
+    closeProjectReader()
   }
 
   canvas.addEventListener('pointermove', onPointerMove)
   canvas.addEventListener('pointerup', onPointerUp)
   canvas.addEventListener('pointerleave', onPointerLeave)
+  closeButtons.forEach((button) => button.addEventListener('click', onReaderClose))
+  window.addEventListener('keydown', onReaderKey)
 
   const cleanup = () => {
     canvas.removeEventListener('pointermove', onPointerMove)
     canvas.removeEventListener('pointerup', onPointerUp)
     canvas.removeEventListener('pointerleave', onPointerLeave)
+    closeButtons.forEach((button) => button.removeEventListener('click', onReaderClose))
+    window.removeEventListener('keydown', onReaderKey)
+    if (projectReaderOpen) closeProjectReader()
     setHovered(null)
     activeInteractionCleanup = null
   }
