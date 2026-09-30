@@ -8,6 +8,8 @@ const BPM = 54
 const BEAT = 60 / BPM
 const LOOP_BEATS = 16
 const LOOP_SECONDS = LOOP_BEATS * BEAT
+const MUSIC_LEVEL = 0.19
+const SILENT_LEVEL = 0.0001
 
 const midiToHz = (note: number) => 440 * Math.pow(2, (note - 69) / 12)
 
@@ -44,6 +46,7 @@ export const createOperationRoomMusic = () => {
   let dryInput: GainNode | null = null
   let timer: number | null = null
   let playing = false
+  let duckedForProjector = false
   let nextLoopStart = 0
   const activeSources = new Set<ScheduledSource>()
 
@@ -85,6 +88,14 @@ export const createOperationRoomMusic = () => {
     }
 
     if (context.state === 'suspended') await context.resume()
+  }
+
+  const rampMaster = (target: number, seconds: number) => {
+    if (!context || !master) return
+    const now = context.currentTime
+    master.gain.cancelScheduledValues(now)
+    master.gain.setValueAtTime(Math.max(master.gain.value, SILENT_LEVEL), now)
+    master.gain.exponentialRampToValueAtTime(Math.max(target, SILENT_LEVEL), now + seconds)
   }
 
   const routeVoice = (node: AudioNode, dry = 0.85, wet = 0.28) => {
@@ -217,14 +228,12 @@ export const createOperationRoomMusic = () => {
   }
 
   const schedulePhrase = (start: number) => {
-    // Slow heroic orchestral sketch: broadly similar in colour and pacing to a
-    // 1940s-war-film menu cue, but deliberately not a note-for-note transcription.
     const chordDuration = 4 * BEAT + 0.34
     const chords = [
-      [46, 53, 58, 62], // Bb major
-      [51, 58, 63, 67], // Eb major
-      [48, 55, 60, 63], // C minor
-      [53, 60, 65, 69], // F major
+      [46, 53, 58, 62],
+      [51, 58, 63, 67],
+      [48, 55, 60, 63],
+      [53, 60, 65, 69],
     ]
 
     chords.forEach((chord, index) => {
@@ -253,7 +262,6 @@ export const createOperationRoomMusic = () => {
       scheduleHorn(note, start + beatOffset * BEAT, beatDuration * BEAT, gain)
     })
 
-    // A restrained low-brass answer gives the loop a period-newsreel weight.
     scheduleHorn(46, start + 3.05 * BEAT, 0.72 * BEAT, 0.038)
     scheduleHorn(51, start + 7.05 * BEAT, 0.72 * BEAT, 0.038)
     scheduleHorn(48, start + 11.05 * BEAT, 0.72 * BEAT, 0.038)
@@ -273,15 +281,16 @@ export const createOperationRoomMusic = () => {
 
   const play = async () => {
     await ensureGraph()
-    if (!context || !master || playing) return playing
+    if (!context || !master) return false
+    if (playing) {
+      rampMaster(duckedForProjector ? SILENT_LEVEL : MUSIC_LEVEL, 0.35)
+      return true
+    }
 
     playing = true
-    const now = context.currentTime
-    master.gain.cancelScheduledValues(now)
-    master.gain.setValueAtTime(Math.max(master.gain.value, 0.0001), now)
-    master.gain.exponentialRampToValueAtTime(0.19, now + 0.55)
+    rampMaster(duckedForProjector ? SILENT_LEVEL : MUSIC_LEVEL, duckedForProjector ? 0.15 : 0.75)
 
-    const start = now + 0.06
+    const start = context.currentTime + 0.06
     schedulePhrase(start)
     scheduleNextLoop(start)
     return true
@@ -299,17 +308,14 @@ export const createOperationRoomMusic = () => {
       timer = null
     }
 
-    const now = context.currentTime
-    master.gain.cancelScheduledValues(now)
-    master.gain.setValueAtTime(Math.max(master.gain.value, 0.0001), now)
-    master.gain.exponentialRampToValueAtTime(0.0001, now + 0.22)
-
+    rampMaster(SILENT_LEVEL, 0.32)
     window.setTimeout(() => {
+      if (playing) return
       activeSources.forEach((source) => {
         try { source.stop() } catch { /* already stopped */ }
       })
       activeSources.clear()
-    }, 260)
+    }, 380)
   }
 
   const toggle = async () => {
@@ -320,7 +326,22 @@ export const createOperationRoomMusic = () => {
     return play()
   }
 
+  const onProjectorStart = () => {
+    duckedForProjector = true
+    if (playing) rampMaster(SILENT_LEVEL, 1.35)
+  }
+
+  const onProjectorStop = () => {
+    duckedForProjector = false
+    if (playing) rampMaster(MUSIC_LEVEL, 1.35)
+  }
+
+  document.addEventListener('operation-room:projector-start', onProjectorStart)
+  document.addEventListener('operation-room:projector-stop', onProjectorStop)
+
   const dispose = () => {
+    document.removeEventListener('operation-room:projector-start', onProjectorStart)
+    document.removeEventListener('operation-room:projector-stop', onProjectorStop)
     stop()
     if (context && context.state !== 'closed') void context.close()
     context = null
