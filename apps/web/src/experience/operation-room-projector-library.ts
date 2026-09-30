@@ -134,8 +134,7 @@ const createProjectorWhirr = () => {
     humFilter.connect(humGain)
     humGain.connect(master)
 
-    // A very small amplitude wobble gives the motor a mechanical, imperfect
-    // cadence without turning the ambience into an obvious sound effect.
+    // A tiny amplitude wobble keeps the motor from sounding digitally static.
     const flutter = context.createOscillator()
     flutter.type = 'sine'
     flutter.frequency.value = 13.5
@@ -216,7 +215,6 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
 
   const whirr = createProjectorWhirr()
 
-  // Replace the previous archive UI with three physical-camera-style controls.
   const reelIndicator = document.createElement('span')
   reelIndicator.className = 'operation-room__control operation-room__reel-indicator'
   reelIndicator.hidden = true
@@ -244,8 +242,8 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
   projectionLink.setAttribute('aria-label', 'Open projected talk on YouTube')
   videoShell.appendChild(projectionLink)
 
-  // Keep the DOM player strictly as projected imagery. No archive title,
-  // metadata, filmstrip or embedded YouTube controls are visible in the room.
+  // The screen is now only a projected film image: no splash card, metadata,
+  // embedded controls or filmstrip menu remain visible in the room.
   if (titleCard) titleCard.hidden = true
   if (playerHeader) playerHeader.hidden = true
   if (filmstrip) filmstrip.hidden = true
@@ -282,17 +280,23 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
       top: 50% !important;
       border: 0 !important;
       pointer-events: none !important;
-      filter: grayscale(1) sepia(.08) contrast(1.16) brightness(.88) !important;
-      opacity: .82 !important;
+      filter: grayscale(1) sepia(.08) contrast(1.16) brightness(.88);
+      opacity: .82;
       mix-blend-mode: multiply;
       transform: translate(-50%, -50%);
-      animation: operation-room-film-exposure 430ms steps(2, end) infinite;
+      animation:
+        operation-room-film-exposure 430ms steps(2, end) infinite,
+        operation-room-film-gate 3.1s steps(1, end) infinite;
     }
     .operation-room__projection-link {
       position: absolute;
       z-index: 8;
       inset: 0;
       cursor: pointer;
+    }
+    .operation-room__projection-link:focus-visible {
+      outline: 1px solid rgb(238 231 198 / .7);
+      outline-offset: -5px;
     }
     .operation-room__projector-surface::before {
       opacity: .20 !important;
@@ -312,6 +316,12 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
       50% { opacity: .81; filter: grayscale(1) sepia(.09) contrast(1.16) brightness(.87); }
       75% { opacity: .83; filter: grayscale(1) sepia(.08) contrast(1.18) brightness(.90); }
       100% { opacity: .82; filter: grayscale(1) sepia(.08) contrast(1.16) brightness(.88); }
+    }
+    @keyframes operation-room-film-gate {
+      0%, 84%, 100% { transform: translate(-50%, -50%); }
+      85% { transform: translate(calc(-50% + .8px), calc(-50% - .5px)); }
+      87% { transform: translate(calc(-50% - .5px), calc(-50% + .4px)); }
+      89% { transform: translate(-50%, -50%); }
     }
     @media (prefers-reduced-motion: reduce) {
       .operation-room__projector-video { animation: none !important; }
@@ -336,9 +346,10 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
 
   const updateReelControls = () => {
     const hasReels = talks.length > 0
-    reelIndicator.hidden = !open || !hasReels
-    previousButton.hidden = !open || !hasReels
-    nextButton.hidden = !open || !hasReels
+    const visible = open && root.dataset.projectorView === 'open' && hasReels
+    reelIndicator.hidden = !visible
+    previousButton.hidden = !visible
+    nextButton.hidden = !visible
     reelIndicator.textContent = hasReels ? `Reel ${selectedIndex + 1} / ${talks.length}` : ''
   }
 
@@ -347,6 +358,8 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
     const height = projector.clientHeight
     if (width <= 0 || height <= 0) return
 
+    // YouTube players letterbox internally. Oversize the 16:9 iframe and clip
+    // it to the cloth so the moving image actually fills the rolled-down screen.
     const sourceAspect = 16 / 9
     const screenAspect = width / height
     if (screenAspect < sourceAspect) {
@@ -359,17 +372,19 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
   }
 
   const loadTalk = (index: number) => {
-    const talk = talks[index]
-    if (!talk) {
+    if (talks.length === 0) {
       iframe.src = 'about:blank'
       projectionLink.removeAttribute('href')
       updateReelControls()
       return
     }
+
+    const normalizedIndex = ((index % talks.length) + talks.length) % talks.length
+    const talk = talks[normalizedIndex]
     const source = parseYouTubeSource(talk.videoUrl)
     if (!source) return
 
-    selectedIndex = ((index % talks.length) + talks.length) % talks.length
+    selectedIndex = normalizedIndex
     const params = new URLSearchParams({
       autoplay: '1',
       mute: '1',
@@ -528,12 +543,12 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
     if (open) return
     open = true
     selectedIndex = 0
-    setImmersiveScreenStyling()
-    loadTalk(0)
-    void whirr.start()
     root.dataset.projectorView = 'deploying'
+    setImmersiveScreenStyling()
     projector.setAttribute('aria-hidden', 'true')
     zoomOutButton.hidden = false
+    loadTalk(0)
+    void whirr.start()
     updateReelControls()
     if (live) live.textContent = 'Projector running. Moving closer to the screen.'
     beginOpen()
