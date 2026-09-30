@@ -423,6 +423,10 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
   const style = document.createElement('style')
   style.dataset.operationRoomProjectorImmersion = 'true'
   style.textContent = `
+    .operation-room__projector-library {
+      transition: none !important;
+      will-change: left, top, width, height;
+    }
     .operation-room__projector-player {
       display: block !important;
       width: 100% !important;
@@ -489,7 +493,6 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
       inset: 0;
       overflow: hidden;
       background: transparent;
-      animation: operation-room-leader-jitter 2.7s steps(1, end) infinite;
     }
     .operation-room__leader-cross {
       position: absolute;
@@ -605,15 +608,8 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
       from { transform: translate(-50%, -50%) rotate(0deg); }
       to { transform: translate(-50%, -50%) rotate(360deg); }
     }
-    @keyframes operation-room-leader-jitter {
-      0%, 46%, 54%, 100% { transform: translate(0, 0); }
-      47% { transform: translate(.5px, -.35px); }
-      49% { transform: translate(-.45px, .25px); }
-      52% { transform: translate(.2px, .45px); }
-    }
     @media (prefers-reduced-motion: reduce) {
       .operation-room__projector-video,
-      .operation-room__leader,
       .operation-room__leader-sweep { animation: none !important; }
     }
   `
@@ -874,9 +870,6 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
       void whirr.beep()
     }, LEADER_STEP_MS * 3))
 
-    // The old-film splice cuts to a completely empty black frame shortly after
-    // the beep, between 2 and the internal 1 beat. The YouTube reel preloads
-    // underneath it so the black frame can cut straight to moving picture.
     leaderTimers.push(window.setTimeout(() => {
       if (!open || !leaderBlack) return
       leaderBlack.hidden = false
@@ -897,6 +890,7 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
   const setImmersiveScreenStyling = () => {
     canvas.style.transform = 'none'
     canvas.style.filter = 'none'
+    projector.style.transition = 'none'
     if (projectorSurface) {
       projectorSurface.style.background = 'transparent'
       projectorSurface.style.border = '0'
@@ -941,9 +935,11 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
       camera.up.lerpVectors(route.startUp, route.endUp, routeProgress).normalize()
       camera.lookAt(controls.target)
 
-      // The leader begins while the real camera is still moving, so keep the
-      // DOM projection pinned to the moving Three.js screen every frame.
-      if (!reverse && open && !countdown.hidden) alignLibraryToPhysicalScreen()
+      // Treat the HTML layer exactly like a projection plane: its viewport
+      // bounds are recomputed from the physical Three.js screen every frame,
+      // even before the leader becomes visible. That prevents both the first
+      // open jump and the lag/drift seen on later screenings.
+      if (!reverse && open) alignLibraryToPhysicalScreen()
 
       if (progress >= 1) {
         onComplete()
@@ -983,6 +979,7 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
     cameraOverride = true
     controls.enabled = false
     focusRoute = buildFocusRoute(camera, controls)
+    alignLibraryToPhysicalScreen()
     animateRoute(focusRoute, false, finishOpen)
   }
 
@@ -1000,9 +997,6 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
     if (live) live.textContent = 'Projector motor starting. Moving closer to the illuminated screen.'
     beginOpen()
 
-    // The physical cloth is essentially fully deployed after this interval,
-    // while the 2.2 s camera move is still in progress. Start the five-second
-    // leader there instead of waiting for the close-up to settle.
     feedTimer = window.setTimeout(runCountdownLeader, LEADER_START_DELAY_MS)
   }
 
@@ -1113,6 +1107,7 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
     if (THREE.WebGLRenderer.prototype.render === patchedRendererRender) THREE.WebGLRenderer.prototype.render = originalRendererRender
     canvas.style.transform = ''
     canvas.style.filter = ''
+    projector.style.transition = ''
     if (projectorSurface) {
       projectorSurface.style.background = ''
       projectorSurface.style.border = ''
