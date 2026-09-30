@@ -32,4 +32,41 @@ const {
   body { min-height: 100dvh; overflow: hidden; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
   .skip-link { position: fixed; z-index: 100; top: .75rem; left: .75rem; transform: translateY(-180%); padding: .65rem .8rem; color: #f6efcf; background: #101513; border: 1px solid #758f68; }
   .skip-link:focus { transform: translateY(0); }
+
+  /*
+   * The countdown is a projection, not viewport UI. Its parent is resized from
+   * the physical Three.js screen bounds every animation frame while the camera
+   * dollies. Make that projected rectangle the sizing context for every leader
+   * element so numbers, registration rings and line weights change apparent
+   * size exactly with the screen instead of remaining pinned to the viewer.
+   */
+  .operation-room__projector-countdown {
+    container-type: size !important;
+  }
+
+  .operation-room__leader-number {
+    font-size: 48cqh !important;
+  }
+
+  .operation-room__leader-ring--outer {
+    width: 82cqh !important;
+    border-width: .62cqh !important;
+  }
+
+  .operation-room__leader-ring--inner {
+    width: 72cqh !important;
+    border-width: .62cqh !important;
+  }
+
+  .operation-room__leader-cross--vertical {
+    width: .42cqh !important;
+  }
+
+  .operation-room__leader-cross--horizontal {
+    height: .42cqh !important;
+  }
+
+  .operation-room__leader-sweep::after {
+    height: .42cqh !important;
+  }
 </style>
