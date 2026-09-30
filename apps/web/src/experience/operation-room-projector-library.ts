@@ -541,21 +541,29 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
 
   const findProjectorReels = (scene: THREE.Object3D) => {
-    let projectorGroup: THREE.Group | null = null
-    scene.traverse((object) => {
-      if (projectorGroup || !(object instanceof THREE.Group)) return
+    const matches: THREE.Group[] = []
+    scene.traverse((object: THREE.Object3D) => {
+      if (!(object instanceof THREE.Group)) return
       if (
         Math.abs(object.position.x + 0.6) < 0.03 &&
         Math.abs(object.position.y - 1.88) < 0.03 &&
         Math.abs(object.position.z - 3.9) < 0.03 &&
         Math.abs(object.scale.x - 0.8) < 0.03
-      ) projectorGroup = object
+      ) matches.push(object)
     })
+
+    const projectorGroup = matches[0]
     if (!projectorGroup) return null
 
-    const candidates = projectorGroup.children.filter((child): child is THREE.Group => child instanceof THREE.Group)
-    const upper = candidates.find((child) => Math.abs(child.position.y - 1.29) < 0.08 && Math.abs(child.position.z - 0.40) < 0.08)
-    const lower = candidates.find((child) => Math.abs(child.position.y - 0.39) < 0.08 && Math.abs(child.position.z - 0.40) < 0.08)
+    const candidates: THREE.Group[] = projectorGroup.children.filter(
+      (child: THREE.Object3D): child is THREE.Group => child instanceof THREE.Group,
+    )
+    const upper = candidates.find(
+      (child: THREE.Group) => Math.abs(child.position.y - 1.29) < 0.08 && Math.abs(child.position.z - 0.40) < 0.08,
+    )
+    const lower = candidates.find(
+      (child: THREE.Group) => Math.abs(child.position.y - 0.39) < 0.08 && Math.abs(child.position.z - 0.40) < 0.08,
+    )
     if (!upper || !lower) return null
     return [upper, lower] as [THREE.Group, THREE.Group]
   }
@@ -592,7 +600,10 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
   THREE.WebGLRenderer.prototype.render = patchedRendererRender
 
   const clearLeaderTimers = () => {
-    while (leaderTimers.length) window.clearTimeout(leaderTimers.pop())
+    while (leaderTimers.length) {
+      const timer = leaderTimers.pop()
+      if (timer !== undefined) window.clearTimeout(timer)
+    }
   }
 
   const updateReelControls = () => {
