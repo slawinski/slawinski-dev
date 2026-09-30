@@ -60,37 +60,123 @@ const parseYouTubeSource = (value: string): YouTubeSource | null => {
   }
 }
 
-const formatDate = (value?: string) => {
-  if (!value) return ''
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return ''
-  return date.toLocaleDateString('en-GB', { year: 'numeric', month: 'short' }).toUpperCase()
-}
-
-const createFilmButton = (talk: TalkDTO, index: number, selectedIndex: number) => {
-  const button = document.createElement('button')
-  button.type = 'button'
-  button.className = 'operation-room__film-frame'
-  button.dataset.projectorFilm = String(index)
-  button.setAttribute('aria-label', `Load film ${index + 1}: ${talk.title}`)
-  button.setAttribute('aria-current', index === selectedIndex ? 'true' : 'false')
-
-  const sprocketsTop = document.createElement('span')
-  sprocketsTop.className = 'operation-room__film-sprockets operation-room__film-sprockets--top'
-  const number = document.createElement('span')
-  number.className = 'operation-room__film-number'
-  number.textContent = String(index + 1).padStart(2, '0')
-  const label = document.createElement('span')
-  label.className = 'operation-room__film-label'
-  label.textContent = talk.title
-  const sprocketsBottom = document.createElement('span')
-  sprocketsBottom.className = 'operation-room__film-sprockets operation-room__film-sprockets--bottom'
-
-  button.append(sprocketsTop, number, label, sprocketsBottom)
-  return button
-}
-
 const easeMotionControl = (value: number) => value * value * value * (value * (value * 6 - 15) + 10)
+
+const createProjectorWhirr = () => {
+  type AudioContextWindow = typeof window & { webkitAudioContext?: typeof AudioContext }
+  const AudioContextClass = window.AudioContext ?? (window as AudioContextWindow).webkitAudioContext
+  if (!AudioContextClass) {
+    return { start: async () => undefined, stop: () => undefined, dispose: () => undefined }
+  }
+
+  let context: AudioContext | null = null
+  let master: GainNode | null = null
+  let noiseSource: AudioBufferSourceNode | null = null
+  let humSource: OscillatorNode | null = null
+  let flutterSource: OscillatorNode | null = null
+
+  const stopSources = () => {
+    for (const source of [noiseSource, humSource, flutterSource]) {
+      if (!source) continue
+      try { source.stop() } catch { /* already stopped */ }
+    }
+    noiseSource = null
+    humSource = null
+    flutterSource = null
+  }
+
+  const ensureGraph = async () => {
+    if (!context) {
+      context = new AudioContextClass()
+      master = context.createGain()
+      master.gain.value = 0.0001
+      master.connect(context.destination)
+    }
+    if (context.state === 'suspended') await context.resume()
+  }
+
+  const start = async () => {
+    await ensureGraph()
+    if (!context || !master || noiseSource || humSource) return
+
+    const seconds = 2
+    const buffer = context.createBuffer(1, Math.floor(context.sampleRate * seconds), context.sampleRate)
+    const samples = buffer.getChannelData(0)
+    let previous = 0
+    for (let index = 0; index < samples.length; index += 1) {
+      const white = Math.random() * 2 - 1
+      previous = previous * 0.78 + white * 0.22
+      samples[index] = previous * 0.72
+    }
+
+    const noise = context.createBufferSource()
+    noise.buffer = buffer
+    noise.loop = true
+    const noiseFilter = context.createBiquadFilter()
+    noiseFilter.type = 'bandpass'
+    noiseFilter.frequency.value = 620
+    noiseFilter.Q.value = 0.62
+    const noiseGain = context.createGain()
+    noiseGain.gain.value = 0.022
+    noise.connect(noiseFilter)
+    noiseFilter.connect(noiseGain)
+    noiseGain.connect(master)
+
+    const hum = context.createOscillator()
+    hum.type = 'sawtooth'
+    hum.frequency.value = 54
+    const humFilter = context.createBiquadFilter()
+    humFilter.type = 'lowpass'
+    humFilter.frequency.value = 240
+    const humGain = context.createGain()
+    humGain.gain.value = 0.010
+    hum.connect(humFilter)
+    humFilter.connect(humGain)
+    humGain.connect(master)
+
+    // A very small amplitude wobble gives the motor a mechanical, imperfect
+    // cadence without turning the ambience into an obvious sound effect.
+    const flutter = context.createOscillator()
+    flutter.type = 'sine'
+    flutter.frequency.value = 13.5
+    const flutterGain = context.createGain()
+    flutterGain.gain.value = 0.0045
+    flutter.connect(flutterGain)
+    flutterGain.connect(noiseGain.gain)
+
+    noiseSource = noise
+    humSource = hum
+    flutterSource = flutter
+    const now = context.currentTime
+    master.gain.cancelScheduledValues(now)
+    master.gain.setValueAtTime(Math.max(master.gain.value, 0.0001), now)
+    master.gain.exponentialRampToValueAtTime(0.055, now + 0.45)
+    noise.start()
+    hum.start()
+    flutter.start()
+  }
+
+  const stop = () => {
+    if (!context || !master) {
+      stopSources()
+      return
+    }
+    const now = context.currentTime
+    master.gain.cancelScheduledValues(now)
+    master.gain.setValueAtTime(Math.max(master.gain.value, 0.0001), now)
+    master.gain.exponentialRampToValueAtTime(0.0001, now + 0.28)
+    window.setTimeout(stopSources, 320)
+  }
+
+  const dispose = () => {
+    stopSources()
+    if (context && context.state !== 'closed') void context.close()
+    context = null
+    master = null
+  }
+
+  return { start, stop, dispose }
+}
 
 export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
   const canvas = root.querySelector<HTMLCanvasElement>('[data-operation-room-canvas]')
@@ -99,19 +185,16 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
   const projectorSurface = root.querySelector<HTMLElement>('.operation-room__projector-surface')
   const titleCard = root.querySelector<HTMLElement>('[data-projector-title-card]')
   const player = root.querySelector<HTMLElement>('[data-projector-player]')
-  const viewFilmsButton = root.querySelector<HTMLButtonElement>('[data-projector-view-films]')
+  const playerHeader = root.querySelector<HTMLElement>('.operation-room__projector-header')
+  const videoShell = root.querySelector<HTMLElement>('.operation-room__projector-video-shell')
   const iframe = root.querySelector<HTMLIFrameElement>('[data-projector-iframe]')
-  const title = root.querySelector<HTMLElement>('[data-projector-title]')
-  const meta = root.querySelector<HTMLElement>('[data-projector-meta]')
-  const reelCounter = root.querySelector<HTMLElement>('[data-projector-reel-counter]')
   const filmstrip = root.querySelector<HTMLElement>('[data-projector-filmstrip]')
-  const emptyState = root.querySelector<HTMLElement>('[data-projector-empty]')
-  const availableCount = root.querySelector<HTMLElement>('[data-projector-count]')
   const zoomOutButton = root.querySelector<HTMLButtonElement>('[data-operation-room-zoom-out]')
   const resetButton = root.querySelector<HTMLButtonElement>('[data-operation-room-reset]')
+  const controlsBar = root.querySelector<HTMLElement>('.operation-room__controls')
   const talksNode = root.querySelector<HTMLScriptElement>('[data-operation-room-talks]')
 
-  if (!canvas || !projector || !titleCard || !player || !iframe || !title || !meta || !reelCounter || !filmstrip) {
+  if (!canvas || !projector || !player || !videoShell || !iframe || !zoomOutButton || !controlsBar) {
     return () => undefined
   }
 
@@ -121,8 +204,8 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
   } catch {
     talks = []
   }
-
   talks = talks.filter((talk) => Boolean(parseYouTubeSource(talk.videoUrl)))
+
   let selectedIndex = 0
   let open = false
   let transitioning = false
@@ -131,14 +214,113 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
   let roomControls: OrbitControls | null = null
   let focusRoute: FocusRoute | null = null
 
-  if (availableCount) availableCount.textContent = String(talks.length)
-  if (emptyState) emptyState.hidden = talks.length > 0
-  if (viewFilmsButton) viewFilmsButton.hidden = talks.length === 0
+  const whirr = createProjectorWhirr()
+
+  // Replace the previous archive UI with three physical-camera-style controls.
+  const reelIndicator = document.createElement('span')
+  reelIndicator.className = 'operation-room__control operation-room__reel-indicator'
+  reelIndicator.hidden = true
+
+  const previousButton = document.createElement('button')
+  previousButton.type = 'button'
+  previousButton.className = 'operation-room__control operation-room__reel-control'
+  previousButton.textContent = 'Previous reel'
+  previousButton.hidden = true
+
+  const nextButton = document.createElement('button')
+  nextButton.type = 'button'
+  nextButton.className = 'operation-room__control operation-room__reel-control'
+  nextButton.textContent = 'Next reel'
+  nextButton.hidden = true
+
+  controlsBar.insertBefore(reelIndicator, zoomOutButton)
+  controlsBar.insertBefore(previousButton, zoomOutButton)
+  controlsBar.insertBefore(nextButton, zoomOutButton)
+
+  const projectionLink = document.createElement('a')
+  projectionLink.className = 'operation-room__projection-link'
+  projectionLink.target = '_blank'
+  projectionLink.rel = 'noreferrer'
+  projectionLink.setAttribute('aria-label', 'Open projected talk on YouTube')
+  videoShell.appendChild(projectionLink)
+
+  // Keep the DOM player strictly as projected imagery. No archive title,
+  // metadata, filmstrip or embedded YouTube controls are visible in the room.
+  if (titleCard) titleCard.hidden = true
+  if (playerHeader) playerHeader.hidden = true
+  if (filmstrip) filmstrip.hidden = true
+  player.hidden = false
+  projector.dataset.mode = 'player'
+
+  const style = document.createElement('style')
+  style.dataset.operationRoomProjectorImmersion = 'true'
+  style.textContent = `
+    .operation-room__projector-player {
+      display: block !important;
+      width: 100% !important;
+      height: 100% !important;
+      padding: 0 !important;
+    }
+    .operation-room__projector-video-shell {
+      position: relative !important;
+      width: 100% !important;
+      height: 100% !important;
+      min-height: 0 !important;
+      overflow: hidden !important;
+      border: 0 !important;
+      background: transparent !important;
+      box-shadow: none !important;
+    }
+    .operation-room__projector-video-shell::after {
+      z-index: 4;
+      border: 0 !important;
+      box-shadow: inset 0 0 5rem rgb(20 18 13 / .42) !important;
+    }
+    .operation-room__projector-video {
+      position: absolute !important;
+      left: 50% !important;
+      top: 50% !important;
+      border: 0 !important;
+      pointer-events: none !important;
+      filter: grayscale(1) sepia(.08) contrast(1.16) brightness(.88) !important;
+      opacity: .82 !important;
+      mix-blend-mode: multiply;
+      transform: translate(-50%, -50%);
+      animation: operation-room-film-exposure 430ms steps(2, end) infinite;
+    }
+    .operation-room__projection-link {
+      position: absolute;
+      z-index: 8;
+      inset: 0;
+      cursor: pointer;
+    }
+    .operation-room__projector-surface::before {
+      opacity: .20 !important;
+      animation-duration: 155ms !important;
+    }
+    .operation-room__reel-indicator {
+      display: inline-flex;
+      align-items: center;
+      cursor: default;
+      pointer-events: none;
+    }
+    .operation-room__reel-indicator[hidden],
+    .operation-room__reel-control[hidden] { display: none !important; }
+    @keyframes operation-room-film-exposure {
+      0% { opacity: .80; filter: grayscale(1) sepia(.08) contrast(1.15) brightness(.86); }
+      25% { opacity: .84; filter: grayscale(1) sepia(.07) contrast(1.17) brightness(.91); }
+      50% { opacity: .81; filter: grayscale(1) sepia(.09) contrast(1.16) brightness(.87); }
+      75% { opacity: .83; filter: grayscale(1) sepia(.08) contrast(1.18) brightness(.90); }
+      100% { opacity: .82; filter: grayscale(1) sepia(.08) contrast(1.16) brightness(.88); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .operation-room__projector-video { animation: none !important; }
+    }
+  `
+  root.appendChild(style)
 
   // The room owns its OrbitControls instance privately. Capture only the one
-  // attached to this canvas and suspend its normal update while the projector
-  // performs a real Three.js camera dolly. This keeps the projector extension
-  // isolated without duplicating the room renderer or faking zoom with CSS.
+  // attached to this canvas and suspend its update during the projector dolly.
   const originalControlsUpdate = OrbitControls.prototype.update
   const patchedControlsUpdate = function (
     this: OrbitControls,
@@ -152,45 +334,62 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
   }
   OrbitControls.prototype.update = patchedControlsUpdate
 
-  const setMode = (mode: 'title' | 'player') => {
-    titleCard.hidden = mode !== 'title'
-    player.hidden = mode !== 'player'
-    projector.dataset.mode = mode
+  const updateReelControls = () => {
+    const hasReels = talks.length > 0
+    reelIndicator.hidden = !open || !hasReels
+    previousButton.hidden = !open || !hasReels
+    nextButton.hidden = !open || !hasReels
+    reelIndicator.textContent = hasReels ? `Reel ${selectedIndex + 1} / ${talks.length}` : ''
   }
 
-  const renderFilmstrip = () => {
-    filmstrip.replaceChildren(...talks.map((talk, index) => createFilmButton(talk, index, selectedIndex)))
+  const fitIframeToProjection = () => {
+    const width = projector.clientWidth
+    const height = projector.clientHeight
+    if (width <= 0 || height <= 0) return
+
+    const sourceAspect = 16 / 9
+    const screenAspect = width / height
+    if (screenAspect < sourceAspect) {
+      iframe.style.height = '100%'
+      iframe.style.width = `${(sourceAspect / screenAspect) * 100}%`
+    } else {
+      iframe.style.width = '100%'
+      iframe.style.height = `${(screenAspect / sourceAspect) * 100}%`
+    }
   }
 
-  const loadTalk = (index: number, autoplay = false) => {
+  const loadTalk = (index: number) => {
     const talk = talks[index]
-    if (!talk) return
+    if (!talk) {
+      iframe.src = 'about:blank'
+      projectionLink.removeAttribute('href')
+      updateReelControls()
+      return
+    }
     const source = parseYouTubeSource(talk.videoUrl)
     if (!source) return
 
-    selectedIndex = index
+    selectedIndex = ((index % talks.length) + talks.length) % talks.length
     const params = new URLSearchParams({
-      rel: '0',
+      autoplay: '1',
+      mute: '1',
+      controls: '0',
       playsinline: '1',
-      controls: '1',
-      autoplay: autoplay ? '1' : '0',
+      rel: '0',
+      fs: '0',
+      disablekb: '1',
+      modestbranding: '1',
+      iv_load_policy: '3',
     })
     if (source.start > 0) params.set('start', String(source.start))
 
     iframe.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(source.id)}?${params.toString()}`
-    iframe.title = talk.title
-    title.textContent = talk.title
-    const date = formatDate(talk.date)
-    meta.textContent = [talk.event, date].filter(Boolean).join(' / ')
-    reelCounter.textContent = `REEL ${String(index + 1).padStart(2, '0')} OF ${String(talks.length).padStart(2, '0')}`
-    renderFilmstrip()
-    setMode('player')
-  }
-
-  const showTitleCard = () => {
-    iframe.src = 'about:blank'
-    selectedIndex = 0
-    setMode('title')
+    iframe.title = `Projected film: ${talk.title}`
+    projectionLink.href = talk.videoUrl
+    projectionLink.setAttribute('aria-label', `Open ${talk.title} on YouTube`)
+    updateReelControls()
+    window.requestAnimationFrame(fitIframeToProjection)
+    if (live) live.textContent = `Projecting reel ${selectedIndex + 1} of ${talks.length}: ${talk.title}`
   }
 
   const getCamera = () => {
@@ -225,28 +424,24 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
     const top = Math.min(topLeft.y, bottomRight.y)
     const width = Math.abs(bottomRight.x - topLeft.x)
     const height = Math.abs(bottomRight.y - topLeft.y)
-    // Keep content just inside the physical cloth edges so the roller and
-    // bottom bar remain visible and continue to sell the projection illusion.
-    const insetX = width * 0.025
-    const insetY = height * 0.025
+    const insetX = width * 0.018
+    const insetY = height * 0.018
 
     projector.style.left = `${left + insetX}px`
     projector.style.top = `${top + insetY}px`
     projector.style.width = `${Math.max(1, width - insetX * 2)}px`
     projector.style.height = `${Math.max(1, height - insetY * 2)}px`
     projector.style.transform = 'none'
+    fitIframeToProjection()
   }
 
   const setImmersiveScreenStyling = () => {
-    // The Three.js cloth remains the actual visual screen. The DOM layer is
-    // only the projected information/video, so remove the old floating-panel
-    // treatment and let the room lighting and screen geometry show through.
     canvas.style.transform = 'none'
     canvas.style.filter = 'none'
     if (projectorSurface) {
-      projectorSurface.style.background = 'linear-gradient(100deg, rgb(234 229 203 / .86), rgb(211 207 182 / .82))'
+      projectorSurface.style.background = 'rgb(235 230 207 / .16)'
       projectorSurface.style.border = '0'
-      projectorSurface.style.boxShadow = 'inset 0 0 4rem rgb(36 32 20 / .20)'
+      projectorSurface.style.boxShadow = 'inset 0 0 5rem rgb(36 32 20 / .28)'
     }
   }
 
@@ -309,9 +504,8 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
     alignLibraryToPhysicalScreen()
     root.dataset.projectorView = 'open'
     projector.setAttribute('aria-hidden', 'false')
-    if (zoomOutButton) zoomOutButton.hidden = false
-    viewFilmsButton?.focus({ preventScroll: true })
-    if (live) live.textContent = `${talks.length} speaking films available on projector screen`
+    zoomOutButton.hidden = false
+    updateReelControls()
   }
 
   const beginOpen = () => {
@@ -333,12 +527,15 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
   const openProjector = () => {
     if (open) return
     open = true
-    showTitleCard()
+    selectedIndex = 0
     setImmersiveScreenStyling()
+    loadTalk(0)
+    void whirr.start()
     root.dataset.projectorView = 'deploying'
     projector.setAttribute('aria-hidden', 'true')
-    if (zoomOutButton) zoomOutButton.hidden = false
-    if (live) live.textContent = 'Moving closer to the projection screen'
+    zoomOutButton.hidden = false
+    updateReelControls()
+    if (live) live.textContent = 'Projector running. Moving closer to the screen.'
     beginOpen()
   }
 
@@ -347,9 +544,10 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
     cameraOverride = false
     if (roomControls) roomControls.enabled = true
     delete root.dataset.projectorView
-    showTitleCard()
+    iframe.src = 'about:blank'
     projector.setAttribute('aria-hidden', 'true')
-    if (zoomOutButton) zoomOutButton.hidden = true
+    zoomOutButton.hidden = true
+    updateReelControls()
     canvas.focus({ preventScroll: true })
   }
 
@@ -357,10 +555,11 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
     if (!open) return
     open = false
     transitioning = true
-    iframe.src = 'about:blank'
+    whirr.stop()
     projector.setAttribute('aria-hidden', 'true')
     root.dataset.projectorView = 'closing'
-    if (zoomOutButton) zoomOutButton.hidden = true
+    zoomOutButton.hidden = true
+    updateReelControls()
 
     const camera = getCamera()
     const controls = roomControls
@@ -371,10 +570,8 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
       return
     }
 
-    // Reset the room synchronously to switch the actual Three.js projector and
-    // roll-down screen off, then restore the focused camera before the next
-    // render frame. The user sees one continuous reverse dolly while the cloth
-    // retracts and reels wind down in the scene.
+    // Reset the physical projector synchronously, then keep the focused camera
+    // pose and replay the exact camera route backwards while the cloth retracts.
     const focusedPosition = camera.position.clone()
     const focusedTarget = controls.target.clone()
     const focusedUp = camera.up.clone()
@@ -389,29 +586,28 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
     animateRoute(route, true, finishClose)
   }
 
+  const changeReel = (direction: 1 | -1) => {
+    if (!open || talks.length === 0) return
+    loadTalk(selectedIndex + direction)
+  }
+
   const onCanvasPointerUp = (event: PointerEvent) => {
     if (open || event.button !== 0) return
-    // operation-room.ts updates this live label from the exact Three.js
-    // hover target. Reuse it here so this extension reacts only to the physical
-    // projector, never the adjacent map or ABOUT door.
     if (live?.textContent?.trim() !== 'SPEAKING selected') return
     openProjector()
   }
 
-  const onViewFilms = () => loadTalk(0, false)
-  const onFilmstripClick = (event: MouseEvent) => {
-    const button = (event.target as Element | null)?.closest<HTMLButtonElement>('[data-projector-film]')
-    if (!button) return
-    const index = Number(button.dataset.projectorFilm)
-    if (Number.isInteger(index)) loadTalk(index, true)
-  }
+  const onPrevious = () => changeReel(-1)
+  const onNext = () => changeReel(1)
   const onReturn = () => {
     if (open) closeProjector()
   }
   const onKeyDown = (event: KeyboardEvent) => {
-    if (event.key !== 'Escape' || !open) return
-    event.preventDefault()
-    closeProjector()
+    if (!open) return
+    if (event.key === 'Escape') {
+      event.preventDefault()
+      closeProjector()
+    }
   }
   const onResize = () => {
     if (!open || transitioning) return
@@ -425,16 +621,16 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
     alignLibraryToPhysicalScreen()
   }
 
-  showTitleCard()
   canvas.addEventListener('pointerup', onCanvasPointerUp)
-  viewFilmsButton?.addEventListener('click', onViewFilms)
-  filmstrip.addEventListener('click', onFilmstripClick)
-  zoomOutButton?.addEventListener('click', onReturn)
+  previousButton.addEventListener('click', onPrevious)
+  nextButton.addEventListener('click', onNext)
+  zoomOutButton.addEventListener('click', onReturn)
   window.addEventListener('keydown', onKeyDown)
   window.addEventListener('resize', onResize)
 
   return () => {
     window.cancelAnimationFrame(cameraAnimationFrame)
+    whirr.dispose()
     iframe.src = 'about:blank'
     cameraOverride = false
     if (roomControls) roomControls.enabled = true
@@ -446,10 +642,13 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
       projectorSurface.style.border = ''
       projectorSurface.style.boxShadow = ''
     }
+    projectionLink.remove()
+    reelIndicator.remove()
+    previousButton.remove()
+    nextButton.remove()
+    style.remove()
     canvas.removeEventListener('pointerup', onCanvasPointerUp)
-    viewFilmsButton?.removeEventListener('click', onViewFilms)
-    filmstrip.removeEventListener('click', onFilmstripClick)
-    zoomOutButton?.removeEventListener('click', onReturn)
+    zoomOutButton.removeEventListener('click', onReturn)
     window.removeEventListener('keydown', onKeyDown)
     window.removeEventListener('resize', onResize)
     delete root.dataset.projectorView
