@@ -28,6 +28,7 @@ const SCREEN = {
 const SCREEN_TARGET = new THREE.Vector3(SCREEN.x, SCREEN.topY - SCREEN.height / 2, SCREEN.z)
 const FEED_DELAY_MS = 650
 const LEADER_STEP_MS = 700
+const LEADER_BLACKOUT_DELAY_MS = LEADER_STEP_MS + Math.round(LEADER_STEP_MS * 0.55)
 const FEED_VERTICAL_POSITION = 0.54
 
 const parseTime = (value: string | null) => {
@@ -369,8 +370,6 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
   projector.dataset.mode = 'player'
   projector.dataset.feedReady = 'false'
 
-  // Use the exact same class string as the camera utility buttons rather than
-  // maintaining a parallel projector-control visual treatment.
   const controlClassName = resetButton?.className || 'operation-room__control'
 
   const reelIndicator = document.createElement('span')
@@ -398,7 +397,22 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
   countdown.className = 'operation-room__projector-countdown'
   countdown.hidden = true
   countdown.setAttribute('aria-hidden', 'true')
+  countdown.innerHTML = `
+    <div class="operation-room__leader" data-leader-frame>
+      <div class="operation-room__leader-cross operation-room__leader-cross--vertical"></div>
+      <div class="operation-room__leader-cross operation-room__leader-cross--horizontal"></div>
+      <div class="operation-room__leader-ring operation-room__leader-ring--outer"></div>
+      <div class="operation-room__leader-ring operation-room__leader-ring--inner"></div>
+      <div class="operation-room__leader-sweep"></div>
+      <div class="operation-room__leader-number" data-leader-number>3</div>
+      <div class="operation-room__leader-grain"></div>
+    </div>
+    <div class="operation-room__leader-black" data-leader-black hidden></div>
+  `
   videoShell.appendChild(countdown)
+
+  const leaderNumber = countdown.querySelector<HTMLElement>('[data-leader-number]')
+  const leaderBlack = countdown.querySelector<HTMLElement>('[data-leader-black]')
 
   const projectionLink = document.createElement('a')
   projectionLink.className = 'operation-room__projection-link'
@@ -465,20 +479,118 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
       z-index: 7;
       left: 0;
       width: 100%;
-      display: grid;
-      place-items: center;
-      color: rgb(29 29 26 / .72);
-      font-family: Georgia, 'Times New Roman', serif;
-      font-size: clamp(6rem, 19vw, 13rem);
-      font-weight: 700;
-      line-height: 1;
-      user-select: none;
+      overflow: hidden;
       pointer-events: none;
-      mix-blend-mode: multiply;
-      filter: grayscale(1) contrast(1.08);
-      animation: operation-room-leader-flicker 180ms steps(2, end) infinite;
+      user-select: none;
+      background: transparent;
     }
     .operation-room__projector-countdown[hidden] { display: none !important; }
+    .operation-room__leader {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 48% 44%, rgb(232 232 228 / .28), transparent 54%),
+        linear-gradient(90deg, #b7b7b3 0%, #d0d0cd 47%, #b9b9b6 100%);
+      filter: grayscale(1) contrast(1.13) brightness(.96);
+      animation:
+        operation-room-leader-flicker 170ms steps(2, end) infinite,
+        operation-room-leader-jitter 2.7s steps(1, end) infinite;
+    }
+    .operation-room__leader-cross {
+      position: absolute;
+      z-index: 2;
+      background: rgb(19 19 18 / .72);
+    }
+    .operation-room__leader-cross--vertical {
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 2px;
+      transform: translateX(-50%);
+    }
+    .operation-room__leader-cross--horizontal {
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 2px;
+      transform: translateY(-50%);
+    }
+    .operation-room__leader-ring {
+      position: absolute;
+      z-index: 3;
+      left: 50%;
+      top: 50%;
+      aspect-ratio: 1;
+      border: 3px solid rgb(247 247 241 / .82);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      box-sizing: border-box;
+    }
+    .operation-room__leader-ring--outer { width: min(72%, 68vh); }
+    .operation-room__leader-ring--inner { width: min(63%, 59vh); }
+    .operation-room__leader-sweep {
+      position: absolute;
+      z-index: 1;
+      left: 50%;
+      top: 50%;
+      width: 150%;
+      aspect-ratio: 1;
+      background: conic-gradient(
+        from -90deg,
+        rgb(43 43 41 / .27) 0deg,
+        rgb(43 43 41 / .27) 44deg,
+        transparent 44deg,
+        transparent 360deg
+      );
+      transform: translate(-50%, -50%) rotate(0deg);
+      transform-origin: center;
+      animation: operation-room-leader-sweep ${LEADER_STEP_MS}ms linear infinite;
+    }
+    .operation-room__leader-sweep::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 54%;
+      height: 2px;
+      background: rgb(14 14 13 / .78);
+      transform-origin: 0 50%;
+      transform: rotate(-45deg);
+    }
+    .operation-room__leader-number {
+      position: absolute;
+      z-index: 5;
+      left: 50%;
+      top: 50%;
+      color: rgb(7 7 7 / .94);
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: clamp(6rem, 22vw, 14rem);
+      font-weight: 500;
+      line-height: .8;
+      transform: translate(-50%, -50%);
+      text-rendering: geometricPrecision;
+    }
+    .operation-room__leader-grain {
+      position: absolute;
+      z-index: 6;
+      inset: -5%;
+      background:
+        repeating-linear-gradient(0deg, rgb(0 0 0 / .035) 0 1px, transparent 1px 3px),
+        repeating-linear-gradient(90deg, rgb(255 255 255 / .025) 0 1px, transparent 1px 5px);
+      mix-blend-mode: multiply;
+      opacity: .72;
+      animation: operation-room-leader-grain 240ms steps(2, end) infinite;
+    }
+    .operation-room__leader-black {
+      position: absolute;
+      z-index: 10;
+      inset: 0;
+      background: #030303;
+      opacity: .96;
+      animation: operation-room-black-frame 120ms steps(2, end) infinite;
+    }
+    .operation-room__leader-black[hidden] { display: none !important; }
     .operation-room__projection-link {
       position: absolute;
       z-index: 8;
@@ -507,13 +619,34 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
       87% { transform: translate(calc(-50% - .5px), calc(-50% + .4px)); }
       89% { transform: translate(-50%, -50%); }
     }
+    @keyframes operation-room-leader-sweep {
+      from { transform: translate(-50%, -50%) rotate(0deg); }
+      to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
     @keyframes operation-room-leader-flicker {
-      0%, 100% { opacity: .72; transform: translateY(0); }
-      50% { opacity: .62; transform: translateY(.4px); }
+      0%, 100% { opacity: .92; filter: grayscale(1) contrast(1.10) brightness(.95); }
+      50% { opacity: .84; filter: grayscale(1) contrast(1.16) brightness(1.01); }
+    }
+    @keyframes operation-room-leader-jitter {
+      0%, 46%, 54%, 100% { transform: translate(0, 0); }
+      47% { transform: translate(.5px, -.35px); }
+      49% { transform: translate(-.45px, .25px); }
+      52% { transform: translate(.2px, .45px); }
+    }
+    @keyframes operation-room-leader-grain {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(-1px, 1px); }
+    }
+    @keyframes operation-room-black-frame {
+      0%, 100% { opacity: .96; }
+      50% { opacity: .92; }
     }
     @media (prefers-reduced-motion: reduce) {
       .operation-room__projector-video,
-      .operation-room__projector-countdown { animation: none !important; }
+      .operation-room__leader,
+      .operation-room__leader-sweep,
+      .operation-room__leader-grain,
+      .operation-room__leader-black { animation: none !important; }
     }
   `
   root.appendChild(style)
@@ -531,8 +664,6 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
   }
   OrbitControls.prototype.update = patchedControlsUpdate
 
-  // Capture the physical reel groups at render time so their visual RPM can
-  // spool naturally without exposing projector internals from operation-room.ts.
   const originalRendererRender = THREE.WebGLRenderer.prototype.render
   let projectorReels: [THREE.Group, THREE.Group] | null = null
   let reelAngles: [number, number] = [0, 0]
@@ -606,6 +737,11 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
     }
   }
 
+  const resetLeader = () => {
+    if (leaderNumber) leaderNumber.textContent = '3'
+    if (leaderBlack) leaderBlack.hidden = true
+  }
+
   const updateReelControls = () => {
     const hasReels = talks.length > 0
     const visible = open && root.dataset.projectorView === 'open' && projector.dataset.feedReady === 'true' && hasReels
@@ -669,8 +805,8 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
   const hideFeed = () => {
     window.clearTimeout(feedTimer)
     clearLeaderTimers()
+    resetLeader()
     countdown.hidden = true
-    countdown.textContent = ''
     projector.dataset.feedReady = 'false'
     projector.style.visibility = 'hidden'
     projector.style.opacity = '0'
@@ -682,7 +818,7 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
   const revealFeed = () => {
     if (!open || root.dataset.projectorView !== 'open') return
     countdown.hidden = true
-    countdown.textContent = ''
+    resetLeader()
     loadTalk(selectedIndex)
     projector.style.visibility = 'visible'
     projector.style.pointerEvents = 'auto'
@@ -698,6 +834,7 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
   const runCountdownLeader = () => {
     if (!open || root.dataset.projectorView !== 'open') return
     clearLeaderTimers()
+    resetLeader()
     projector.style.visibility = 'visible'
     projector.style.opacity = '1'
     projector.style.pointerEvents = 'none'
@@ -705,18 +842,25 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
     projector.dataset.feedReady = 'false'
     iframe.src = 'about:blank'
     countdown.hidden = false
-    countdown.textContent = '3'
     fitIframeToProjection()
 
     leaderTimers.push(window.setTimeout(() => {
       if (!open) return
-      countdown.textContent = '2'
+      if (leaderNumber) leaderNumber.textContent = '2'
       void whirr.beep()
     }, LEADER_STEP_MS))
 
+    // Mimic the abrupt black splice visible on old countdown leaders. It cuts
+    // in after the beep, between 2 and the final internal 1 beat, and remains
+    // black until the leader duration is complete and the actual reel starts.
+    leaderTimers.push(window.setTimeout(() => {
+      if (!open || !leaderBlack) return
+      leaderBlack.hidden = false
+    }, LEADER_BLACKOUT_DELAY_MS))
+
     leaderTimers.push(window.setTimeout(() => {
       if (!open) return
-      countdown.textContent = '1'
+      if (leaderNumber) leaderNumber.textContent = '1'
     }, LEADER_STEP_MS * 2))
 
     leaderTimers.push(window.setTimeout(() => {
@@ -837,8 +981,6 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
     zoomOutButton.hidden = false
     updateReelControls()
 
-    // Let the audience see only the illuminated cloth first, then run a plain
-    // 3-2-1 leader before threading the actual YouTube picture into the beam.
     feedTimer = window.setTimeout(runCountdownLeader, FEED_DELAY_MS)
   }
 
