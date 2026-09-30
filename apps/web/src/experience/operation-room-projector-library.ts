@@ -26,7 +26,8 @@ const SCREEN = {
 } as const
 
 const SCREEN_TARGET = new THREE.Vector3(SCREEN.x, SCREEN.topY - SCREEN.height / 2, SCREEN.z)
-const FEED_DELAY_MS = 900
+const FEED_DELAY_MS = 650
+const LEADER_STEP_MS = 700
 const FEED_VERTICAL_POSITION = 0.54
 
 const parseTime = (value: string | null) => {
@@ -68,7 +69,12 @@ const createProjectorWhirr = () => {
   type AudioContextWindow = typeof window & { webkitAudioContext?: typeof AudioContext }
   const AudioContextClass = window.AudioContext ?? (window as AudioContextWindow).webkitAudioContext
   if (!AudioContextClass) {
-    return { start: async () => undefined, stop: () => undefined, dispose: () => undefined }
+    return {
+      start: async () => undefined,
+      stop: () => undefined,
+      beep: async () => undefined,
+      dispose: () => undefined,
+    }
   }
 
   let context: AudioContext | null = null
@@ -128,7 +134,7 @@ const createProjectorWhirr = () => {
 
     master.gain.cancelScheduledValues(now)
     master.gain.setValueAtTime(Math.max(master.gain.value, 0.0001), now)
-    master.gain.exponentialRampToValueAtTime(0.16, end)
+    master.gain.exponentialRampToValueAtTime(0.075, end)
 
     motorSource.frequency.cancelScheduledValues(now)
     motorSource.frequency.setValueAtTime(Math.max(motorSource.frequency.value, 24), now)
@@ -147,20 +153,20 @@ const createProjectorWhirr = () => {
     noiseBand.frequency.exponentialRampToValueAtTime(760, end)
 
     noiseGain.gain.cancelScheduledValues(now)
-    noiseGain.gain.setValueAtTime(Math.max(noiseGain.gain.value, 0.012), now)
-    noiseGain.gain.exponentialRampToValueAtTime(0.12, end)
+    noiseGain.gain.setValueAtTime(Math.max(noiseGain.gain.value, 0.010), now)
+    noiseGain.gain.exponentialRampToValueAtTime(0.10, end)
 
     motorGain.gain.cancelScheduledValues(now)
-    motorGain.gain.setValueAtTime(Math.max(motorGain.gain.value, 0.010), now)
-    motorGain.gain.exponentialRampToValueAtTime(0.042, end)
+    motorGain.gain.setValueAtTime(Math.max(motorGain.gain.value, 0.008), now)
+    motorGain.gain.exponentialRampToValueAtTime(0.035, end)
 
     gearGain.gain.cancelScheduledValues(now)
-    gearGain.gain.setValueAtTime(Math.max(gearGain.gain.value, 0.004), now)
-    gearGain.gain.exponentialRampToValueAtTime(0.018, end)
+    gearGain.gain.setValueAtTime(Math.max(gearGain.gain.value, 0.003), now)
+    gearGain.gain.exponentialRampToValueAtTime(0.014, end)
 
     flutterGain.gain.cancelScheduledValues(now)
-    flutterGain.gain.setValueAtTime(Math.max(flutterGain.gain.value, 0.003), now)
-    flutterGain.gain.exponentialRampToValueAtTime(0.018, end)
+    flutterGain.gain.setValueAtTime(Math.max(flutterGain.gain.value, 0.002), now)
+    flutterGain.gain.exponentialRampToValueAtTime(0.014, end)
   }
 
   const start = async () => {
@@ -189,7 +195,7 @@ const createProjectorWhirr = () => {
     band.frequency.value = 300
     band.Q.value = 0.48
     const noiseLevel = context.createGain()
-    noiseLevel.gain.value = 0.012
+    noiseLevel.gain.value = 0.010
     noise.connect(band)
     band.connect(noiseLevel)
     noiseLevel.connect(master)
@@ -201,7 +207,7 @@ const createProjectorWhirr = () => {
     motorFilter.type = 'lowpass'
     motorFilter.frequency.value = 260
     const motorLevel = context.createGain()
-    motorLevel.gain.value = 0.010
+    motorLevel.gain.value = 0.008
     motor.connect(motorFilter)
     motorFilter.connect(motorLevel)
     motorLevel.connect(master)
@@ -210,7 +216,7 @@ const createProjectorWhirr = () => {
     gear.type = 'triangle'
     gear.frequency.value = 48
     const gearLevel = context.createGain()
-    gearLevel.gain.value = 0.004
+    gearLevel.gain.value = 0.003
     gear.connect(gearLevel)
     gearLevel.connect(master)
 
@@ -218,7 +224,7 @@ const createProjectorWhirr = () => {
     flutter.type = 'sine'
     flutter.frequency.value = 4.8
     const flutterLevel = context.createGain()
-    flutterLevel.gain.value = 0.003
+    flutterLevel.gain.value = 0.002
     flutter.connect(flutterLevel)
     flutterLevel.connect(noiseLevel.gain)
 
@@ -237,6 +243,24 @@ const createProjectorWhirr = () => {
     gear.start()
     flutter.start()
     rampUp()
+  }
+
+  const beep = async () => {
+    await ensureGraph()
+    if (!context) return
+
+    const now = context.currentTime
+    const oscillator = context.createOscillator()
+    const gain = context.createGain()
+    oscillator.type = 'sine'
+    oscillator.frequency.setValueAtTime(880, now)
+    gain.gain.setValueAtTime(0.0001, now)
+    gain.gain.exponentialRampToValueAtTime(0.035, now + 0.012)
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12)
+    oscillator.connect(gain)
+    gain.connect(context.destination)
+    oscillator.start(now)
+    oscillator.stop(now + 0.13)
   }
 
   const stop = () => {
@@ -270,19 +294,19 @@ const createProjectorWhirr = () => {
 
     noiseGain.gain.cancelScheduledValues(now)
     noiseGain.gain.setValueAtTime(Math.max(noiseGain.gain.value, 0.0001), now)
-    noiseGain.gain.exponentialRampToValueAtTime(0.002, end)
+    noiseGain.gain.exponentialRampToValueAtTime(0.0015, end)
 
     motorGain.gain.cancelScheduledValues(now)
     motorGain.gain.setValueAtTime(Math.max(motorGain.gain.value, 0.0001), now)
-    motorGain.gain.exponentialRampToValueAtTime(0.001, end)
+    motorGain.gain.exponentialRampToValueAtTime(0.0008, end)
 
     gearGain.gain.cancelScheduledValues(now)
     gearGain.gain.setValueAtTime(Math.max(gearGain.gain.value, 0.0001), now)
-    gearGain.gain.exponentialRampToValueAtTime(0.0004, end)
+    gearGain.gain.exponentialRampToValueAtTime(0.0003, end)
 
     flutterGain.gain.cancelScheduledValues(now)
     flutterGain.gain.setValueAtTime(Math.max(flutterGain.gain.value, 0.0001), now)
-    flutterGain.gain.exponentialRampToValueAtTime(0.0003, end)
+    flutterGain.gain.exponentialRampToValueAtTime(0.0002, end)
 
     window.clearTimeout(stopTimer)
     stopTimer = window.setTimeout(stopSources, 1220)
@@ -295,7 +319,7 @@ const createProjectorWhirr = () => {
     master = null
   }
 
-  return { start, stop, dispose }
+  return { start, stop, beep, dispose }
 }
 
 export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
@@ -332,13 +356,12 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
   let cameraOverride = false
   let cameraAnimationFrame = 0
   let feedTimer = 0
+  const leaderTimers: number[] = []
   let roomControls: OrbitControls | null = null
   let focusRoute: FocusRoute | null = null
 
   const whirr = createProjectorWhirr()
 
-  // Remove the old archive/splash chrome entirely. There should never be a
-  // "TECHNICAL BRIEFING" caption or film-library UI in the projected image.
   titleCard?.remove()
   playerHeader?.remove()
   filmstrip?.remove()
@@ -346,25 +369,36 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
   projector.dataset.mode = 'player'
   projector.dataset.feedReady = 'false'
 
+  // Use the exact same class string as the camera utility buttons rather than
+  // maintaining a parallel projector-control visual treatment.
+  const controlClassName = resetButton?.className || 'operation-room__control'
+
   const reelIndicator = document.createElement('span')
-  reelIndicator.className = 'operation-room__control operation-room__reel-indicator'
+  reelIndicator.className = controlClassName
   reelIndicator.hidden = true
+  reelIndicator.setAttribute('role', 'status')
 
   const previousButton = document.createElement('button')
   previousButton.type = 'button'
-  previousButton.className = 'operation-room__control operation-room__reel-control'
+  previousButton.className = controlClassName
   previousButton.textContent = 'Previous reel'
   previousButton.hidden = true
 
   const nextButton = document.createElement('button')
   nextButton.type = 'button'
-  nextButton.className = 'operation-room__control operation-room__reel-control'
+  nextButton.className = controlClassName
   nextButton.textContent = 'Next reel'
   nextButton.hidden = true
 
   controlsBar.insertBefore(reelIndicator, zoomOutButton)
   controlsBar.insertBefore(previousButton, zoomOutButton)
   controlsBar.insertBefore(nextButton, zoomOutButton)
+
+  const countdown = document.createElement('div')
+  countdown.className = 'operation-room__projector-countdown'
+  countdown.hidden = true
+  countdown.setAttribute('aria-hidden', 'true')
+  videoShell.appendChild(countdown)
 
   const projectionLink = document.createElement('a')
   projectionLink.className = 'operation-room__projection-link'
@@ -388,7 +422,8 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
       box-shadow: none !important;
     }
     .operation-room__projector-surface::before,
-    .operation-room__projector-surface::after {
+    .operation-room__projector-surface::after,
+    .operation-room__projector-video-shell::after {
       content: none !important;
       display: none !important;
       background: none !important;
@@ -407,14 +442,10 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
       background: transparent !important;
       box-shadow: none !important;
     }
-    .operation-room__projector-video-shell::after {
-      content: none !important;
-      display: none !important;
-    }
     .operation-room__projector-video {
       position: absolute !important;
       left: 50% !important;
-      top: 54% !important;
+      top: ${FEED_VERTICAL_POSITION * 100}% !important;
       width: 100% !important;
       border: 0 !important;
       pointer-events: none !important;
@@ -429,6 +460,25 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
         operation-room-film-exposure 430ms steps(2, end) infinite,
         operation-room-film-gate 3.1s steps(1, end) infinite;
     }
+    .operation-room__projector-countdown {
+      position: absolute;
+      z-index: 7;
+      left: 0;
+      width: 100%;
+      display: grid;
+      place-items: center;
+      color: rgb(29 29 26 / .72);
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: clamp(6rem, 19vw, 13rem);
+      font-weight: 700;
+      line-height: 1;
+      user-select: none;
+      pointer-events: none;
+      mix-blend-mode: multiply;
+      filter: grayscale(1) contrast(1.08);
+      animation: operation-room-leader-flicker 180ms steps(2, end) infinite;
+    }
+    .operation-room__projector-countdown[hidden] { display: none !important; }
     .operation-room__projection-link {
       position: absolute;
       z-index: 8;
@@ -444,14 +494,6 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
       outline: 1px solid rgb(238 231 198 / .7);
       outline-offset: -5px;
     }
-    .operation-room__reel-indicator {
-      display: inline-flex;
-      align-items: center;
-      cursor: default;
-      pointer-events: none;
-    }
-    .operation-room__reel-indicator[hidden],
-    .operation-room__reel-control[hidden] { display: none !important; }
     @keyframes operation-room-film-exposure {
       0% { opacity: .73; filter: grayscale(1) contrast(1.02) brightness(1.00); }
       25% { opacity: .78; filter: grayscale(1) contrast(1.05) brightness(1.07); }
@@ -465,14 +507,17 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
       87% { transform: translate(calc(-50% - .5px), calc(-50% + .4px)); }
       89% { transform: translate(-50%, -50%); }
     }
+    @keyframes operation-room-leader-flicker {
+      0%, 100% { opacity: .72; transform: translateY(0); }
+      50% { opacity: .62; transform: translateY(.4px); }
+    }
     @media (prefers-reduced-motion: reduce) {
-      .operation-room__projector-video { animation: none !important; }
+      .operation-room__projector-video,
+      .operation-room__projector-countdown { animation: none !important; }
     }
   `
   root.appendChild(style)
 
-  // The room owns its OrbitControls instance privately. Capture only the one
-  // attached to this canvas and suspend its update during the projector dolly.
   const originalControlsUpdate = OrbitControls.prototype.update
   const patchedControlsUpdate = function (
     this: OrbitControls,
@@ -486,10 +531,8 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
   }
   OrbitControls.prototype.update = patchedControlsUpdate
 
-  // The room owns the reel meshes privately as well. Capture them from the
-  // projector group at render time and override only their final rendered
-  // angles. This lets the physical reels spool up/down instead of jumping
-  // immediately to full speed, without coupling the film UI to room internals.
+  // Capture the physical reel groups at render time so their visual RPM can
+  // spool naturally without exposing projector internals from operation-room.ts.
   const originalRendererRender = THREE.WebGLRenderer.prototype.render
   let projectorReels: [THREE.Group, THREE.Group] | null = null
   let reelAngles: [number, number] = [0, 0]
@@ -548,6 +591,10 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
   }
   THREE.WebGLRenderer.prototype.render = patchedRendererRender
 
+  const clearLeaderTimers = () => {
+    while (leaderTimers.length) window.clearTimeout(leaderTimers.pop())
+  }
+
   const updateReelControls = () => {
     const hasReels = talks.length > 0
     const visible = open && root.dataset.projectorView === 'open' && projector.dataset.feedReady === 'true' && hasReels
@@ -562,14 +609,15 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
     const height = projector.clientHeight
     if (width <= 0 || height <= 0) return
 
-    // Preserve the entire 16:9 image and position it slightly below the cloth's
-    // geometric centre, leaving the projector-lit margins visible around it.
     const videoHeight = width / (16 / 9)
     const centreY = height * FEED_VERTICAL_POSITION
+    const top = centreY - videoHeight / 2
     iframe.style.width = '100%'
     iframe.style.height = `${videoHeight}px`
     projectionLink.style.height = `${videoHeight}px`
-    projectionLink.style.top = `${centreY - videoHeight / 2}px`
+    projectionLink.style.top = `${top}px`
+    countdown.style.height = `${videoHeight}px`
+    countdown.style.top = `${top}px`
   }
 
   const loadTalk = (index: number) => {
@@ -609,6 +657,9 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
 
   const hideFeed = () => {
     window.clearTimeout(feedTimer)
+    clearLeaderTimers()
+    countdown.hidden = true
+    countdown.textContent = ''
     projector.dataset.feedReady = 'false'
     projector.style.visibility = 'hidden'
     projector.style.opacity = '0'
@@ -619,6 +670,8 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
 
   const revealFeed = () => {
     if (!open || root.dataset.projectorView !== 'open') return
+    countdown.hidden = true
+    countdown.textContent = ''
     loadTalk(selectedIndex)
     projector.style.visibility = 'visible'
     projector.style.pointerEvents = 'auto'
@@ -629,6 +682,36 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
       projector.style.opacity = '1'
       updateReelControls()
     })
+  }
+
+  const runCountdownLeader = () => {
+    if (!open || root.dataset.projectorView !== 'open') return
+    clearLeaderTimers()
+    projector.style.visibility = 'visible'
+    projector.style.opacity = '1'
+    projector.style.pointerEvents = 'none'
+    projector.setAttribute('aria-hidden', 'false')
+    projector.dataset.feedReady = 'false'
+    iframe.src = 'about:blank'
+    countdown.hidden = false
+    countdown.textContent = '3'
+    fitIframeToProjection()
+
+    leaderTimers.push(window.setTimeout(() => {
+      if (!open) return
+      countdown.textContent = '2'
+      void whirr.beep()
+    }, LEADER_STEP_MS))
+
+    leaderTimers.push(window.setTimeout(() => {
+      if (!open) return
+      countdown.textContent = '1'
+    }, LEADER_STEP_MS * 2))
+
+    leaderTimers.push(window.setTimeout(() => {
+      if (!open) return
+      revealFeed()
+    }, LEADER_STEP_MS * 3))
   }
 
   const getCamera = () => {
@@ -743,7 +826,9 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
     zoomOutButton.hidden = false
     updateReelControls()
 
-    feedTimer = window.setTimeout(revealFeed, FEED_DELAY_MS)
+    // Let the audience see only the illuminated cloth first, then run a plain
+    // 3-2-1 leader before threading the actual YouTube picture into the beam.
+    feedTimer = window.setTimeout(runCountdownLeader, FEED_DELAY_MS)
   }
 
   const beginOpen = () => {
@@ -771,6 +856,7 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
     setImmersiveScreenStyling()
     root.dataset.projectorView = 'deploying'
     zoomOutButton.hidden = false
+    document.dispatchEvent(new Event('operation-room:projector-start'))
     void whirr.start()
     if (live) live.textContent = 'Projector motor starting. Moving closer to the illuminated screen.'
     beginOpen()
@@ -783,6 +869,7 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
     delete root.dataset.projectorView
     hideFeed()
     zoomOutButton.hidden = true
+    document.dispatchEvent(new Event('operation-room:projector-stop'))
     canvas.focus({ preventScroll: true })
   }
 
@@ -792,6 +879,7 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
     lastReelTime = performance.now()
     transitioning = true
     window.clearTimeout(feedTimer)
+    clearLeaderTimers()
     whirr.stop()
     hideFeed()
     root.dataset.projectorView = 'closing'
@@ -871,6 +959,8 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
   return () => {
     window.cancelAnimationFrame(cameraAnimationFrame)
     window.clearTimeout(feedTimer)
+    clearLeaderTimers()
+    if (open) document.dispatchEvent(new Event('operation-room:projector-stop'))
     whirr.dispose()
     iframe.src = 'about:blank'
     cameraOverride = false
@@ -885,6 +975,7 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
       projectorSurface.style.boxShadow = ''
     }
     projectionLink.remove()
+    countdown.remove()
     reelIndicator.remove()
     previousButton.remove()
     nextButton.remove()
