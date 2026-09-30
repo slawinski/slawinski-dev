@@ -134,7 +134,6 @@ const createProjectorWhirr = () => {
     humFilter.connect(humGain)
     humGain.connect(master)
 
-    // A tiny amplitude wobble keeps the motor from sounding digitally static.
     const flutter = context.createOscillator()
     flutter.type = 'sine'
     flutter.frequency.value = 13.5
@@ -146,6 +145,7 @@ const createProjectorWhirr = () => {
     noiseSource = noise
     humSource = hum
     flutterSource = flutter
+
     const now = context.currentTime
     master.gain.cancelScheduledValues(now)
     master.gain.setValueAtTime(Math.max(master.gain.value, 0.0001), now)
@@ -160,6 +160,7 @@ const createProjectorWhirr = () => {
       stopSources()
       return
     }
+
     const now = context.currentTime
     master.gain.cancelScheduledValues(now)
     master.gain.setValueAtTime(Math.max(master.gain.value, 0.0001), now)
@@ -242,8 +243,6 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
   projectionLink.setAttribute('aria-label', 'Open projected talk on YouTube')
   videoShell.appendChild(projectionLink)
 
-  // The screen is now only a projected film image: no splash card, metadata,
-  // embedded controls or filmstrip menu remain visible in the room.
   if (titleCard) titleCard.hidden = true
   if (playerHeader) playerHeader.hidden = true
   if (filmstrip) filmstrip.hidden = true
@@ -272,7 +271,7 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
     .operation-room__projector-video-shell::after {
       z-index: 4;
       border: 0 !important;
-      box-shadow: inset 0 0 5rem rgb(20 18 13 / .42) !important;
+      box-shadow: inset 0 0 5rem rgb(20 18 13 / .34) !important;
     }
     .operation-room__projector-video {
       position: absolute !important;
@@ -291,7 +290,9 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
     .operation-room__projection-link {
       position: absolute;
       z-index: 8;
-      inset: 0;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
       cursor: pointer;
     }
     .operation-room__projection-link:focus-visible {
@@ -299,8 +300,10 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
       outline-offset: -5px;
     }
     .operation-room__projector-surface::before {
-      opacity: .20 !important;
-      animation-duration: 155ms !important;
+      display: none !important;
+      content: none !important;
+      background: none !important;
+      animation: none !important;
     }
     .operation-room__reel-indicator {
       display: inline-flex;
@@ -329,8 +332,6 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
   `
   root.appendChild(style)
 
-  // The room owns its OrbitControls instance privately. Capture only the one
-  // attached to this canvas and suspend its update during the projector dolly.
   const originalControlsUpdate = OrbitControls.prototype.update
   const patchedControlsUpdate = function (
     this: OrbitControls,
@@ -355,20 +356,16 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
 
   const fitIframeToProjection = () => {
     const width = projector.clientWidth
-    const height = projector.clientHeight
-    if (width <= 0 || height <= 0) return
+    if (width <= 0) return
 
-    // YouTube players letterbox internally. Oversize the 16:9 iframe and clip
-    // it to the cloth so the moving image actually fills the rolled-down screen.
-    const sourceAspect = 16 / 9
-    const screenAspect = width / height
-    if (screenAspect < sourceAspect) {
-      iframe.style.height = '100%'
-      iframe.style.width = `${(sourceAspect / screenAspect) * 100}%`
-    } else {
-      iframe.style.width = '100%'
-      iframe.style.height = `${(screenAspect / sourceAspect) * 100}%`
-    }
+    // Preserve the entire 16:9 source frame. The physical cloth is taller than
+    // the video, so the unused cloth remains visible above and below the image
+    // instead of cropping the left/right edges of the talk.
+    const videoHeight = width * 9 / 16
+    iframe.style.width = '100%'
+    iframe.style.height = `${videoHeight}px`
+    projectionLink.style.width = '100%'
+    projectionLink.style.height = `${videoHeight}px`
   }
 
   const loadTalk = (index: number) => {
@@ -454,9 +451,9 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
     canvas.style.transform = 'none'
     canvas.style.filter = 'none'
     if (projectorSurface) {
-      projectorSurface.style.background = 'rgb(235 230 207 / .16)'
+      projectorSurface.style.background = 'rgb(235 230 207 / .12)'
       projectorSurface.style.border = '0'
-      projectorSurface.style.boxShadow = 'inset 0 0 5rem rgb(36 32 20 / .28)'
+      projectorSurface.style.boxShadow = 'inset 0 0 5rem rgb(36 32 20 / .22)'
     }
   }
 
@@ -585,8 +582,6 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
       return
     }
 
-    // Reset the physical projector synchronously, then keep the focused camera
-    // pose and replay the exact camera route backwards while the cloth retracts.
     const focusedPosition = camera.position.clone()
     const focusedTarget = controls.target.clone()
     const focusedUp = camera.up.clone()
@@ -663,6 +658,8 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
     nextButton.remove()
     style.remove()
     canvas.removeEventListener('pointerup', onCanvasPointerUp)
+    previousButton.removeEventListener('click', onPrevious)
+    nextButton.removeEventListener('click', onNext)
     zoomOutButton.removeEventListener('click', onReturn)
     window.removeEventListener('keydown', onKeyDown)
     window.removeEventListener('resize', onResize)
