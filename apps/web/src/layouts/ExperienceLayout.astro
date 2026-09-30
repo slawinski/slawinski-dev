@@ -34,14 +34,20 @@ const {
   .skip-link:focus { transform: translateY(0); }
 
   /*
-   * The countdown is a projection, not viewport UI. Its parent is resized from
-   * the physical Three.js screen bounds every animation frame while the camera
-   * dollies. Make that projected rectangle the sizing context for every leader
-   * element so numbers, registration rings and line weights change apparent
-   * size exactly with the screen instead of remaining pinned to the viewer.
+   * The countdown is part of the same projected reel as the talk footage.
+   * Keep its geometry relative to the projected frame and give it the same
+   * exposure flicker, monochrome treatment and tiny film-gate movement.
    */
   .operation-room__projector-countdown {
     container-type: size !important;
+    opacity: .76 !important;
+    filter: grayscale(1) contrast(1.04) brightness(1.04) !important;
+  }
+
+  .operation-room__projector-countdown:not([hidden]) {
+    animation:
+      operation-room-leader-exposure 430ms steps(2, end) infinite,
+      operation-room-leader-gate 3.1s steps(1, end) infinite !important;
   }
 
   .operation-room__leader-number {
@@ -68,5 +74,26 @@ const {
 
   .operation-room__leader-sweep::after {
     height: .42cqh !important;
+  }
+
+  @keyframes operation-room-leader-exposure {
+    0% { opacity: .73; filter: grayscale(1) contrast(1.02) brightness(1.00); }
+    25% { opacity: .78; filter: grayscale(1) contrast(1.05) brightness(1.07); }
+    50% { opacity: .75; filter: grayscale(1) contrast(1.03) brightness(1.03); }
+    75% { opacity: .77; filter: grayscale(1) contrast(1.05) brightness(1.06); }
+    100% { opacity: .76; filter: grayscale(1) contrast(1.04) brightness(1.04); }
+  }
+
+  @keyframes operation-room-leader-gate {
+    0%, 84%, 100% { transform: translate(0, 0); }
+    85% { transform: translate(.8px, -.5px); }
+    87% { transform: translate(-.5px, .4px); }
+    89% { transform: translate(0, 0); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .operation-room__projector-countdown {
+      animation: none !important;
+    }
   }
 </style>
