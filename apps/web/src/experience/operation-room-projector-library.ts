@@ -27,6 +27,7 @@ const SCREEN = {
 
 const SCREEN_TARGET = new THREE.Vector3(SCREEN.x, SCREEN.topY - SCREEN.height / 2, SCREEN.z)
 const FEED_DELAY_MS = 900
+const FEED_VERTICAL_POSITION = 0.54
 
 const parseTime = (value: string | null) => {
   if (!value) return 0
@@ -76,6 +77,11 @@ const createProjectorWhirr = () => {
   let motorSource: OscillatorNode | null = null
   let gearSource: OscillatorNode | null = null
   let flutterSource: OscillatorNode | null = null
+  let noiseBand: BiquadFilterNode | null = null
+  let noiseGain: GainNode | null = null
+  let motorGain: GainNode | null = null
+  let gearGain: GainNode | null = null
+  let flutterGain: GainNode | null = null
   let stopTimer = 0
 
   const stopSources = () => {
@@ -88,6 +94,11 @@ const createProjectorWhirr = () => {
     motorSource = null
     gearSource = null
     flutterSource = null
+    noiseBand = null
+    noiseGain = null
+    motorGain = null
+    gearGain = null
+    flutterGain = null
   }
 
   const ensureGraph = async () => {
@@ -108,11 +119,58 @@ const createProjectorWhirr = () => {
     if (context.state === 'suspended') await context.resume()
   }
 
+  const rampUp = () => {
+    if (!context || !master || !motorSource || !gearSource || !flutterSource || !noiseBand || !noiseGain || !motorGain || !gearGain || !flutterGain) return
+
+    const now = context.currentTime
+    const end = now + 1.15
+    window.clearTimeout(stopTimer)
+
+    master.gain.cancelScheduledValues(now)
+    master.gain.setValueAtTime(Math.max(master.gain.value, 0.0001), now)
+    master.gain.exponentialRampToValueAtTime(0.16, end)
+
+    motorSource.frequency.cancelScheduledValues(now)
+    motorSource.frequency.setValueAtTime(Math.max(motorSource.frequency.value, 24), now)
+    motorSource.frequency.exponentialRampToValueAtTime(58, end)
+
+    gearSource.frequency.cancelScheduledValues(now)
+    gearSource.frequency.setValueAtTime(Math.max(gearSource.frequency.value, 48), now)
+    gearSource.frequency.exponentialRampToValueAtTime(116, end)
+
+    flutterSource.frequency.cancelScheduledValues(now)
+    flutterSource.frequency.setValueAtTime(Math.max(flutterSource.frequency.value, 4.8), now)
+    flutterSource.frequency.exponentialRampToValueAtTime(13.8, end)
+
+    noiseBand.frequency.cancelScheduledValues(now)
+    noiseBand.frequency.setValueAtTime(Math.max(noiseBand.frequency.value, 300), now)
+    noiseBand.frequency.exponentialRampToValueAtTime(760, end)
+
+    noiseGain.gain.cancelScheduledValues(now)
+    noiseGain.gain.setValueAtTime(Math.max(noiseGain.gain.value, 0.012), now)
+    noiseGain.gain.exponentialRampToValueAtTime(0.12, end)
+
+    motorGain.gain.cancelScheduledValues(now)
+    motorGain.gain.setValueAtTime(Math.max(motorGain.gain.value, 0.010), now)
+    motorGain.gain.exponentialRampToValueAtTime(0.042, end)
+
+    gearGain.gain.cancelScheduledValues(now)
+    gearGain.gain.setValueAtTime(Math.max(gearGain.gain.value, 0.004), now)
+    gearGain.gain.exponentialRampToValueAtTime(0.018, end)
+
+    flutterGain.gain.cancelScheduledValues(now)
+    flutterGain.gain.setValueAtTime(Math.max(flutterGain.gain.value, 0.003), now)
+    flutterGain.gain.exponentialRampToValueAtTime(0.018, end)
+  }
+
   const start = async () => {
     await ensureGraph()
-    if (!context || !master || noiseSource || motorSource) return
+    if (!context || !master) return
 
-    window.clearTimeout(stopTimer)
+    if (noiseSource && motorSource && gearSource && flutterSource) {
+      rampUp()
+      return
+    }
 
     const buffer = context.createBuffer(1, context.sampleRate * 2, context.sampleRate)
     const samples = buffer.getChannelData(0)
@@ -126,71 +184,108 @@ const createProjectorWhirr = () => {
     const noise = context.createBufferSource()
     noise.buffer = buffer
     noise.loop = true
-    const noiseBand = context.createBiquadFilter()
-    noiseBand.type = 'bandpass'
-    noiseBand.frequency.value = 760
-    noiseBand.Q.value = 0.48
-    const noiseGain = context.createGain()
-    noiseGain.gain.value = 0.12
-    noise.connect(noiseBand)
-    noiseBand.connect(noiseGain)
-    noiseGain.connect(master)
+    const band = context.createBiquadFilter()
+    band.type = 'bandpass'
+    band.frequency.value = 300
+    band.Q.value = 0.48
+    const noiseLevel = context.createGain()
+    noiseLevel.gain.value = 0.012
+    noise.connect(band)
+    band.connect(noiseLevel)
+    noiseLevel.connect(master)
 
     const motor = context.createOscillator()
     motor.type = 'sawtooth'
-    motor.frequency.value = 58
+    motor.frequency.value = 24
     const motorFilter = context.createBiquadFilter()
     motorFilter.type = 'lowpass'
     motorFilter.frequency.value = 260
-    const motorGain = context.createGain()
-    motorGain.gain.value = 0.042
+    const motorLevel = context.createGain()
+    motorLevel.gain.value = 0.010
     motor.connect(motorFilter)
-    motorFilter.connect(motorGain)
-    motorGain.connect(master)
+    motorFilter.connect(motorLevel)
+    motorLevel.connect(master)
 
     const gear = context.createOscillator()
     gear.type = 'triangle'
-    gear.frequency.value = 116
-    const gearGain = context.createGain()
-    gearGain.gain.value = 0.018
-    gear.connect(gearGain)
-    gearGain.connect(master)
+    gear.frequency.value = 48
+    const gearLevel = context.createGain()
+    gearLevel.gain.value = 0.004
+    gear.connect(gearLevel)
+    gearLevel.connect(master)
 
     const flutter = context.createOscillator()
     flutter.type = 'sine'
-    flutter.frequency.value = 13.8
-    const flutterGain = context.createGain()
-    flutterGain.gain.value = 0.018
-    flutter.connect(flutterGain)
-    flutterGain.connect(noiseGain.gain)
+    flutter.frequency.value = 4.8
+    const flutterLevel = context.createGain()
+    flutterLevel.gain.value = 0.003
+    flutter.connect(flutterLevel)
+    flutterLevel.connect(noiseLevel.gain)
 
     noiseSource = noise
     motorSource = motor
     gearSource = gear
     flutterSource = flutter
-
-    const now = context.currentTime
-    master.gain.cancelScheduledValues(now)
-    master.gain.setValueAtTime(Math.max(master.gain.value, 0.0001), now)
-    master.gain.exponentialRampToValueAtTime(0.16, now + 0.35)
+    noiseBand = band
+    noiseGain = noiseLevel
+    motorGain = motorLevel
+    gearGain = gearLevel
+    flutterGain = flutterLevel
 
     noise.start()
     motor.start()
     gear.start()
     flutter.start()
+    rampUp()
   }
 
   const stop = () => {
-    if (!context || !master) {
+    if (!context || !master || !motorSource || !gearSource || !flutterSource || !noiseBand || !noiseGain || !motorGain || !gearGain || !flutterGain) {
       stopSources()
       return
     }
 
     const now = context.currentTime
+    const end = now + 1.15
+
     master.gain.cancelScheduledValues(now)
     master.gain.setValueAtTime(Math.max(master.gain.value, 0.0001), now)
-    master.gain.exponentialRampToValueAtTime(0.0001, now + 0.3)
-    stopTimer = window.setTimeout(stopSources, 340)
+    master.gain.exponentialRampToValueAtTime(0.0001, end)
+
+    motorSource.frequency.cancelScheduledValues(now)
+    motorSource.frequency.setValueAtTime(Math.max(motorSource.frequency.value, 20), now)
+    motorSource.frequency.exponentialRampToValueAtTime(20, end)
+
+    gearSource.frequency.cancelScheduledValues(now)
+    gearSource.frequency.setValueAtTime(Math.max(gearSource.frequency.value, 40), now)
+    gearSource.frequency.exponentialRampToValueAtTime(40, end)
+
+    flutterSource.frequency.cancelScheduledValues(now)
+    flutterSource.frequency.setValueAtTime(Math.max(flutterSource.frequency.value, 4), now)
+    flutterSource.frequency.exponentialRampToValueAtTime(4, end)
+
+    noiseBand.frequency.cancelScheduledValues(now)
+    noiseBand.frequency.setValueAtTime(Math.max(noiseBand.frequency.value, 260), now)
+    noiseBand.frequency.exponentialRampToValueAtTime(260, end)
+
+    noiseGain.gain.cancelScheduledValues(now)
+    noiseGain.gain.setValueAtTime(Math.max(noiseGain.gain.value, 0.0001), now)
+    noiseGain.gain.exponentialRampToValueAtTime(0.002, end)
+
+    motorGain.gain.cancelScheduledValues(now)
+    motorGain.gain.setValueAtTime(Math.max(motorGain.gain.value, 0.0001), now)
+    motorGain.gain.exponentialRampToValueAtTime(0.001, end)
+
+    gearGain.gain.cancelScheduledValues(now)
+    gearGain.gain.setValueAtTime(Math.max(gearGain.gain.value, 0.0001), now)
+    gearGain.gain.exponentialRampToValueAtTime(0.0004, end)
+
+    flutterGain.gain.cancelScheduledValues(now)
+    flutterGain.gain.setValueAtTime(Math.max(flutterGain.gain.value, 0.0001), now)
+    flutterGain.gain.exponentialRampToValueAtTime(0.0003, end)
+
+    window.clearTimeout(stopTimer)
+    stopTimer = window.setTimeout(stopSources, 1220)
   }
 
   const dispose = () => {
@@ -319,7 +414,7 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
     .operation-room__projector-video {
       position: absolute !important;
       left: 50% !important;
-      top: 50% !important;
+      top: 54% !important;
       width: 100% !important;
       border: 0 !important;
       pointer-events: none !important;
@@ -391,6 +486,68 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
   }
   OrbitControls.prototype.update = patchedControlsUpdate
 
+  // The room owns the reel meshes privately as well. Capture them from the
+  // projector group at render time and override only their final rendered
+  // angles. This lets the physical reels spool up/down instead of jumping
+  // immediately to full speed, without coupling the film UI to room internals.
+  const originalRendererRender = THREE.WebGLRenderer.prototype.render
+  let projectorReels: [THREE.Group, THREE.Group] | null = null
+  let reelAngles: [number, number] = [0, 0]
+  let reelSpeed = 0
+  let lastReelTime = performance.now()
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
+
+  const findProjectorReels = (scene: THREE.Object3D) => {
+    let projectorGroup: THREE.Group | null = null
+    scene.traverse((object) => {
+      if (projectorGroup || !(object instanceof THREE.Group)) return
+      if (
+        Math.abs(object.position.x + 0.6) < 0.03 &&
+        Math.abs(object.position.y - 1.88) < 0.03 &&
+        Math.abs(object.position.z - 3.9) < 0.03 &&
+        Math.abs(object.scale.x - 0.8) < 0.03
+      ) projectorGroup = object
+    })
+    if (!projectorGroup) return null
+
+    const candidates = projectorGroup.children.filter((child): child is THREE.Group => child instanceof THREE.Group)
+    const upper = candidates.find((child) => Math.abs(child.position.y - 1.29) < 0.08 && Math.abs(child.position.z - 0.40) < 0.08)
+    const lower = candidates.find((child) => Math.abs(child.position.y - 0.39) < 0.08 && Math.abs(child.position.z - 0.40) < 0.08)
+    if (!upper || !lower) return null
+    return [upper, lower] as [THREE.Group, THREE.Group]
+  }
+
+  const patchedRendererRender = function (
+    this: THREE.WebGLRenderer,
+    scene: THREE.Object3D,
+    camera: THREE.Camera,
+  ) {
+    if (this.domElement === canvas) {
+      if (!projectorReels) {
+        projectorReels = findProjectorReels(scene)
+        if (projectorReels) reelAngles = [projectorReels[0].rotation.z, projectorReels[1].rotation.z]
+      }
+
+      if (projectorReels) {
+        const now = performance.now()
+        const dt = Math.min((now - lastReelTime) / 1000, 0.1)
+        lastReelTime = now
+        const target = open && !reducedMotion.matches ? 1 : 0
+        const response = target > reelSpeed ? 3.0 : 2.45
+        reelSpeed = THREE.MathUtils.damp(reelSpeed, target, response, dt)
+        if (Math.abs(reelSpeed - target) < 0.002) reelSpeed = target
+
+        reelAngles[0] -= dt * 4.5 * reelSpeed
+        reelAngles[1] += dt * 3.9 * reelSpeed
+        projectorReels[0].rotation.z = reelAngles[0]
+        projectorReels[1].rotation.z = reelAngles[1]
+      }
+    }
+
+    return originalRendererRender.call(this, scene, camera)
+  }
+  THREE.WebGLRenderer.prototype.render = patchedRendererRender
+
   const updateReelControls = () => {
     const hasReels = talks.length > 0
     const visible = open && root.dataset.projectorView === 'open' && projector.dataset.feedReady === 'true' && hasReels
@@ -402,16 +559,17 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
 
   const fitIframeToProjection = () => {
     const width = projector.clientWidth
-    if (width <= 0) return
+    const height = projector.clientHeight
+    if (width <= 0 || height <= 0) return
 
-    // The physical cloth is taller than a 16:9 film frame. Keep the whole
-    // image width and expose illuminated cloth above and below it instead of
-    // cropping the sides.
+    // Preserve the entire 16:9 image and position it slightly below the cloth's
+    // geometric centre, leaving the projector-lit margins visible around it.
     const videoHeight = width / (16 / 9)
+    const centreY = height * FEED_VERTICAL_POSITION
     iframe.style.width = '100%'
     iframe.style.height = `${videoHeight}px`
     projectionLink.style.height = `${videoHeight}px`
-    projectionLink.style.top = `calc(50% - ${videoHeight / 2}px)`
+    projectionLink.style.top = `${centreY - videoHeight / 2}px`
   }
 
   const loadTalk = (index: number) => {
@@ -515,9 +673,6 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
   }
 
   const setImmersiveScreenStyling = () => {
-    // Do not paint another artificial screen on top of the Three.js cloth.
-    // The actual projector SpotLight should be the visible illumination and
-    // naturally remain visible in the margins around the 16:9 moving image.
     canvas.style.transform = 'none'
     canvas.style.filter = 'none'
     if (projectorSurface) {
@@ -588,8 +743,6 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
     zoomOutButton.hidden = false
     updateReelControls()
 
-    // Hold on the bare, illuminated cloth for a beat after the camera settles.
-    // Only then thread the first reel and fade the picture into the light.
     feedTimer = window.setTimeout(revealFeed, FEED_DELAY_MS)
   }
 
@@ -612,13 +765,14 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
   const openProjector = () => {
     if (open) return
     open = true
+    lastReelTime = performance.now()
     selectedIndex = 0
     hideFeed()
     setImmersiveScreenStyling()
     root.dataset.projectorView = 'deploying'
     zoomOutButton.hidden = false
     void whirr.start()
-    if (live) live.textContent = 'Projector running. Moving closer to the illuminated screen.'
+    if (live) live.textContent = 'Projector motor starting. Moving closer to the illuminated screen.'
     beginOpen()
   }
 
@@ -635,6 +789,7 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
   const closeProjector = () => {
     if (!open) return
     open = false
+    lastReelTime = performance.now()
     transitioning = true
     window.clearTimeout(feedTimer)
     whirr.stop()
@@ -721,6 +876,7 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
     cameraOverride = false
     if (roomControls) roomControls.enabled = true
     if (OrbitControls.prototype.update === patchedControlsUpdate) OrbitControls.prototype.update = originalControlsUpdate
+    if (THREE.WebGLRenderer.prototype.render === patchedRendererRender) THREE.WebGLRenderer.prototype.render = originalRendererRender
     canvas.style.transform = ''
     canvas.style.filter = ''
     if (projectorSurface) {
