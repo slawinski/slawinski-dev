@@ -26,6 +26,7 @@ const SCREEN = {
 } as const
 
 const SCREEN_TARGET = new THREE.Vector3(SCREEN.x, SCREEN.topY - SCREEN.height / 2, SCREEN.z)
+const FEED_DELAY_MS = 900
 
 const parseTime = (value: string | null) => {
   if (!value) return 0
@@ -72,16 +73,20 @@ const createProjectorWhirr = () => {
   let context: AudioContext | null = null
   let master: GainNode | null = null
   let noiseSource: AudioBufferSourceNode | null = null
-  let humSource: OscillatorNode | null = null
+  let motorSource: OscillatorNode | null = null
+  let gearSource: OscillatorNode | null = null
   let flutterSource: OscillatorNode | null = null
+  let stopTimer = 0
 
   const stopSources = () => {
-    for (const source of [noiseSource, humSource, flutterSource]) {
+    window.clearTimeout(stopTimer)
+    for (const source of [noiseSource, motorSource, gearSource, flutterSource]) {
       if (!source) continue
       try { source.stop() } catch { /* already stopped */ }
     }
     noiseSource = null
-    humSource = null
+    motorSource = null
+    gearSource = null
     flutterSource = null
   }
 
@@ -90,68 +95,88 @@ const createProjectorWhirr = () => {
       context = new AudioContextClass()
       master = context.createGain()
       master.gain.value = 0.0001
-      master.connect(context.destination)
+
+      const compressor = context.createDynamicsCompressor()
+      compressor.threshold.value = -26
+      compressor.knee.value = 14
+      compressor.ratio.value = 2.5
+      compressor.attack.value = 0.01
+      compressor.release.value = 0.22
+      master.connect(compressor)
+      compressor.connect(context.destination)
     }
     if (context.state === 'suspended') await context.resume()
   }
 
   const start = async () => {
     await ensureGraph()
-    if (!context || !master || noiseSource || humSource) return
+    if (!context || !master || noiseSource || motorSource) return
 
-    const seconds = 2
-    const buffer = context.createBuffer(1, Math.floor(context.sampleRate * seconds), context.sampleRate)
+    window.clearTimeout(stopTimer)
+
+    const buffer = context.createBuffer(1, context.sampleRate * 2, context.sampleRate)
     const samples = buffer.getChannelData(0)
     let previous = 0
     for (let index = 0; index < samples.length; index += 1) {
       const white = Math.random() * 2 - 1
-      previous = previous * 0.78 + white * 0.22
-      samples[index] = previous * 0.72
+      previous = previous * 0.72 + white * 0.28
+      samples[index] = previous
     }
 
     const noise = context.createBufferSource()
     noise.buffer = buffer
     noise.loop = true
-    const noiseFilter = context.createBiquadFilter()
-    noiseFilter.type = 'bandpass'
-    noiseFilter.frequency.value = 620
-    noiseFilter.Q.value = 0.62
+    const noiseBand = context.createBiquadFilter()
+    noiseBand.type = 'bandpass'
+    noiseBand.frequency.value = 760
+    noiseBand.Q.value = 0.48
     const noiseGain = context.createGain()
-    noiseGain.gain.value = 0.022
-    noise.connect(noiseFilter)
-    noiseFilter.connect(noiseGain)
+    noiseGain.gain.value = 0.12
+    noise.connect(noiseBand)
+    noiseBand.connect(noiseGain)
     noiseGain.connect(master)
 
-    const hum = context.createOscillator()
-    hum.type = 'sawtooth'
-    hum.frequency.value = 54
-    const humFilter = context.createBiquadFilter()
-    humFilter.type = 'lowpass'
-    humFilter.frequency.value = 240
-    const humGain = context.createGain()
-    humGain.gain.value = 0.010
-    hum.connect(humFilter)
-    humFilter.connect(humGain)
-    humGain.connect(master)
+    const motor = context.createOscillator()
+    motor.type = 'sawtooth'
+    motor.frequency.value = 58
+    const motorFilter = context.createBiquadFilter()
+    motorFilter.type = 'lowpass'
+    motorFilter.frequency.value = 260
+    const motorGain = context.createGain()
+    motorGain.gain.value = 0.042
+    motor.connect(motorFilter)
+    motorFilter.connect(motorGain)
+    motorGain.connect(master)
+
+    const gear = context.createOscillator()
+    gear.type = 'triangle'
+    gear.frequency.value = 116
+    const gearGain = context.createGain()
+    gearGain.gain.value = 0.018
+    gear.connect(gearGain)
+    gearGain.connect(master)
 
     const flutter = context.createOscillator()
     flutter.type = 'sine'
-    flutter.frequency.value = 13.5
+    flutter.frequency.value = 13.8
     const flutterGain = context.createGain()
-    flutterGain.gain.value = 0.0045
+    flutterGain.gain.value = 0.018
     flutter.connect(flutterGain)
     flutterGain.connect(noiseGain.gain)
 
     noiseSource = noise
-    humSource = hum
+    motorSource = motor
+    gearSource = gear
     flutterSource = flutter
 
     const now = context.currentTime
     master.gain.cancelScheduledValues(now)
     master.gain.setValueAtTime(Math.max(master.gain.value, 0.0001), now)
-    master.gain.exponentialRampToValueAtTime(0.055, now + 0.45)
+    master.gain.exponentialRampToValueAtTime(0.16, now + 0.35)
+
     noise.start()
-    hum.start()
+    motor.start()
+    gear.start()
     flutter.start()
   }
 
@@ -164,8 +189,8 @@ const createProjectorWhirr = () => {
     const now = context.currentTime
     master.gain.cancelScheduledValues(now)
     master.gain.setValueAtTime(Math.max(master.gain.value, 0.0001), now)
-    master.gain.exponentialRampToValueAtTime(0.0001, now + 0.28)
-    window.setTimeout(stopSources, 320)
+    master.gain.exponentialRampToValueAtTime(0.0001, now + 0.3)
+    stopTimer = window.setTimeout(stopSources, 340)
   }
 
   const dispose = () => {
@@ -211,10 +236,20 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
   let transitioning = false
   let cameraOverride = false
   let cameraAnimationFrame = 0
+  let feedTimer = 0
   let roomControls: OrbitControls | null = null
   let focusRoute: FocusRoute | null = null
 
   const whirr = createProjectorWhirr()
+
+  // Remove the old archive/splash chrome entirely. There should never be a
+  // "TECHNICAL BRIEFING" caption or film-library UI in the projected image.
+  titleCard?.remove()
+  playerHeader?.remove()
+  filmstrip?.remove()
+  player.hidden = false
+  projector.dataset.mode = 'player'
+  projector.dataset.feedReady = 'false'
 
   const reelIndicator = document.createElement('span')
   reelIndicator.className = 'operation-room__control operation-room__reel-indicator'
@@ -243,12 +278,6 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
   projectionLink.setAttribute('aria-label', 'Open projected talk on YouTube')
   videoShell.appendChild(projectionLink)
 
-  if (titleCard) titleCard.hidden = true
-  if (playerHeader) playerHeader.hidden = true
-  if (filmstrip) filmstrip.hidden = true
-  player.hidden = false
-  projector.dataset.mode = 'player'
-
   const style = document.createElement('style')
   style.dataset.operationRoomProjectorImmersion = 'true'
   style.textContent = `
@@ -258,8 +287,23 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
       height: 100% !important;
       padding: 0 !important;
     }
+    .operation-room__projector-surface {
+      background: transparent !important;
+      border: 0 !important;
+      box-shadow: none !important;
+    }
+    .operation-room__projector-surface::before,
+    .operation-room__projector-surface::after {
+      content: none !important;
+      display: none !important;
+      background: none !important;
+      box-shadow: none !important;
+    }
     .operation-room__projector-video-shell {
       position: relative !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
       width: 100% !important;
       height: 100% !important;
       min-height: 0 !important;
@@ -269,20 +313,23 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
       box-shadow: none !important;
     }
     .operation-room__projector-video-shell::after {
-      z-index: 4;
-      border: 0 !important;
-      box-shadow: inset 0 0 5rem rgb(20 18 13 / .34) !important;
+      content: none !important;
+      display: none !important;
     }
     .operation-room__projector-video {
       position: absolute !important;
       left: 50% !important;
       top: 50% !important;
+      width: 100% !important;
       border: 0 !important;
       pointer-events: none !important;
-      filter: grayscale(1) sepia(.08) contrast(1.16) brightness(.88);
-      opacity: .82;
-      mix-blend-mode: multiply;
+      opacity: 0;
+      filter: grayscale(1) contrast(1.04) brightness(1.04);
       transform: translate(-50%, -50%);
+      transition: opacity 480ms ease;
+    }
+    .operation-room__projector-library[data-feed-ready='true'] .operation-room__projector-video {
+      opacity: .76;
       animation:
         operation-room-film-exposure 430ms steps(2, end) infinite,
         operation-room-film-gate 3.1s steps(1, end) infinite;
@@ -290,20 +337,17 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
     .operation-room__projection-link {
       position: absolute;
       z-index: 8;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
+      left: 0;
+      right: 0;
       cursor: pointer;
+      pointer-events: none;
+    }
+    .operation-room__projector-library[data-feed-ready='true'] .operation-room__projection-link {
+      pointer-events: auto;
     }
     .operation-room__projection-link:focus-visible {
       outline: 1px solid rgb(238 231 198 / .7);
       outline-offset: -5px;
-    }
-    .operation-room__projector-surface::before {
-      display: none !important;
-      content: none !important;
-      background: none !important;
-      animation: none !important;
     }
     .operation-room__reel-indicator {
       display: inline-flex;
@@ -314,11 +358,11 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
     .operation-room__reel-indicator[hidden],
     .operation-room__reel-control[hidden] { display: none !important; }
     @keyframes operation-room-film-exposure {
-      0% { opacity: .80; filter: grayscale(1) sepia(.08) contrast(1.15) brightness(.86); }
-      25% { opacity: .84; filter: grayscale(1) sepia(.07) contrast(1.17) brightness(.91); }
-      50% { opacity: .81; filter: grayscale(1) sepia(.09) contrast(1.16) brightness(.87); }
-      75% { opacity: .83; filter: grayscale(1) sepia(.08) contrast(1.18) brightness(.90); }
-      100% { opacity: .82; filter: grayscale(1) sepia(.08) contrast(1.16) brightness(.88); }
+      0% { opacity: .73; filter: grayscale(1) contrast(1.02) brightness(1.00); }
+      25% { opacity: .78; filter: grayscale(1) contrast(1.05) brightness(1.07); }
+      50% { opacity: .75; filter: grayscale(1) contrast(1.03) brightness(1.03); }
+      75% { opacity: .77; filter: grayscale(1) contrast(1.05) brightness(1.06); }
+      100% { opacity: .76; filter: grayscale(1) contrast(1.04) brightness(1.04); }
     }
     @keyframes operation-room-film-gate {
       0%, 84%, 100% { transform: translate(-50%, -50%); }
@@ -332,6 +376,8 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
   `
   root.appendChild(style)
 
+  // The room owns its OrbitControls instance privately. Capture only the one
+  // attached to this canvas and suspend its update during the projector dolly.
   const originalControlsUpdate = OrbitControls.prototype.update
   const patchedControlsUpdate = function (
     this: OrbitControls,
@@ -347,7 +393,7 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
 
   const updateReelControls = () => {
     const hasReels = talks.length > 0
-    const visible = open && root.dataset.projectorView === 'open' && hasReels
+    const visible = open && root.dataset.projectorView === 'open' && projector.dataset.feedReady === 'true' && hasReels
     reelIndicator.hidden = !visible
     previousButton.hidden = !visible
     nextButton.hidden = !visible
@@ -358,14 +404,14 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
     const width = projector.clientWidth
     if (width <= 0) return
 
-    // Preserve the entire 16:9 source frame. The physical cloth is taller than
-    // the video, so the unused cloth remains visible above and below the image
-    // instead of cropping the left/right edges of the talk.
-    const videoHeight = width * 9 / 16
+    // The physical cloth is taller than a 16:9 film frame. Keep the whole
+    // image width and expose illuminated cloth above and below it instead of
+    // cropping the sides.
+    const videoHeight = width / (16 / 9)
     iframe.style.width = '100%'
     iframe.style.height = `${videoHeight}px`
-    projectionLink.style.width = '100%'
     projectionLink.style.height = `${videoHeight}px`
+    projectionLink.style.top = `calc(50% - ${videoHeight / 2}px)`
   }
 
   const loadTalk = (index: number) => {
@@ -399,9 +445,32 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
     iframe.title = `Projected film: ${talk.title}`
     projectionLink.href = talk.videoUrl
     projectionLink.setAttribute('aria-label', `Open ${talk.title} on YouTube`)
-    updateReelControls()
     window.requestAnimationFrame(fitIframeToProjection)
     if (live) live.textContent = `Projecting reel ${selectedIndex + 1} of ${talks.length}: ${talk.title}`
+  }
+
+  const hideFeed = () => {
+    window.clearTimeout(feedTimer)
+    projector.dataset.feedReady = 'false'
+    projector.style.visibility = 'hidden'
+    projector.style.opacity = '0'
+    projector.style.pointerEvents = 'none'
+    iframe.src = 'about:blank'
+    updateReelControls()
+  }
+
+  const revealFeed = () => {
+    if (!open || root.dataset.projectorView !== 'open') return
+    loadTalk(selectedIndex)
+    projector.style.visibility = 'visible'
+    projector.style.pointerEvents = 'auto'
+    projector.setAttribute('aria-hidden', 'false')
+    window.requestAnimationFrame(() => {
+      if (!open) return
+      projector.dataset.feedReady = 'true'
+      projector.style.opacity = '1'
+      updateReelControls()
+    })
   }
 
   const getCamera = () => {
@@ -436,24 +505,25 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
     const top = Math.min(topLeft.y, bottomRight.y)
     const width = Math.abs(bottomRight.x - topLeft.x)
     const height = Math.abs(bottomRight.y - topLeft.y)
-    const insetX = width * 0.018
-    const insetY = height * 0.018
 
-    projector.style.left = `${left + insetX}px`
-    projector.style.top = `${top + insetY}px`
-    projector.style.width = `${Math.max(1, width - insetX * 2)}px`
-    projector.style.height = `${Math.max(1, height - insetY * 2)}px`
+    projector.style.left = `${left}px`
+    projector.style.top = `${top}px`
+    projector.style.width = `${Math.max(1, width)}px`
+    projector.style.height = `${Math.max(1, height)}px`
     projector.style.transform = 'none'
     fitIframeToProjection()
   }
 
   const setImmersiveScreenStyling = () => {
+    // Do not paint another artificial screen on top of the Three.js cloth.
+    // The actual projector SpotLight should be the visible illumination and
+    // naturally remain visible in the margins around the 16:9 moving image.
     canvas.style.transform = 'none'
     canvas.style.filter = 'none'
     if (projectorSurface) {
-      projectorSurface.style.background = 'rgb(235 230 207 / .12)'
+      projectorSurface.style.background = 'transparent'
       projectorSurface.style.border = '0'
-      projectorSurface.style.boxShadow = 'inset 0 0 5rem rgb(36 32 20 / .22)'
+      projectorSurface.style.boxShadow = 'none'
     }
   }
 
@@ -515,9 +585,12 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
     camera.lookAt(SCREEN_TARGET)
     alignLibraryToPhysicalScreen()
     root.dataset.projectorView = 'open'
-    projector.setAttribute('aria-hidden', 'false')
     zoomOutButton.hidden = false
     updateReelControls()
+
+    // Hold on the bare, illuminated cloth for a beat after the camera settles.
+    // Only then thread the first reel and fade the picture into the light.
+    feedTimer = window.setTimeout(revealFeed, FEED_DELAY_MS)
   }
 
   const beginOpen = () => {
@@ -540,14 +613,12 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
     if (open) return
     open = true
     selectedIndex = 0
-    root.dataset.projectorView = 'deploying'
+    hideFeed()
     setImmersiveScreenStyling()
-    projector.setAttribute('aria-hidden', 'true')
+    root.dataset.projectorView = 'deploying'
     zoomOutButton.hidden = false
-    loadTalk(0)
     void whirr.start()
-    updateReelControls()
-    if (live) live.textContent = 'Projector running. Moving closer to the screen.'
+    if (live) live.textContent = 'Projector running. Moving closer to the illuminated screen.'
     beginOpen()
   }
 
@@ -556,10 +627,8 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
     cameraOverride = false
     if (roomControls) roomControls.enabled = true
     delete root.dataset.projectorView
-    iframe.src = 'about:blank'
-    projector.setAttribute('aria-hidden', 'true')
+    hideFeed()
     zoomOutButton.hidden = true
-    updateReelControls()
     canvas.focus({ preventScroll: true })
   }
 
@@ -567,11 +636,11 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
     if (!open) return
     open = false
     transitioning = true
+    window.clearTimeout(feedTimer)
     whirr.stop()
-    projector.setAttribute('aria-hidden', 'true')
+    hideFeed()
     root.dataset.projectorView = 'closing'
     zoomOutButton.hidden = true
-    updateReelControls()
 
     const camera = getCamera()
     const controls = roomControls
@@ -597,8 +666,15 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
   }
 
   const changeReel = (direction: 1 | -1) => {
-    if (!open || talks.length === 0) return
-    loadTalk(selectedIndex + direction)
+    if (!open || talks.length === 0 || projector.dataset.feedReady !== 'true') return
+    projector.dataset.feedReady = 'false'
+    const nextIndex = ((selectedIndex + direction) % talks.length + talks.length) % talks.length
+    window.setTimeout(() => {
+      if (!open) return
+      loadTalk(nextIndex)
+      projector.dataset.feedReady = 'true'
+      updateReelControls()
+    }, 180)
   }
 
   const onCanvasPointerUp = (event: PointerEvent) => {
@@ -613,11 +689,9 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
     if (open) closeProjector()
   }
   const onKeyDown = (event: KeyboardEvent) => {
-    if (!open) return
-    if (event.key === 'Escape') {
-      event.preventDefault()
-      closeProjector()
-    }
+    if (!open || event.key !== 'Escape') return
+    event.preventDefault()
+    closeProjector()
   }
   const onResize = () => {
     if (!open || transitioning) return
@@ -631,6 +705,7 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
     alignLibraryToPhysicalScreen()
   }
 
+  hideFeed()
   canvas.addEventListener('pointerup', onCanvasPointerUp)
   previousButton.addEventListener('click', onPrevious)
   nextButton.addEventListener('click', onNext)
@@ -640,6 +715,7 @@ export const installOperationRoomProjectorLibrary = (root: HTMLElement) => {
 
   return () => {
     window.cancelAnimationFrame(cameraAnimationFrame)
+    window.clearTimeout(feedTimer)
     whirr.dispose()
     iframe.src = 'about:blank'
     cameraOverride = false
