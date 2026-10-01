@@ -88,8 +88,42 @@ const {
     height: .42cqh !important;
   }
 
+  /*
+   * A real film leader drains a circular pie once per second. Registering the
+   * percentage makes the conic-gradient stop interpolate continuously instead
+   * of jumping between discrete quarter-circle states.
+   */
+  @property --operation-room-leader-pie-progress {
+    syntax: '<percentage>';
+    inherits: false;
+    initial-value: 100%;
+  }
+
+  .operation-room__leader-sweep {
+    --operation-room-leader-pie-progress: 100%;
+    width: 82cqh !important;
+    aspect-ratio: 1 !important;
+    border-radius: 50% !important;
+    background: conic-gradient(
+      from -90deg,
+      rgb(43 43 41 / .20) 0 var(--operation-room-leader-pie-progress),
+      transparent var(--operation-room-leader-pie-progress) 100%
+    ) !important;
+    transform: translate(-50%, -50%) !important;
+    animation: operation-room-leader-pie-countdown 1000ms linear infinite !important;
+  }
+
   .operation-room__leader-sweep::after {
-    height: .42cqh !important;
+    content: none !important;
+    display: none !important;
+  }
+
+  @keyframes operation-room-leader-pie-countdown {
+    0% { --operation-room-leader-pie-progress: 100%; }
+    25% { --operation-room-leader-pie-progress: 75%; }
+    50% { --operation-room-leader-pie-progress: 50%; }
+    75% { --operation-room-leader-pie-progress: 25%; }
+    100% { --operation-room-leader-pie-progress: 0%; }
   }
 
   @keyframes operation-room-leader-exposure {
@@ -108,7 +142,8 @@ const {
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .operation-room__projector-countdown {
+    .operation-room__projector-countdown,
+    .operation-room__leader-sweep {
       animation: none !important;
     }
   }
