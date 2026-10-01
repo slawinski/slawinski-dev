@@ -1,0 +1,31 @@
+---
+interface Props { currentPath?: string }
+
+const { currentPath = Astro.url.pathname } = Astro.props
+
+const nav = [
+  ['Work', '/work'],
+  ['Writing', '/blog'],
+  ['Speaking', '/speaking'],
+  ['About', '/about'],
+  ['Contact', '/contact'],
+]
+---
+
+<header class="site-header">
+  <a class="monogram" href="/" aria-label="Piotr Sławiński — home">P.S.</a>
+
+  <nav class="desktop-nav" aria-label="Primary navigation">
+    {nav.map(([label, href]) => <a href={href} aria-current={currentPath === href ? 'page' : undefined}>{label}</a>)}
+  </nav>
+
+  <details class="mobile-menu">
+    <summary aria-label="Open navigation">
+      <span></span><span></span><span></span>
+    </summary>
+    <nav aria-label="Mobile navigation">
+      {nav.map(([label, href]) => <a href={href} aria-current={currentPath === href ? 'page' : undefined}>{label}</a>)}
+      <p>Same intent.<br />Fewer distractions.</p>
+    </nav>
+  </details>
+</header>

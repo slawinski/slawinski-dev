@@ -1,0 +1,55 @@
+---
+import ProjectCard from '@/components/content/ProjectCard.astro'
+import styles from './HeroWorkbench.module.css'
+---
+
+<section class={styles.hero} aria-labelledby="hero-title">
+  <div class={styles.identity}>
+    <p class={styles.kicker}>Built on the web <span>since 2008</span></p>
+    <h1 id="hero-title">PIOTR<br />SŁAWIŃSKI</h1>
+    <p class={styles.statement}>
+      makes software for people<br />
+      and occasionally writes about <mark>why it broke.</mark>
+    </p>
+  </div>
+
+  <aside class={styles.roles} aria-label="Roles">
+    <span>Developer</span>
+    <span>Speaker</span>
+    <span>Builder</span>
+    <span>Human</span>
+  </aside>
+
+  <div class={styles.window} aria-label="Introduction">
+    <div class={styles.windowBar}><span>Hey there!</span><span>□ ×</span></div>
+    <p>Welcome to my corner of the internet.</p>
+    <a href="/about">OK</a>
+  </div>
+
+  <nav class={styles.crt} aria-label="Workbench shortcuts">
+    <span class={styles.crtLabel}>GOOD SOFTWARE<br />GOOD PEOPLE</span>
+    <div class={styles.screen}>
+      <a href="/work">&gt; WORK</a>
+      <a href="/blog">&gt; WRITING</a>
+      <a href="/speaking">&gt; SPEAKING</a>
+      <a href="/about">&gt; ABOUT</a>
+      <a href="/contact">&gt; CONTACT</a>
+    </div>
+  </nav>
+
+  <aside class={styles.note}>
+    <strong>Currently:</strong>
+    <p>Building useful things, drinking too much coffee and figuring out what to ship next.</p>
+    <span aria-hidden="true">☕</span>
+  </aside>
+
+  <div class={styles.featuredLabel}>Featured work →</div>
+
+  <div class={styles.projects}>
+    <ProjectCard title="TRIGGERNOTE" eyebrow="CASE FILE 01" description="personal range log" href="/work/triggernote" />
+    <ProjectCard title="EGGSPEDITION" eyebrow="CASE FILE 02" description="mobile-first PWA" href="/work/eggspedition" variant="paper" />
+    <ProjectCard title="SLAWINSKI.DEV" eyebrow="CASE FILE 03" description="this very website" href="/work/slawinski-dev" variant="blue" />
+  </div>
+
+  <p class={styles.scribble}>Some things<br />I've built →</p>
+</section>
