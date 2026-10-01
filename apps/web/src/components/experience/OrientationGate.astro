@@ -1,0 +1,205 @@
+<div
+  class="orientation-gate"
+  data-orientation-gate
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="orientation-gate-title"
+  aria-describedby="orientation-gate-description"
+  aria-hidden="true"
+  tabindex="-1"
+>
+  <div class="orientation-gate__panel">
+    <div class="orientation-gate__device" aria-hidden="true">
+      <span class="orientation-gate__speaker"></span>
+      <span class="orientation-gate__screen">
+        <span class="orientation-gate__arrow">↻</span>
+      </span>
+    </div>
+
+    <p class="orientation-gate__eyebrow">DISPLAY ORIENTATION</p>
+    <h1 id="orientation-gate-title">ROTATE DEVICE</h1>
+    <p id="orientation-gate-description">
+      This operation room requires a landscape viewport. Turn your device sideways to continue.
+    </p>
+    <p class="orientation-gate__status">LANDSCAPE REQUIRED</p>
+  </div>
+</div>
+
+<script>
+  const QUERY = '(orientation: portrait) and (max-width: 1100px) and (pointer: coarse)'
+
+  const installOrientationGate = () => {
+    const gate = document.querySelector<HTMLElement>('[data-orientation-gate]')
+    const main = document.querySelector<HTMLElement>('main')
+    if (!gate || !main || gate.dataset.orientationGateMounted === 'true') return
+
+    gate.dataset.orientationGateMounted = 'true'
+    const media = window.matchMedia(QUERY)
+
+    const sync = () => {
+      const blocked = media.matches
+      document.body.dataset.orientationBlocked = String(blocked)
+      gate.setAttribute('aria-hidden', String(!blocked))
+      main.inert = blocked
+
+      if (blocked) {
+        gate.focus({ preventScroll: true })
+      }
+    }
+
+    const dispose = () => {
+      media.removeEventListener('change', sync)
+      delete gate.dataset.orientationGateMounted
+      delete document.body.dataset.orientationBlocked
+      main.inert = false
+    }
+
+    media.addEventListener('change', sync)
+    document.addEventListener('astro:before-swap', dispose, { once: true })
+    sync()
+  }
+
+  document.addEventListener('astro:page-load', installOrientationGate)
+  installOrientationGate()
+</script>
+
+<style>
+  .orientation-gate {
+    position: fixed;
+    z-index: 10000;
+    inset: 0;
+    display: none;
+    place-items: center;
+    min-width: 100%;
+    min-height: 100dvh;
+    padding:
+      max(1.25rem, env(safe-area-inset-top))
+      max(1.25rem, env(safe-area-inset-right))
+      max(1.25rem, env(safe-area-inset-bottom))
+      max(1.25rem, env(safe-area-inset-left));
+    color: #eee7c8;
+    background:
+      radial-gradient(circle at 50% 42%, rgb(72 86 64 / .28), transparent 46%),
+      #141b18;
+    box-sizing: border-box;
+    outline: none;
+  }
+
+  .orientation-gate__panel {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    width: min(30rem, 100%);
+    padding: 2.25rem 1.6rem 1.7rem;
+    text-align: center;
+    background: #243229;
+    border: 1px solid #778568;
+    box-shadow:
+      0 1.2rem 3rem rgb(0 0 0 / .35),
+      inset 0 0 0 3px #1a241e,
+      inset 0 0 0 4px rgb(154 170 127 / .18);
+  }
+
+  .orientation-gate__panel::before,
+  .orientation-gate__panel::after {
+    content: '';
+    position: absolute;
+    top: .55rem;
+    width: .38rem;
+    height: .38rem;
+    border-radius: 50%;
+    background: #97885e;
+    box-shadow: 0 0 0 1px #111713;
+  }
+
+  .orientation-gate__panel::before { left: .55rem; }
+  .orientation-gate__panel::after { right: .55rem; }
+
+  .orientation-gate__device {
+    position: relative;
+    width: 3.55rem;
+    height: 6.2rem;
+    margin-bottom: 1.8rem;
+    border: .18rem solid #d7d0ad;
+    border-radius: .55rem;
+    transform-origin: 50% 50%;
+    animation: orientation-gate-turn 2.4s cubic-bezier(.42, 0, .22, 1) infinite;
+    box-sizing: border-box;
+  }
+
+  .orientation-gate__speaker {
+    position: absolute;
+    top: .35rem;
+    left: 50%;
+    width: .9rem;
+    height: .12rem;
+    border-radius: 99px;
+    background: #d7d0ad;
+    transform: translateX(-50%);
+  }
+
+  .orientation-gate__screen {
+    position: absolute;
+    inset: .78rem .35rem .38rem;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgb(215 208 173 / .32);
+    background: rgb(8 13 10 / .2);
+  }
+
+  .orientation-gate__arrow {
+    display: block;
+    font: 400 1.65rem/1 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  }
+
+  .orientation-gate__eyebrow {
+    margin: 0 0 .7rem;
+    color: #aeb997;
+    font-size: .66rem;
+    font-weight: 700;
+    letter-spacing: .22em;
+  }
+
+  .orientation-gate h1 {
+    margin: 0;
+    font-size: clamp(1.9rem, 9vw, 3rem);
+    line-height: .95;
+    letter-spacing: .08em;
+  }
+
+  .orientation-gate__panel > p:nth-of-type(2) {
+    max-width: 29ch;
+    margin: 1.2rem 0 1.5rem;
+    color: #d0c9aa;
+    font-size: .82rem;
+    line-height: 1.6;
+  }
+
+  .orientation-gate__status {
+    margin: 0;
+    padding: .4rem .55rem;
+    color: #dbe7bc;
+    background: #36572f;
+    border: 1px solid #7e9a69;
+    font-size: .62rem;
+    font-weight: 700;
+    letter-spacing: .16em;
+  }
+
+  @keyframes orientation-gate-turn {
+    0%, 28% { transform: rotate(0deg); }
+    50%, 78% { transform: rotate(90deg); }
+    100% { transform: rotate(0deg); }
+  }
+
+  @media (orientation: portrait) and (max-width: 1100px) and (pointer: coarse) {
+    .orientation-gate { display: grid; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .orientation-gate__device {
+      transform: rotate(90deg);
+      animation: none;
+    }
+  }
+</style>
