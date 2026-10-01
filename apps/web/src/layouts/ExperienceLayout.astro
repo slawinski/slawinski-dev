@@ -1,4 +1,6 @@
 ---
+import OrientationGate from '@/components/experience/OrientationGate.astro'
+
 interface Props {
   title?: string
   description?: string
@@ -14,7 +16,7 @@ const {
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="description" content={description} />
     <meta name="theme-color" content="#28342f" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -22,6 +24,7 @@ const {
   </head>
   <body>
     <a class="skip-link" href="#experience-navigation">Skip the 3D scene</a>
+    <OrientationGate />
     <main><slot /></main>
   </body>
 </html>
@@ -32,6 +35,19 @@ const {
   body { min-height: 100dvh; overflow: hidden; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
   .skip-link { position: fixed; z-index: 100; top: .75rem; left: .75rem; transform: translateY(-180%); padding: .65rem .8rem; color: #f6efcf; background: #101513; border: 1px solid #758f68; }
   .skip-link:focus { transform: translateY(0); }
+
+  /*
+   * Once JS confirms that this is a touch-oriented portrait viewport, make the
+   * operation room inert and stop painting it behind the opaque rotation gate.
+   * The gate itself is CSS-driven, so the instruction remains available even
+   * when JavaScript is disabled or still loading.
+   */
+  @media (orientation: portrait) and (max-width: 1100px) and (pointer: coarse) {
+    body[data-orientation-blocked='true'] main,
+    body[data-orientation-blocked='true'] .skip-link {
+      visibility: hidden;
+    }
+  }
 
   /*
    * The countdown is part of the same projected reel as the talk footage.
