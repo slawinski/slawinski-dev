@@ -1,0 +1,18 @@
+---
+interface Props {
+  title: string
+  eyebrow: string
+  description: string
+  href: string
+  variant?: 'dark' | 'blue' | 'paper'
+}
+
+const { title, eyebrow, description, href, variant = 'dark' } = Astro.props
+---
+
+<a class:list={['project-card', `project-card--${variant}`]} href={href}>
+  <span class="project-card__eyebrow">{eyebrow}</span>
+  <strong>{title}</strong>
+  <span>{description}</span>
+  <span class="project-card__arrow" aria-hidden="true">↗</span>
+</a>

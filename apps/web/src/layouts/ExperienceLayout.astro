@@ -1,0 +1,150 @@
+---
+import OrientationGate from '@/components/experience/OrientationGate.astro'
+
+interface Props {
+  title?: string
+  description?: string
+}
+
+const {
+  title = 'Piotr Sławiński — Software Engineer',
+  description = 'Software engineering, projects, writing and talks by Piotr Sławiński.',
+} = Astro.props
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#28342f" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>{title}</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#experience-navigation">Skip the 3D scene</a>
+    <OrientationGate />
+    <main><slot /></main>
+  </body>
+</html>
+
+<style is:global>
+  :root { color-scheme: dark; background: #1b211f; }
+  html, body { width: 100%; min-width: 320px; min-height: 100%; margin: 0; background: #1b211f; }
+  body { min-height: 100dvh; overflow: hidden; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+  .skip-link { position: fixed; z-index: 100; top: .75rem; left: .75rem; transform: translateY(-180%); padding: .65rem .8rem; color: #f6efcf; background: #101513; border: 1px solid #758f68; }
+  .skip-link:focus { transform: translateY(0); }
+
+  /*
+   * Once JS confirms that this is a touch-oriented portrait viewport, make the
+   * operation room inert and stop painting it behind the opaque rotation gate.
+   * The gate itself is CSS-driven, so the instruction remains available even
+   * when JavaScript is disabled or still loading.
+   */
+  @media (orientation: portrait) and (max-width: 1100px) and (pointer: coarse) {
+    body[data-orientation-blocked='true'] main,
+    body[data-orientation-blocked='true'] .skip-link {
+      visibility: hidden;
+    }
+  }
+
+  /*
+   * The countdown is part of the same projected reel as the talk footage.
+   * Keep its geometry relative to the projected frame and give it the same
+   * exposure flicker, monochrome treatment and tiny film-gate movement.
+   */
+  .operation-room__projector-countdown {
+    container-type: size !important;
+    opacity: .76 !important;
+    filter: grayscale(1) contrast(1.04) brightness(1.04) !important;
+  }
+
+  .operation-room__projector-countdown:not([hidden]) {
+    animation:
+      operation-room-leader-exposure 430ms steps(2, end) infinite,
+      operation-room-leader-gate 3.1s steps(1, end) infinite !important;
+  }
+
+  .operation-room__leader-number {
+    font-size: 48cqh !important;
+  }
+
+  .operation-room__leader-ring--outer {
+    width: 82cqh !important;
+    border-width: .62cqh !important;
+  }
+
+  .operation-room__leader-ring--inner {
+    width: 72cqh !important;
+    border-width: .62cqh !important;
+  }
+
+  .operation-room__leader-cross--vertical {
+    width: .42cqh !important;
+  }
+
+  .operation-room__leader-cross--horizontal {
+    height: .42cqh !important;
+  }
+
+  /*
+   * A real film leader drains a circular pie once per second. Registering the
+   * percentage makes the conic-gradient stop interpolate continuously instead
+   * of jumping between discrete quarter-circle states.
+   */
+  @property --operation-room-leader-pie-progress {
+    syntax: '<percentage>';
+    inherits: false;
+    initial-value: 100%;
+  }
+
+  .operation-room__leader-sweep {
+    --operation-room-leader-pie-progress: 100%;
+    width: 82cqh !important;
+    aspect-ratio: 1 !important;
+    border-radius: 50% !important;
+    background: conic-gradient(
+      from 0deg,
+      rgb(43 43 41 / .20) 0 var(--operation-room-leader-pie-progress),
+      transparent var(--operation-room-leader-pie-progress) 100%
+    ) !important;
+    transform: translate(-50%, -50%) !important;
+    animation: operation-room-leader-pie-countdown 1000ms linear infinite !important;
+  }
+
+  .operation-room__leader-sweep::after {
+    content: none !important;
+    display: none !important;
+  }
+
+  @keyframes operation-room-leader-pie-countdown {
+    0% { --operation-room-leader-pie-progress: 100%; }
+    25% { --operation-room-leader-pie-progress: 75%; }
+    50% { --operation-room-leader-pie-progress: 50%; }
+    75% { --operation-room-leader-pie-progress: 25%; }
+    100% { --operation-room-leader-pie-progress: 0%; }
+  }
+
+  @keyframes operation-room-leader-exposure {
+    0% { opacity: .73; filter: grayscale(1) contrast(1.02) brightness(1.00); }
+    25% { opacity: .78; filter: grayscale(1) contrast(1.05) brightness(1.07); }
+    50% { opacity: .75; filter: grayscale(1) contrast(1.03) brightness(1.03); }
+    75% { opacity: .77; filter: grayscale(1) contrast(1.05) brightness(1.06); }
+    100% { opacity: .76; filter: grayscale(1) contrast(1.04) brightness(1.04); }
+  }
+
+  @keyframes operation-room-leader-gate {
+    0%, 84%, 100% { transform: translate(0, 0); }
+    85% { transform: translate(.8px, -.5px); }
+    87% { transform: translate(-.5px, .4px); }
+    89% { transform: translate(0, 0); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .operation-room__projector-countdown,
+    .operation-room__leader-sweep {
+      animation: none !important;
+    }
+  }
+</style>

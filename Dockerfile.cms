@@ -1,0 +1,29 @@
+FROM node:24-bookworm-slim
+
+WORKDIR /app
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+       python3 \
+       make \
+       g++ \
+    && rm -rf /var/lib/apt/lists/* \
+    && npm install -g pnpm@10.34.6
+
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/cms/package.json ./apps/cms/package.json
+COPY apps/web/package.json ./apps/web/package.json
+COPY packages ./packages
+
+RUN pnpm install --frozen-lockfile
+
+COPY . .
+
+RUN pnpm --dir apps/cms build
+
+ENV NODE_ENV=production
+ENV PORT=3001
+
+EXPOSE 3001
+
+CMD ["sh", "-c", "pnpm --dir apps/cms payload migrate && pnpm --dir apps/cms start"]
