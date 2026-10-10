@@ -2,6 +2,7 @@
 
 interface ImportMetaEnv {
   readonly PUBLIC_CMS_URL?: string
+  readonly PUBLIC_CONTACT_EMAIL?: string
 }
 
 interface ImportMeta {
