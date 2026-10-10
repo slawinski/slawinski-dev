@@ -167,31 +167,31 @@ export const createRadioContactPanel = (deps: RadioContactDeps, panel: HTMLEleme
   const status = panel.querySelector<HTMLElement>('[data-radio-contact-status]')
   const emailInput = form?.querySelector<HTMLInputElement>('input[name="email"]') ?? null
   const messageInput = form?.querySelector<HTMLTextAreaElement>('textarea[name="message"]') ?? null
-  const honeypotInput = form?.querySelector<HTMLInputElement>('input[name="honeypot"]') ?? null
 
-  const onSubmit = async (event: SubmitEvent) => {
+  // v1 hands off to the visitor's mail client instead of running an email
+  // backend (docs/rewrite/02_INFORMATION_ARCHITECTURE.md). The sender's
+  // address rides along in the subject and the body so it can be replied to.
+  const onSubmit = (event: SubmitEvent) => {
     event.preventDefault()
     if (!form || !status || form.dataset.busy === 'true') return
     const email = emailInput?.value.trim() ?? ''
     const message = messageInput?.value ?? ''
     if (!email || !message.trim()) return
-    form.dataset.busy = 'true'
-    status.textContent = 'SENDING…'
-    try {
-      const response = await fetch('/api/contact.json', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, message, honeypot: honeypotInput?.value ?? '' }),
-      })
-      if (!response.ok) throw new Error(`contact ${response.status}`)
-      // DOM mutations repaint to the texture via the canvas paint events.
-      status.textContent = 'SENT — signal received.'
-      form.reset()
-    } catch {
-      status.textContent = 'ERROR — try again.'
-    } finally {
-      delete form.dataset.busy
+    const contactEmail = import.meta.env.PUBLIC_CONTACT_EMAIL
+    if (!contactEmail) {
+      status.textContent = 'NO TRANSMIT ADDRESS'
+      return
     }
+    form.dataset.busy = 'true'
+    status.textContent = 'OPENING MAIL CLIENT…'
+    const query = new URLSearchParams({
+      subject: `Radio transmission from ${email}`,
+      body: `${message}\n\n— reply to ${email}`,
+    })
+    // If nothing handles mailto: (no configured client), clear busy on the
+    // next tick so the form can be used again; otherwise the page unloads.
+    window.location.href = `mailto:${contactEmail}?${query}`
+    window.setTimeout(() => { delete form.dataset.busy }, 0)
   }
 
   // The form lives inside the canvas element. Stop form pointer events at the

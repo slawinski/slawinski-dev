@@ -16,7 +16,6 @@ const [writingPosts, talks] = await Promise.all([
         <p class="operation-room__radio-kicker">FIELD TRANSMITTER</p>
         <label class="operation-room__radio-field">Email<input type="email" name="email" required autocomplete="email" maxlength="254" /></label>
         <label class="operation-room__radio-field">Message<textarea name="message" rows="3" maxlength="2000" required></textarea></label>
-        <input class="operation-room__radio-honeypot" type="text" name="honeypot" value="" tabindex="-1" autocomplete="off" aria-hidden="true" />
         <button class="operation-room__radio-submit" type="submit">TRANSMIT</button>
         <p class="operation-room__radio-status" data-radio-contact-status aria-live="polite"></p>
       </form>
@@ -383,7 +382,6 @@ const [writingPosts, talks] = await Promise.all([
   .operation-room__radio-kicker { margin: 0; font-weight: 700; letter-spacing: .18em; }
   .operation-room__radio-field { display: grid; gap: .25rem; font-size: .68rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
   .operation-room__radio-field input, .operation-room__radio-field textarea { box-sizing: border-box; width: 100%; padding: .45rem .55rem; color: #1d1c14; background: #f2e9cd; border: 1px solid rgb(61 57 44 / .6); font: 1rem/1.4 Georgia, serif; }
-  .operation-room__radio-honeypot { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
   .operation-room__radio-submit { padding: .6rem; color: #f3edcf; background: #36572f; border: 1px solid #9cb97d; font: inherit; font-weight: 700; letter-spacing: .16em; cursor: pointer; }
   .operation-room__radio-status { min-height: 1.4em; margin: 0; font-weight: 700; letter-spacing: .06em; }
   .operation-room__radio-fallback { position: absolute; z-index: 26; left: 50%; bottom: 4.5rem; margin: 0; transform: translateX(-50%); }

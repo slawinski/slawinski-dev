@@ -10,7 +10,7 @@ Flow:
 - Activation is **pointer click on the radio bench** (raycast mesh id `radio`), NOT scroll zoom. Hover shows `CONTACT selected` in `[data-operation-room-live]`
 - Camera dolly (~2.35s) → `viewMode === 'radio' && !cameraTransition` → `setActive(true)` flips `inert`/`visibility` + `mesh.visible`
 - `InteractionManager.update()` stamps CSS `matrix3d` on the panel each frame; hit-testing is real DOM
-- Submit → POST `/api/contact.json` (`apps/web/src/pages/api/contact.json.ts`)
+- Submit → `mailto:` handoff (no email backend — see `02_INFORMATION_ARCHITECTURE.md`); recipient is `PUBLIC_CONTACT_EMAIL` (build-time env, declared in `src/env.d.ts`), sender address carried in subject + body. If the env var is unset the status line shows `NO TRANSMIT ADDRESS`
 
 Visibility state markers:
 - `[data-operation-room][data-radio-contact="fallback"]` — unsupported, link `[data-radio-contact-fallback]` shown only in settled radio view
