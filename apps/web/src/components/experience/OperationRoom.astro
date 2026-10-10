@@ -10,7 +10,18 @@ const [writingPosts, talks] = await Promise.all([
 <section class="operation-room" data-operation-room>
   <script type="application/json" data-operation-room-posts set:html={JSON.stringify(writingPosts).replace(/</g, '\\u003c')}></script>
   <script type="application/json" data-operation-room-talks set:html={JSON.stringify(talks).replace(/</g, '\\u003c')}></script>
-  <canvas class="operation-room__canvas" data-operation-room-canvas tabindex="0" aria-label="Interactive 3D operations room. Drag to look around, scroll or pinch to zoom, right-drag to pan. Left and right arrow keys select a section, Enter opens it, plus and minus zoom, WASD pans, 0 resets the view."></canvas>
+  <canvas class="operation-room__canvas" data-operation-room-canvas tabindex="0" aria-label="Interactive 3D operations room. Drag to look around, scroll or pinch to zoom, right-drag to pan. Left and right arrow keys select a section, Enter opens it, plus and minus zoom, WASD pans, 0 resets the view." {...{ layoutsubtree: 'true' } as any}>
+    <div id="radio-contact" class="operation-room__radio-contact" data-radio-contact inert>
+      <form aria-label="Contact via radio">
+        <p class="operation-room__radio-kicker">FIELD TRANSMITTER</p>
+        <label class="operation-room__radio-field">Email<input type="email" name="email" required autocomplete="email" maxlength="254" /></label>
+        <label class="operation-room__radio-field">Message<textarea name="message" rows="3" maxlength="2000" required></textarea></label>
+        <input class="operation-room__radio-honeypot" type="text" name="honeypot" value="" tabindex="-1" autocomplete="off" aria-hidden="true" />
+        <button class="operation-room__radio-submit" type="submit">TRANSMIT</button>
+        <p class="operation-room__radio-status" data-radio-contact-status aria-live="polite"></p>
+      </form>
+    </div>
+  </canvas>
   <div class="operation-room__reader" data-operation-room-reader aria-hidden="true">
     <button class="operation-room__reader-backdrop" type="button" data-operation-room-reader-close aria-label="Close article"></button>
     <article class="operation-room__document" data-operation-room-document role="dialog" aria-modal="true" aria-labelledby="operation-room-reader-title" tabindex="-1">
@@ -72,6 +83,7 @@ const [writingPosts, talks] = await Promise.all([
     <button class="operation-room__control" type="button" data-operation-room-reset>Reset view</button>
     <button class="operation-room__control" type="button" data-operation-room-copy-camera>Copy camera</button>
   </div>
+  <p class="operation-room__radio-fallback" data-radio-contact-fallback hidden><a href="/contact">Contact via the contact page</a></p>
   <p class="operation-room__live sr-only" data-operation-room-live aria-live="polite">Work selected</p>
   <nav id="experience-navigation" class="operation-room__fallback" aria-label="Portfolio sections" tabindex="-1">
     <p>3D navigation fallback</p>
@@ -232,7 +244,14 @@ const [writingPosts, talks] = await Promise.all([
     const onMusicClick = () => { void toggleMusic() }
     const onMusicKey = (event: KeyboardEvent) => {
       if (event.key !== 'm' && event.key !== 'M') return
-      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return
+      if (
+        event.target instanceof HTMLInputElement ||
+        event.target instanceof HTMLTextAreaElement ||
+        event.target instanceof HTMLButtonElement ||
+        (event.target instanceof HTMLElement && event.target.isContentEditable)
+      ) {
+        return
+      }
       event.preventDefault()
       void toggleMusic()
     }
@@ -242,7 +261,14 @@ const [writingPosts, talks] = await Promise.all([
     }
     const onFirstKey = (event: KeyboardEvent) => {
       if (event.key === 'm' || event.key === 'M') return
-      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return
+      if (
+        event.target instanceof HTMLInputElement ||
+        event.target instanceof HTMLTextAreaElement ||
+        event.target instanceof HTMLButtonElement ||
+        (event.target instanceof HTMLElement && event.target.isContentEditable)
+      ) {
+        return
+      }
       void startMusicIfEnabled()
     }
 
@@ -284,6 +310,7 @@ const [writingPosts, talks] = await Promise.all([
 <style>
   .operation-room { position: relative; width: 100vw; height: 100dvh; overflow: hidden; background: #202926; }
   .operation-room__canvas { display: block; width: 100%; height: 100%; touch-action: none; outline: none; transform-origin: 59% 33%; transition: transform 1650ms cubic-bezier(.2,.78,.18,1), filter 900ms ease; will-change: transform; }
+  .operation-room__canvas:focus-visible { outline: 2px solid #9cb97d; outline-offset: -2px; }
   .operation-room[data-projector-view='deploying'] .operation-room__canvas,
   .operation-room[data-projector-view='open'] .operation-room__canvas { transform: scale(1.68); filter: brightness(.68) saturate(.78); pointer-events: none; }
   .operation-room[data-projector-view='closing'] .operation-room__canvas { transform: scale(1); filter: none; pointer-events: none; transition-duration: 460ms; }
@@ -351,6 +378,17 @@ const [writingPosts, talks] = await Promise.all([
   .operation-room__control:hover, .operation-room__control:focus-visible { outline: none; background: #36572f; border-color: #9cb97d; }
   .operation-room__control[aria-pressed='true'] { color: #eef3cf; background: #36572f; border-color: #9cb97d; box-shadow: inset 0 0 0 1px rgb(156 185 125 / .18); }
   .operation-room__control[hidden] { display: none; }
+  .operation-room__radio-contact { width: 560px; height: 336px; visibility: hidden; }
+  .operation-room__radio-contact form { display: grid; gap: .6rem; align-content: start; box-sizing: border-box; width: 100%; height: 100%; padding: 1.1rem 1.2rem; color: #28261e; background: #e2d3ad; border: 1px solid rgb(69 63 47 / .5); font: .8rem/1.45 ui-monospace, monospace; }
+  .operation-room__radio-kicker { margin: 0; font-weight: 700; letter-spacing: .18em; }
+  .operation-room__radio-field { display: grid; gap: .25rem; font-size: .68rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+  .operation-room__radio-field input, .operation-room__radio-field textarea { box-sizing: border-box; width: 100%; padding: .45rem .55rem; color: #1d1c14; background: #f2e9cd; border: 1px solid rgb(61 57 44 / .6); font: 1rem/1.4 Georgia, serif; }
+  .operation-room__radio-honeypot { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+  .operation-room__radio-submit { padding: .6rem; color: #f3edcf; background: #36572f; border: 1px solid #9cb97d; font: inherit; font-weight: 700; letter-spacing: .16em; cursor: pointer; }
+  .operation-room__radio-status { min-height: 1.4em; margin: 0; font-weight: 700; letter-spacing: .06em; }
+  .operation-room__radio-fallback { position: absolute; z-index: 26; left: 50%; bottom: 4.5rem; margin: 0; transform: translateX(-50%); }
+  .operation-room__radio-fallback[hidden] { display: none; }
+  .operation-room__radio-fallback a { display: inline-block; padding: .55rem .8rem; color: #f3edcf; background: rgb(13 17 15 / .96); border: 1px solid #718461; font-size: .75rem; text-transform: uppercase; text-decoration: none; }
   .operation-room__zoom-out { border-color: #b0c991; background: rgb(54 87 47 / .88); }
   .operation-room__camera-readout { position: absolute; left: 1rem; top: .75rem; max-width: calc(100vw - 2rem); padding: .35rem .55rem; color: rgb(240 235 208 / .88); background: rgb(14 20 18 / .68); border: 1px solid rgb(113 132 97 / .65); font: .68rem ui-monospace, SFMono-Regular, Menlo, monospace; white-space: nowrap; pointer-events: none; transition: opacity 180ms ease; }
   .operation-room__fallback { position: fixed; z-index: 20; left: 50%; bottom: 1rem; display: flex; gap: .25rem; align-items: center; max-width: calc(100vw - 2rem); padding: .4rem; transform: translate(-50%, calc(100% + 3rem)); color: #f3edcf; background: rgb(13 17 15 / .96); border: 1px solid #718461; box-shadow: 0 .5rem 2rem rgb(0 0 0 / .32); transition: transform 140ms ease; }

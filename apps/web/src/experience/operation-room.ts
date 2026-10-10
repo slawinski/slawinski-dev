@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+import { createRadioContactPanel } from './operation-room-radio-contact'
 
 type SectionId = 'work' | 'writing' | 'speaking' | 'about' | 'contact'
 
@@ -961,7 +962,7 @@ const createDeskLamp = (scene: THREE.Scene, x: number, z: number, scale = 1, rot
   return lightSource
 }
 
-const createRadioDesk = (scene: THREE.Scene) => {
+const createRadioDesk = (scene: THREE.Scene): THREE.Group => {
   const { x, y, z, width, depth } = WORLD.radioDesk
   scene.add(box([width, 0.14, depth], [x, y, z], materials.wood))
   for (const lx of [x - width / 2 + 0.25, x + width / 2 - 0.25]) scene.add(box([0.24, y, 0.24], [lx, y / 2, z - depth * 0.25], materials.woodDark))
@@ -1038,6 +1039,7 @@ const createRadioDesk = (scene: THREE.Scene) => {
   radioGroup.add(key)
 
   scene.add(radioGroup)
+  return radioGroup
 }
 
 const createOpenFilmReel = (radius: number, metal: THREE.Material, dark: THREE.Material) => {
@@ -2104,7 +2106,7 @@ const createHoverTarget = (
 }
 
 const createScene = (scene: THREE.Scene, camera: THREE.PerspectiveCamera, posts: WritingPost[]) => {
-  const updateClock = createRoomShell(scene); const closet = createBackCloset(scene); createTable(scene); createRadioDesk(scene); createMapBoard(scene); const projector = createProjector(scene); createFilmReelStorage(scene); const projectionScreen = createProjectionScreen(scene); createPaperCluster(scene); const writingPapers = createFolders(scene, posts); const fanSpinner = createWallFan(scene)
+  const updateClock = createRoomShell(scene); const closet = createBackCloset(scene); createTable(scene); const radioGroup = createRadioDesk(scene); createMapBoard(scene); const projector = createProjector(scene); createFilmReelStorage(scene); const projectionScreen = createProjectionScreen(scene); createPaperCluster(scene); const writingPapers = createFolders(scene, posts); const fanSpinner = createWallFan(scene)
   createChair(scene, -4.65, 0.65, -1.07); createChair(scene, 2.5, -0.2, 1.91); createChair(scene, 2.5, 3.35, 1.31)
   createRotaryTelephone(scene, -0.6, -2.65, 0x30483b, Math.PI); createRotaryTelephone(scene, -0.6, -1.0, 0xe9dfc2, 1.57); createRotaryTelephone(scene, -0.6, 0, 0xa84428, -1.57); createRotaryTelephone(scene, -0.6, 1.0, 0xe9dfc2, 1.57); createRotaryTelephone(scene, -0.6, 2.0, 0x30483b, -1.57)
   createPostPhoneShelf(scene)
@@ -2138,7 +2140,7 @@ const hoverTargets: HoverTarget[] = [
   createHoverTarget(scene, 'back-door', 'ABOUT', [1.8, 4.85, 0.12], [2.75, 2.45, WORLD.backWallZ + 0.20], [0, 0, 0], [closetLampSource]),
 ]
   camera.position.set(-4.08, 4.47, 10.34); camera.lookAt(-2.15, 2.7, -4.75)
-  return { hotspots, hoverTargets, boardDraw, fanSpinner, updateClock, projector, projectionScreen, closet, writingPapers }
+  return { hotspots, hoverTargets, boardDraw, fanSpinner, updateClock, projector, projectionScreen, closet, writingPapers, radioGroup }
 }
 
 export const mountOperationRoom = (root: HTMLElement) => {
@@ -2165,7 +2167,7 @@ export const mountOperationRoom = (root: HTMLElement) => {
   const postsNode = root.querySelector<HTMLScriptElement>('[data-operation-room-posts]')
   let writingPosts: WritingPost[] = []
   try { writingPosts = postsNode?.textContent ? JSON.parse(postsNode.textContent) as WritingPost[] : [] } catch { writingPosts = [] }
-  const { hotspots, hoverTargets, boardDraw, fanSpinner, updateClock, projector, projectionScreen, closet, writingPapers } = createScene(scene, camera, writingPosts)
+  const { hotspots, hoverTargets, boardDraw, fanSpinner, updateClock, projector, projectionScreen, closet, writingPapers, radioGroup } = createScene(scene, camera, writingPosts)
   const pointer = new THREE.Vector2(2, 2)
   const hoverRaycaster = new THREE.Raycaster()
   const HOME_POSITION = new THREE.Vector3(-5.08, 4.14, 8.58)
@@ -2522,6 +2524,7 @@ const selectDefault = () => { activeId = 'work'; boardDraw(''); hotspots.forEach
     }
   }
   const onPointerDown = (event: PointerEvent) => {
+    if (event.target !== canvas) return
     if (viewMode !== 'trays' || !writingPapers.hasPapers()) return
     updatePointer(event)
     hoverRaycaster.setFromCamera(pointer, camera)
@@ -2532,6 +2535,7 @@ const selectDefault = () => { activeId = 'work'; boardDraw(''); hotspots.forEach
     }
   }
   const onPointerUp = (event: PointerEvent) => {
+    if (event.target !== canvas) return
     if (viewMode === 'trays' && writingPapers.isDragging()) {
       const result = writingPapers.drop()
       canvas.releasePointerCapture?.(event.pointerId)
@@ -2651,6 +2655,15 @@ const selectDefault = () => { activeId = 'work'; boardDraw(''); hotspots.forEach
     controls.update()
   }
   const onKeyDown = (event: KeyboardEvent) => {
+    // The radio contact form lives inside the canvas; never steal its keystrokes.
+    if (
+      event.target instanceof HTMLInputElement ||
+      event.target instanceof HTMLTextAreaElement ||
+      event.target instanceof HTMLButtonElement ||
+      (event.target instanceof HTMLElement && event.target.isContentEditable)
+    ) {
+      return
+    }
     if (['ArrowLeft', 'ArrowRight', '+', '=', '-', '_', '0', 'r', 'R', 'w', 'W', 'a', 'A', 's', 'S', 'd', 'D'].includes(event.key)) event.preventDefault(); else return
     const index = SECTION_ORDER.indexOf(activeId)
     if (event.key === 'ArrowLeft') setActive(SECTION_ORDER[(index - 1 + SECTION_ORDER.length) % SECTION_ORDER.length])
@@ -2752,6 +2765,17 @@ const selectDefault = () => { activeId = 'work'; boardDraw(''); hotspots.forEach
     } else {
       controls.update()
     }
+    if (radioContact) {
+      radioContact.setActive(viewMode === 'radio' && !cameraTransition)
+      radioContact.update()
+    }
+    // Fallback link only makes sense as a settled-radio-view alternative when
+    // HTML-in-canvas is unsupported; keep it hidden everywhere else.
+    if (radioContactFallback) {
+      const showFallback =
+        !!radioContact && !radioContact.supported && viewMode === 'radio' && !cameraTransition
+      radioContactFallback.toggleAttribute('hidden', !showFallback)
+    }
     renderer.render(scene, camera); frame = requestAnimationFrame(render)
   }
   const onContextLost = (event: Event) => { event.preventDefault(); root.dataset.webgl = 'failed' }
@@ -2805,6 +2829,15 @@ const selectDefault = () => { activeId = 'work'; boardDraw(''); hotspots.forEach
     }
   }
 
+  const radioContactForm = root.querySelector<HTMLElement>('[data-radio-contact]')
+  const radioContactFallback = root.querySelector<HTMLElement>('[data-radio-contact-fallback]')
+  const radioContact = radioContactForm ? createRadioContactPanel({ canvas, camera, controls, renderer, radioGroup, isRadioSettled: () => viewMode === 'radio' && !cameraTransition }, radioContactForm) : null
+  if (radioContact && !radioContact.supported) {
+    root.dataset.radioContact = 'fallback'
+    // Visibility is driven per-frame in render() so the link only appears in
+    // the settled radio view; keep it hidden until then.
+    radioContactFallback?.setAttribute('hidden', '')
+  }
   resize(); selectDefault(); updateCameraReadout(); loading?.setAttribute('data-ready', 'true')
   controls.addEventListener('change', updateCameraReadout)
   canvas.addEventListener('pointerdown', onPointerDown); canvas.addEventListener('pointermove', onPointerMove); canvas.addEventListener('pointerup', onPointerUp); canvas.addEventListener('keydown', onKeyDown); canvas.addEventListener('webglcontextlost', onContextLost); resetButton?.addEventListener('click', onResetClick); zoomOutButton?.addEventListener('click', onZoomOutClick); copyCameraButton?.addEventListener('click', onCopyCameraClick)
@@ -2813,7 +2846,7 @@ const selectDefault = () => { activeId = 'work'; boardDraw(''); hotspots.forEach
   frame = requestAnimationFrame(render)
 
   return () => {
-    disposed = true; cancelAnimationFrame(frame)
+    disposed = true; cancelAnimationFrame(frame); radioContact?.dispose(); delete root.dataset.radioContact; radioContactFallback?.setAttribute('hidden', '')
     controls.removeEventListener('change', updateCameraReadout)
     cameraReadout.remove()
     canvas.removeEventListener('pointerdown', onPointerDown); canvas.removeEventListener('pointermove', onPointerMove); canvas.removeEventListener('pointerup', onPointerUp); canvas.removeEventListener('keydown', onKeyDown); canvas.removeEventListener('webglcontextlost', onContextLost); resetButton?.removeEventListener('click', onResetClick); zoomOutButton?.removeEventListener('click', onZoomOutClick); copyCameraButton?.removeEventListener('click', onCopyCameraClick)
